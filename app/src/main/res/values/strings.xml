@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">AccurateDamoov</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="start_trip">Start Trip</string>
+    <string name="stop_trip">Stop Trip</string>
+    <string name="title_feed">Feed</string>
+    <string name="zero_trips_found">No trips are found</string>
+</resources>

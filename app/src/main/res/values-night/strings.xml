@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="start_trip">Start Trip</string>
+    <string name="stop_trip">Stop Trip</string>
+    <string name="title_feed">Feed</string>
+    <string name="zero_trips_found">No trips are found</string>
+</resources>
