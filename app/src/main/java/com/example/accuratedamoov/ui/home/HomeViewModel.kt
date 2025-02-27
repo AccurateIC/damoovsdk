@@ -31,6 +31,7 @@ class HomeViewModel : ViewModel() {
 
     fun stopTracking() {
         Log.d(TAG, "trip stopped")
+
         trackingApi.stopTracking()
     }
 

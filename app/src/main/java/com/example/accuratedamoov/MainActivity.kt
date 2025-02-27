@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity() {
             when (resultCode) {
                 PermissionsWizardActivity.WIZARD_RESULT_ALL_GRANTED -> {
                     Log.d(TAG, "onActivityResult: WIZARD_RESULT_ALL_GRANTED")
-                    Toast.makeText(this, "All permissions was granted", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(this, "All permissions was granted", Toast.LENGTH_SHORT).show()
                 }
                 PermissionsWizardActivity.WIZARD_RESULT_NOT_ALL_GRANTED -> {
                     Log.d(TAG, "onActivityResult: WIZARD_RESULT_NOT_ALL_GRANTED")
