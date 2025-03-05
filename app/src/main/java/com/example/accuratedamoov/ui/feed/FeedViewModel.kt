@@ -47,37 +47,90 @@ class FeedViewModel : ViewModel() {
 
     private suspend fun fetchTracks() {
         withContext(Dispatchers.IO) {
-            val result = trackingApi!!.getTracks(locale = Locale.EN, startDate =getFormattedDateTime(-1)  , endDate =getFormattedDateTime(-0) ,offset = 0, limit = 10)
-            val trackModels = result?.map {
-                TrackModel(
-                    addressStart = it.addressStart,
-                    addressEnd = it.addressEnd,
-                    endDate = it.endDate,
-                    startDate = it.startDate,
-                    trackId = it.trackId,
-                    accelerationCount = it.accelerationCount,
-                    decelerationCount = it.decelerationCount,
-                    distance = it.distance,
-                    duration = it.duration,
-                    rating = it.rating,
-                    phoneUsage = it.phoneUsage,
-                    originalCode = it.originalCode,
-                    hasOriginChanged = it.hasOriginChanged,
-                    midOverSpeedMileage = it.midOverSpeedMileage,
-                    highOverSpeedMileage = it.highOverSpeedMileage,
-                    drivingTips = it.drivingTips,
-                    shareType = it.shareType,
-                    cityStart = it.cityStart,
-                    cityFinish = it.cityFinish
+            // Currently getting zero tracks as getTracks failed due to an API key issue.
+            // TODO(): Fetch data from our own REST API instead of using the Damoov API.
+            val result = trackingApi!!.getTracks(
+                locale = Locale.EN,
+                offset = 0,
+                limit = 10
+            )
+
+            if(result.isNotEmpty()) {
+                val trackModels = result?.map {
+                    TrackModel(
+                        addressStart = it.addressStart,
+                        addressEnd = it.addressEnd,
+                        endDate = it.endDate,
+                        startDate = it.startDate,
+                        trackId = it.trackId,
+                        accelerationCount = it.accelerationCount,
+                        decelerationCount = it.decelerationCount,
+                        distance = it.distance,
+                        duration = it.duration,
+                        rating = it.rating,
+                        phoneUsage = it.phoneUsage,
+                        originalCode = it.originalCode,
+                        hasOriginChanged = it.hasOriginChanged,
+                        midOverSpeedMileage = it.midOverSpeedMileage,
+                        highOverSpeedMileage = it.highOverSpeedMileage,
+                        drivingTips = it.drivingTips,
+                        shareType = it.shareType,
+                        cityStart = it.cityStart,
+                        cityFinish = it.cityFinish
+                    )
+                } ?: emptyList()
+
+                _tracks.value = trackModels
+            }else{
+              val trackModels = listOf(
+                    TrackModel(
+                        addressStart = "123 Main St, New York, NY",
+                        addressEnd = "456 Elm St, Los Angeles, CA",
+                        endDate = "2025-03-05T18:30:00Z",
+                        startDate = "2025-03-05T15:00:00Z",
+                        trackId = "track_001",
+                        accelerationCount = 12,
+                        decelerationCount = 8,
+                        distance = 350.5,
+                        duration = 12600.0, // in seconds (3.5 hours)
+                        rating = 4.5,
+                        phoneUsage = 2.0,
+                        originalCode = "ORIG_001",
+                        hasOriginChanged = false,
+                        midOverSpeedMileage = 5.2,
+                        highOverSpeedMileage = 1.1,
+                        drivingTips = "Avoid sudden braking",
+                        shareType = "private",
+                        cityStart = "New York",
+                        cityFinish = "Los Angeles"
+                    ),
+                    TrackModel(
+                        addressStart = "789 Pine St, Chicago, IL",
+                        addressEnd = "321 Oak St, Houston, TX",
+                        endDate = "2025-03-06T22:00:00Z",
+                        startDate = "2025-03-06T18:45:00Z",
+                        trackId = "track_002",
+                        accelerationCount = 15,
+                        decelerationCount = 10,
+                        distance = 450.2,
+                        duration = 11700.0, // in seconds (3.25 hours)
+                        rating = 4.8,
+                        phoneUsage = 0.0,
+                        originalCode = "ORIG_002",
+                        hasOriginChanged = true,
+                        midOverSpeedMileage = 3.8,
+                        highOverSpeedMileage = 0.9,
+                        drivingTips = "Maintain a steady speed",
+                        shareType = "public",
+                        cityStart = "Chicago",
+                        cityFinish = "Houston"
+                    )
                 )
-            } ?: emptyList()
-            _tracks.value = trackModels
+                _tracks.value = trackModels
+            }
+
         }
     }
 
-    @SuppressLint("NewApi")
-    fun getFormattedDateTime(daysToAdd: Long): String {
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss ZZ")
-        return ZonedDateTime.now().plusDays(daysToAdd).format(formatter)
-    }
+
 }
