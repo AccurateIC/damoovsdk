@@ -19,7 +19,7 @@ import java.time.format.DateTimeFormatter
 
 class FeedViewModel : ViewModel() {
 
-    private val trackingApi = MainApplication.getTrackingApi()
+    private val trackingApi = TrackingApi.getInstance()
     private val _tracks = MutableStateFlow<List<TrackModel>>(emptyList())
     val tracks: StateFlow<List<TrackModel>> = _tracks.asStateFlow()
 

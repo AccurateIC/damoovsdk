@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -74,9 +75,8 @@ class FeedFragment : Fragment() {
             feedViewModel.tracks.collectLatest { trackList ->
                 if (trackList.isNotEmpty()) {
                     binding.recycleView.adapter = TrackAdapter(trackList) {
-                        // Handle track item click if needed
-
-                        ///show details
+                        // TODO: show Trip details with/without map
+                      // Toast.makeText(context,"hello",Toast.LENGTH_SHORT).show()
                     }
                     binding.recycleView.visibility = View.VISIBLE
                     binding.tvZeroTrips.visibility = View.GONE

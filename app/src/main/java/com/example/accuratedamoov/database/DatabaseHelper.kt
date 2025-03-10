@@ -2,13 +2,14 @@ package com.example.accuratedamoov.database
 
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
+import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
 
 import java.io.File
 
 class DatabaseHelper(context: Context) {
-    private val dbPath = "/data/data/com.example.accuratedamoov/databases/raxel_traker_db"
+    val dbPath = "/data/data/com.example.accuratedamoov/databases/raxel_traker_db"
 
     // 🔹 Check if the database file exists
     private fun databaseExists(): Boolean {
@@ -68,5 +69,33 @@ class DatabaseHelper(context: Context) {
 
         return jsonArray
     }
+
+    fun addSyncedColumnIfNotExists(tableName: String) {
+        val db = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READWRITE)
+
+        try {
+            // Check if "synced" column exists
+            val cursor = db.rawQuery("PRAGMA table_info($tableName)", null)
+            var columnExists = false
+
+            while (cursor.moveToNext()) {
+                val columnName = cursor.getString(cursor.getColumnIndexOrThrow("name"))
+                if (columnName == "synced") {
+                    columnExists = true
+                    break
+                }
+            }
+            cursor.close()
+
+            // If "synced" column does not exist, add it
+            if (!columnExists) {
+                db.execSQL("ALTER TABLE $tableName ADD COLUMN synced INTEGER DEFAULT 0")
+                Log.d("DatabaseHelper", "✅ Added 'synced' column to $tableName")
+            }
+        } catch (e: Exception) {
+            Log.e("DatabaseHelper", "❌ Failed to add 'synced' column to $tableName: ${e.message}")
+        }
+    }
+
 }
 

@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.accuratedamoov.MainApplication
+import com.raxeltelematics.v2.sdk.TrackingApi
 
 @SuppressLint("MissingPermission")
 class HomeViewModel : ViewModel() {
@@ -15,24 +15,21 @@ class HomeViewModel : ViewModel() {
 
     val errMsg: LiveData<String> = _errMsg
 
-
-    private val trackingApi = MainApplication.getTrackingApi()
-
+    private val trackingApi = TrackingApi.getInstance()
 
     fun startTracking() {
-        if(!trackingApi!!.isSdkEnabled()) {
+
+        if (!trackingApi.isSdkEnabled()) {
             Log.d(TAG, "SDK not enabled")
             trackingApi.setEnableSdk(true)
         }
         trackingApi.startTracking()
-        Log.d(TAG, "trip started")
+        Log.d(TAG, "✅ Trip started")
     }
-
 
     fun stopTracking() {
-        Log.d(TAG, "trip stopped")
 
-        trackingApi!!.stopTracking()
+        trackingApi.stopTracking()
+        Log.d(TAG, "✅ Trip stopped")
     }
-
 }

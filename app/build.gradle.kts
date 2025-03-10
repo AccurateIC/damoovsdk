@@ -54,6 +54,11 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation (libs.tracking)
-    implementation("io.reactivex.rxjava3:rxjava:3.1.8")
-    implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
+    implementation(libs.rxjava)
+    implementation(libs.rxandroid)
+    implementation (libs.retrofit)
+    implementation (libs.converter.gson)
+    implementation (libs.logging.interceptor)
+    implementation (libs.androidx.lifecycle.viewmodel.ktx.v262)
+    implementation (libs.androidx.fragment.ktx)
 }

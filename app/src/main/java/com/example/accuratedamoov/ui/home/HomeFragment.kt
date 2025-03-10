@@ -20,10 +20,8 @@ class HomeFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
-    
-    private val homeViewModel: HomeViewModel by viewModels {
-        ViewModelProvider.AndroidViewModelFactory(requireActivity().application)
-    }
+
+    private val homeViewModel: HomeViewModel by viewModels()
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
