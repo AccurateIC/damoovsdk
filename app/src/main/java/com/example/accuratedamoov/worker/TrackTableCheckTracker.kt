@@ -79,16 +79,33 @@ class TrackTableCheckWorker(
             for (i in 0 until tableData.length()) {
                 val item = tableData.getJSONObject(i)
                 val map = mutableMapOf<String, Any>()
-                item.keys().forEach { key -> map[key] = item.get(key) }
-                dataList.add(map)
 
-                // Capture primary key ID for marking records as synced
-                if (item.has("id")) {
-                    syncedIds.add(item.getInt("id"))
-                } else if (item.has("ID")) {
-                    syncedIds.add(item.getInt("ID"))
+                var isValidRecord = true // Flag to check if all columns have valid data
+                item.keys().forEach { key ->
+                    val value = item.get(key)
+
+                    if (value == JSONObject.NULL || (value is String && value.isBlank())) {
+                        isValidRecord = false // Mark as invalid if any column is null or empty
+                    } else {
+                        map[key] = value
+                    }
                 }
 
+                if (isValidRecord) { // Only add fully valid records
+                    dataList.add(map)
+
+                    // Capture primary key ID for marking records as synced
+                    if (item.has("id")) {
+                        syncedIds.add(item.getInt("id"))
+                    } else if (item.has("ID")) {
+                        syncedIds.add(item.getInt("ID"))
+                    }
+                }
+            }
+
+            if (dataList.isEmpty()) {
+                Log.d("OmkarWorkManager", "⚠️ No valid records found for $tableName, skipping sync.")
+                continue
             }
 
             val request = SyncRequest(dataList)
@@ -115,6 +132,7 @@ class TrackTableCheckWorker(
 
         return allSuccessful
     }
+
 
 
     /*private fun emptyTable(context: Context, tableName: String) {

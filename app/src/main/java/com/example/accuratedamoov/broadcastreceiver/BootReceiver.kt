@@ -13,12 +13,14 @@ class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
             val workRequest = PeriodicWorkRequestBuilder<TrackTableCheckWorker>(
-                1, TimeUnit.MINUTES
-            ).build()
+                15, TimeUnit.MINUTES // 🔹 Minimum allowed by WorkManager
+            )
+                .setInitialDelay(1, TimeUnit.MINUTES) // 🔹 Delay after boot
+                .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 "TrackTableCheckWork",
-                ExistingPeriodicWorkPolicy.KEEP,
+                ExistingPeriodicWorkPolicy.KEEP, // 🔹 Ensures only one instance runs
                 workRequest
             )
         }
