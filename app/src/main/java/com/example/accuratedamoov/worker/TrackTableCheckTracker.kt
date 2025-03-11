@@ -51,15 +51,15 @@ class TrackTableCheckWorker(
             val success = withContext(Dispatchers.IO) { syncData(jsonData) }
 
             if (success) {
-                Log.d("OmkarWorkManager", "✅ Data sync successful, marked records as synced.")
+                Log.d("WorkManager", "✅ Data sync successful, marked records as synced.")
                 Result.success()
             } else {
-                Log.e("OmkarWorkManager", "❌ Data sync failed, will retry.")
+                Log.e("WorkManager", "❌ Data sync failed, will retry.")
                 Result.retry()
             }
 
         } catch (e: Exception) {
-            Log.e("OmkarWorkManager", "❌ Error in Worker", e)
+            Log.e("WorkManager", "❌ Error in Worker", e)
             Result.failure()
         }
     }
@@ -68,7 +68,7 @@ class TrackTableCheckWorker(
 
 
     private suspend fun syncData(jsonData: JSONObject): Boolean {
-        val apiService = RetrofitClient.apiService
+        val apiService = RetrofitClient.getApiService(applicationContext)
         var allSuccessful = true
 
         for (tableName in jsonData.keys()) {
@@ -104,7 +104,7 @@ class TrackTableCheckWorker(
             }
 
             if (dataList.isEmpty()) {
-                Log.d("OmkarWorkManager", "⚠️ No valid records found for $tableName, skipping sync.")
+                Log.d("WorkManager", "⚠️ No valid records found for $tableName, skipping sync.")
                 continue
             }
 
@@ -119,13 +119,13 @@ class TrackTableCheckWorker(
                     withContext(Dispatchers.IO) {
                         markRecordsAsSynced(applicationContext, tableName, syncedIds)
                     }
-                    Log.d("OmkarWorkManager", "✅ Sync successful for $tableName")
+                    Log.d("WorkManager", "✅ Sync successful for $tableName")
                 } else {
-                    Log.e("OmkarWorkManager", "❌ Sync failed for $tableName: ${response.errorBody()?.string()}")
+                    Log.e("WorkManager", "❌ Sync failed for $tableName: ${response.errorBody()?.string()}")
                     allSuccessful = false
                 }
             } catch (e: Exception) {
-                Log.e("OmkarWorkManager", "❌ Sync error for $tableName: ${e.message}")
+                Log.e("WorkManager", "❌ Sync error for $tableName: ${e.message}")
                 allSuccessful = false
             }
         }
@@ -165,9 +165,9 @@ class TrackTableCheckWorker(
             val idList = ids.joinToString(",") // Convert list to SQL IN clause format
             db.execSQL("UPDATE $tableName SET synced = 1 WHERE id IN ($idList)")
             db.setTransactionSuccessful()
-            Log.d("OmkarWorkManager", "✅ Marked records as synced in $tableName")
+            Log.d("WorkManager", "✅ Marked records as synced in $tableName")
         } catch (e: Exception) {
-            Log.e("OmkarWorkManager", "❌ Failed to mark records as synced in $tableName: ${e.message}")
+            Log.e("WorkManager", "❌ Failed to mark records as synced in $tableName: ${e.message}")
         } finally {
             db.endTransaction()
         }

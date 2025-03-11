@@ -13,6 +13,7 @@
         android:layout_height="wrap_content"
         android:hint="@string/enter_api_url"
         android:inputType="textUri"
+        style="@style/ThemeOverlay.Material3.TextInputEditText"
         android:layout_marginTop="16dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"

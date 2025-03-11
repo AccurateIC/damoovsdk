@@ -4,26 +4,17 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import android.Manifest
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.accuratedamoov.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
 import com.raxeltelematics.v2.sdk.Settings
 import com.raxeltelematics.v2.sdk.TrackingApi
-import com.raxeltelematics.v2.sdk.utils.permissions.PermissionsDialogFragment
 import com.raxeltelematics.v2.sdk.utils.permissions.PermissionsWizardActivity
-
-
-
-
-
 
 
 class MainActivity : AppCompatActivity() {
@@ -76,7 +67,7 @@ class MainActivity : AppCompatActivity() {
                 )
             )
 
-            setupActionBarWithNavController(navController, appBarConfiguration)
+            //setupActionBarWithNavController(navController, appBarConfiguration)
             binding.navView.setupWithNavController(navController)
         }
     }
@@ -112,7 +103,7 @@ class MainActivity : AppCompatActivity() {
         val settings = Settings(
             stopTrackingTimeout = Settings.stopTrackingTimeHigh,
             accuracy = Settings.accuracyHigh,
-            autoStartOn = false,
+            autoStartOn = true,
             elmOn = false,
             hfOn = true
         )
