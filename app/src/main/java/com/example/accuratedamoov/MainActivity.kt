@@ -7,6 +7,8 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import android.Manifest
+import android.view.animation.AnimationUtils
+import androidx.navigation.NavOptions
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
@@ -69,6 +71,26 @@ class MainActivity : AppCompatActivity() {
 
             //setupActionBarWithNavController(navController, appBarConfiguration)
             binding.navView.setupWithNavController(navController)
+            binding.navView.setOnItemSelectedListener { item ->
+                val currentDestination = navController.currentDestination?.id
+                if (currentDestination == item.itemId) {
+                    // If already on the selected tab, do nothing
+                    return@setOnItemSelectedListener true
+                }
+                val navOptions = NavOptions.Builder()
+                    .setEnterAnim(R.anim.fragment_enter)  // Slide in
+                    .setExitAnim(R.anim.fragment_exit)  // Slide out
+                    .setPopEnterAnim(R.anim.fragment_enter)
+                    .setPopExitAnim(R.anim.fragment_exit)
+                    .build()
+
+                when (item.itemId) {
+                    R.id.navigation_home -> navController.navigate(R.id.navigation_home, null, navOptions)
+                    R.id.navigation_feed -> navController.navigate(R.id.navigation_feed, null, navOptions)
+                    R.id.navigation_settings -> navController.navigate(R.id.navigation_settings, null, navOptions)
+                }
+                true
+            }
         }
     }
 
