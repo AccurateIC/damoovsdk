@@ -3,7 +3,9 @@ package com.example.accuratedamoov
 
 import android.app.Application
 import android.content.Context
+import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -24,10 +26,16 @@ class MainApplication : Application() {
     }
 
     private fun scheduleWorker(syncInterval: Long) {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED) // Requires network
+            .setRequiresBatteryNotLow(true) // Avoids running on low battery
+            .build()
+
         val workRequest = PeriodicWorkRequestBuilder<TrackTableCheckWorker>(
             syncInterval, TimeUnit.MINUTES // Apply user-defined interval
         )
             .setInitialDelay(60, TimeUnit.SECONDS) // Delay before first execution
+            .setConstraints(constraints) // Apply constraints
             .build()
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(

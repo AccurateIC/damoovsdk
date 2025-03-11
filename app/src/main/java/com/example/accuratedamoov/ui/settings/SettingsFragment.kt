@@ -14,7 +14,9 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.accuratedamoov.databinding.FragmentSettingsBinding
@@ -70,18 +72,26 @@ class SettingsFragment : Fragment() {
     }
 
     private fun scheduleWorker(intervalMinutes: Int) {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED) // Requires network
+            .setRequiresBatteryNotLow(true) // Avoids running on low battery
+            .build()
+
         val workRequest = PeriodicWorkRequestBuilder<TrackTableCheckWorker>(
-            intervalMinutes.toLong(), TimeUnit.MINUTES
-        ).build()
+            intervalMinutes.toLong(), TimeUnit.MINUTES // Apply user-defined interval
+        )
+            .setInitialDelay(60, TimeUnit.SECONDS) // Delay before first execution
+            .setConstraints(constraints) // Apply constraints
+            .build()
 
         WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
             "TrackTableCheckWorker",
-            ExistingPeriodicWorkPolicy.UPDATE,
+            ExistingPeriodicWorkPolicy.UPDATE, // Ensure the new interval takes effect
             workRequest
         )
-
-        Toast.makeText(requireContext(), "Worker set to run every $intervalMinutes minutes", Toast.LENGTH_SHORT).show()
     }
+
+
 
     override fun onDestroyView() {
         super.onDestroyView()
