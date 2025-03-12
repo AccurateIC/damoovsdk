@@ -3,15 +3,21 @@ package com.example.accuratedamoov.worker
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.example.accuratedamoov.data.network.RetrofitClient
 import com.example.accuratedamoov.data.network.SyncRequest
 import com.example.accuratedamoov.database.DatabaseHelper
+import com.raxeltelematics.v2.sdk.TrackingApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 import org.json.JSONObject
+import java.util.concurrent.TimeUnit
 
 class TrackTableCheckWorker(
     appContext: Context,
@@ -27,6 +33,10 @@ class TrackTableCheckWorker(
                 "RangeVerticalTable", "RangeAccuracyTable", "RangeSpeedTable", "TrackTable"
             )
 
+
+
+
+            return Result.success()
             // Ensure each table has the 'synced' column
             for (table in tableNames) {
                 dbHelper.addSyncedColumnIfNotExists(table)

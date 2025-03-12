@@ -73,20 +73,17 @@ class FeedFragment : Fragment() {
     private fun observeData() {
         lifecycleScope.launch {
             feedViewModel.tracks.collectLatest { trackList ->
-                if (trackList.isNotEmpty()) {
-                    binding.recycleView.adapter = TrackAdapter(trackList) {
-                        // TODO: show Trip details with/without map
-                      // Toast.makeText(context,"hello",Toast.LENGTH_SHORT).show()
-                    }
-                    binding.recycleView.visibility = View.VISIBLE
-                    binding.tvZeroTrips.visibility = View.GONE
-                } else {
-                    binding.recycleView.visibility = View.GONE
-                    binding.tvZeroTrips.visibility = View.VISIBLE
+                if (!isAdded || _binding == null) return@collectLatest  // Check before accessing binding
+
+                binding.recycleView.adapter = TrackAdapter(trackList) {
+                    // TODO: show Trip details with/without map
                 }
+                binding.recycleView.visibility = if (trackList.isNotEmpty()) View.VISIBLE else View.GONE
+                binding.tvZeroTrips.visibility = if (trackList.isEmpty()) View.VISIBLE else View.GONE
             }
         }
     }
+
 
     private fun requestLocationPermission() {
         context?.let {
