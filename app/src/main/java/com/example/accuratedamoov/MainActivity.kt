@@ -28,8 +28,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val TAG: String = this::class.java.simpleName
     private var isTrackingInitialized = false
-
-    // initialize callback
+    // temporary fix to start auto trip
     val callback = object : com.raxeltelematics.v2.sdk.LocationListener {
         override fun onLocationChanged(location: Location?) {
             if (TrackingApi.getInstance().isSdkEnabled() && !TrackingApi.getInstance()
@@ -41,7 +40,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    // Don't forget to remove callback by passing null to this method when it is not needed
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -82,7 +80,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupNavigation() {
-        // Ensure the fragment is attached before finding NavController
         binding.root.post {
             val navController = try {
                 findNavController(R.id.nav_host_fragment_activity_main)
@@ -209,9 +206,9 @@ class MainActivity : AppCompatActivity() {
             return
         }
         api.setEnableSdk(true)
-        if(api.isSdkEnabled() && !api.isTracking()) {
+        /*if(api.isSdkEnabled() && !api.isTracking()) {
             api.startTracking()
-        }
+        }*/
         // register it in SDK
         //   TrackingApi.getInstance().setLocationListener(callback)
     }

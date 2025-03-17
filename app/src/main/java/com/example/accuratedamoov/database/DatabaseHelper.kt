@@ -1,6 +1,7 @@
 package com.example.accuratedamoov.database
 
 import android.content.Context
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import org.json.JSONArray
@@ -96,6 +97,35 @@ class DatabaseHelper(context: Context) {
             Log.e("DatabaseHelper", "❌ Failed to add 'synced' column to $tableName: ${e.message}")
         }
     }
+
+
+    fun getUnsyncedTableData(tableName: String): JSONArray {
+        val db = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READONLY)
+        val cursor = db.rawQuery("SELECT * FROM $tableName WHERE synced = 0", null)
+        return cursorToJson(cursor)
+    }
+
+
+
+
+    fun cursorToJson(cursor: Cursor): JSONArray {
+        val jsonArray = JSONArray()
+
+        if (cursor.moveToFirst()) {
+            do {
+                val jsonObject = JSONObject()
+                for (i in 0 until cursor.columnCount) {
+                    jsonObject.put(cursor.getColumnName(i), cursor.getString(i))
+                }
+                jsonArray.put(jsonObject)
+            } while (cursor.moveToNext())
+        }
+
+        cursor.close()
+        return jsonArray
+    }
+
+
 
 }
 

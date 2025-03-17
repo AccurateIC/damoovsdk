@@ -19,6 +19,9 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
+
+
+
 class TrackTableCheckWorker(
     appContext: Context,
     workerParams: WorkerParameters
@@ -33,11 +36,6 @@ class TrackTableCheckWorker(
                 "RangeVerticalTable", "RangeAccuracyTable", "RangeSpeedTable", "TrackTable"
             )
 
-
-
-
-            return Result.success()
-            // Ensure each table has the 'synced' column
             for (table in tableNames) {
                 dbHelper.addSyncedColumnIfNotExists(table)
             }
@@ -46,9 +44,9 @@ class TrackTableCheckWorker(
             var hasDataToSync = false
 
             for (table in tableNames) {
-                val rowCount = dbHelper.getRowCount(table)
-                if (rowCount > 0) {
-                    jsonData.put(table, dbHelper.getTableData(table))
+                val tableData = dbHelper.getUnsyncedTableData(table) // Fetch only unsynced records
+                if (tableData.length() > 0) {
+                    jsonData.put(table, tableData)
                     hasDataToSync = true
                 }
             }
@@ -74,9 +72,6 @@ class TrackTableCheckWorker(
         }
     }
 
-
-
-
     private suspend fun syncData(jsonData: JSONObject): Boolean {
         val apiService = RetrofitClient.getApiService(applicationContext)
         var allSuccessful = true
@@ -84,27 +79,25 @@ class TrackTableCheckWorker(
         for (tableName in jsonData.keys()) {
             val tableData = jsonData.getJSONArray(tableName)
             val dataList = mutableListOf<Map<String, Any>>()
-            val syncedIds = mutableListOf<Int>() // Store successfully synced record IDs
+            val syncedIds = mutableListOf<Int>()
 
             for (i in 0 until tableData.length()) {
                 val item = tableData.getJSONObject(i)
                 val map = mutableMapOf<String, Any>()
 
-                var isValidRecord = true // Flag to check if all columns have valid data
+                var isValidRecord = true
                 item.keys().forEach { key ->
                     val value = item.get(key)
-
                     if (value == JSONObject.NULL || (value is String && value.isBlank())) {
-                        isValidRecord = false // Mark as invalid if any column is null or empty
+                        isValidRecord = false
                     } else {
                         map[key] = value
                     }
                 }
 
-                if (isValidRecord) { // Only add fully valid records
+                if (isValidRecord) {
                     dataList.add(map)
 
-                    // Capture primary key ID for marking records as synced
                     if (item.has("id")) {
                         syncedIds.add(item.getInt("id"))
                     } else if (item.has("ID")) {
@@ -143,27 +136,6 @@ class TrackTableCheckWorker(
         return allSuccessful
     }
 
-
-
-    /*private fun emptyTable(context: Context, tableName: String) {
-        val dbHelper = DatabaseHelper(context)
-        val db = SQLiteDatabase.openDatabase(dbHelper.dbPath, null, SQLiteDatabase.OPEN_READWRITE)
-
-        db.beginTransaction()
-        try {
-            if(tableName != "TrackTable") {
-                db.execSQL("DELETE FROM $tableName") // ✅ Clears all records
-                db.setTransactionSuccessful()
-            }
-            Log.d("OmkarWorkManager", "Emptied table: $tableName")
-        } catch (e: Exception) {
-            Log.e("OmkarWorkManager", "❌ Failed to empty table $tableName: ${e.message}")
-        } finally {
-            db.endTransaction()
-        }
-    }*/
-
-
     private fun markRecordsAsSynced(context: Context, tableName: String, ids: List<Int>) {
         if (ids.isEmpty()) return
 
@@ -172,7 +144,7 @@ class TrackTableCheckWorker(
 
         db.beginTransaction()
         try {
-            val idList = ids.joinToString(",") // Convert list to SQL IN clause format
+            val idList = ids.joinToString(",")
             db.execSQL("UPDATE $tableName SET synced = 1 WHERE id IN ($idList)")
             db.setTransactionSuccessful()
             Log.d("WorkManager", "✅ Marked records as synced in $tableName")
@@ -182,6 +154,6 @@ class TrackTableCheckWorker(
             db.endTransaction()
         }
     }
-
 }
+
 

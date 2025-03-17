@@ -23,13 +23,17 @@ class HomeViewModel : ViewModel() {
             Log.d(TAG, "SDK not enabled")
             trackingApi.setEnableSdk(true)
         }
-        trackingApi.startTracking()
-        Log.d(TAG, "✅ Trip started")
+        if(!trackingApi.isTracking()) {
+            trackingApi.startTracking()
+            Log.d(TAG, "Trip started")
+        }
     }
 
     fun stopTracking() {
+        if(trackingApi.isTracking()) {
+            trackingApi.stopTracking()
+            Log.d(TAG, "Trip stopped")
+        }
 
-        trackingApi.stopTracking()
-        Log.d(TAG, "✅ Trip stopped")
     }
 }
