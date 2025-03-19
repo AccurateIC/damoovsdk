@@ -21,6 +21,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.accuratedamoov.databinding.FragmentSettingsBinding
 import com.example.accuratedamoov.worker.TrackTableCheckWorker
+import com.google.android.material.snackbar.Snackbar
 import java.util.concurrent.TimeUnit
 
 class SettingsFragment : Fragment() {
@@ -38,6 +39,9 @@ class SettingsFragment : Fragment() {
         val root: View = binding.root
 
         setupSpinner()
+        val sharedPreferences = context?.getSharedPreferences("appSettings", Context.MODE_PRIVATE)
+        val baseUrl:String = sharedPreferences?.getString("api_url", "http://192.168.1.119:5000/") ?: "http://192.168.1.119:5000/"
+        binding.apiUrlEditText.setText(baseUrl)
         binding.saveButton.setOnClickListener { saveSettings() }
 
         return root
@@ -57,18 +61,27 @@ class SettingsFragment : Fragment() {
         val apiUrl = binding.apiUrlEditText.text.toString().trim()
 
         if (apiUrl.isEmpty()) {
-            Toast.makeText(requireContext(), "Please enter a valid API URL", Toast.LENGTH_SHORT).show()
+            Snackbar.make(binding.root, "Please enter a valid API URL", Toast.LENGTH_SHORT).show()
             return
         }
 
         // Store settings (SharedPreferences or Database)
-        val sharedPreferences = requireContext().getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+        val sharedPreferences = requireContext().getSharedPreferences("appSettings", Context.MODE_PRIVATE)
         sharedPreferences.edit()
             .putString("api_url", apiUrl)
             .putInt("sync_interval", intervalMinutes)
             .apply()
 
         scheduleWorker(intervalMinutes)
+
+        hideKeyboard(binding.apiUrlEditText)
+        Snackbar.make(
+            binding.root,
+            "saved",
+            Snackbar.LENGTH_LONG
+        ).show()
+
+
     }
 
     private fun scheduleWorker(intervalMinutes: Int) {

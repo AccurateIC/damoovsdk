@@ -11,6 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.accuratedamoov.databinding.FragmentHomeBinding
+import com.google.android.material.snackbar.Snackbar
 
 class HomeFragment : Fragment() {
     val TAG:String = this::class.java.simpleName
@@ -42,7 +43,7 @@ class HomeFragment : Fragment() {
         homeViewModel.errMsg.observe(viewLifecycleOwner, Observer {errMsg ->
 
             if(errMsg.isNotEmpty()){
-                Toast.makeText(requireContext(),errMsg,Toast.LENGTH_LONG).show()
+                Snackbar.make(binding.root,errMsg,Toast.LENGTH_LONG).show()
 
             }
 

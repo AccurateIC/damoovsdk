@@ -8,8 +8,8 @@ object RetrofitClient {
     private var retrofit: Retrofit? = null
 
     fun getApiService(context: Context): ApiService {
-        val sharedPreferences = context.getSharedPreferences("AppSettings", Context.MODE_PRIVATE)
-        val baseUrl = sharedPreferences.getString("API_URL", "http://192.168.1.119:5000/") ?: "http://192.168.1.119:5000/"
+        val sharedPreferences = context.getSharedPreferences("appSettings", Context.MODE_PRIVATE)
+        val baseUrl = sharedPreferences.getString("api_url", "http://192.168.1.119:5000/") ?: "http://192.168.1.119:5000/"
 
         if (retrofit == null || retrofit!!.baseUrl().toString() != baseUrl) {
             retrofit = Retrofit.Builder()

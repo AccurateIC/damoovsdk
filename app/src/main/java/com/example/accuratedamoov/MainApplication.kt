@@ -21,8 +21,8 @@ class MainApplication : Application() {
         super.onCreate()
 
         // Retrieve saved interval from SharedPreferences, default to 60 minutes
-        val sharedPreferences = getSharedPreferences("AppSettings", Context.MODE_PRIVATE)
-        val syncInterval = sharedPreferences.getInt("SYNC_INTERVAL", 60).toLong() // Default is 60 minutes
+        val sharedPreferences = getSharedPreferences("appSettings", Context.MODE_PRIVATE)
+        val syncInterval = sharedPreferences.getInt("sync_interval", 15).toLong() // Default is 60 minutes
 
         scheduleWorker(syncInterval)
         //scheduleTrackingWorker()

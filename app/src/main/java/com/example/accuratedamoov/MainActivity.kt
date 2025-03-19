@@ -59,21 +59,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkPermissionsAndStartTracking() {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (!TrackingApi.getInstance().areAllRequiredPermissionsAndSensorsGranted()) {
             Log.d(TAG, "Permissions not granted, launching wizard.")
             startActivityForResult(
-                PermissionsWizardActivity.getStartWizardIntent(
-                    this,
-                    enableAggressivePermissionsWizard = false,
-                    enableAggressivePermissionsWizardPage = true
-                ), PermissionsWizardActivity.WIZARD_PERMISSIONS_CODE
+                PermissionsWizardActivity
+                    .getStartWizardIntent(
+                        context = this,
+                        enableAggressivePermissionsWizard  = false,
+                        enableAggressivePermissionsWizardPage  = true
+                    ),
+                PermissionsWizardActivity.WIZARD_PERMISSIONS_CODE
             )
-        } else {
-            Log.d(TAG, "Permissions already granted, enabling tracking.")
+        }else{
+
             enableTracking()
             setupNavigation()
         }
@@ -92,13 +90,13 @@ class MainActivity : AppCompatActivity() {
                 return@post
             }
 
-            val appBarConfiguration = AppBarConfiguration(
+           /* val appBarConfiguration = AppBarConfiguration(
                 setOf(
                     R.id.navigation_home, R.id.navigation_feed, R.id.navigation_settings
                 )
             )
 
-            //setupActionBarWithNavController(navController, appBarConfiguration)
+            //setupActionBarWithNavController(navController, appBarConfiguration)*/
             binding.navView.setupWithNavController(navController)
             binding.navView.setOnItemSelectedListener { item ->
                 val currentDestination = navController.currentDestination?.id
@@ -177,18 +175,10 @@ class MainActivity : AppCompatActivity() {
             hfOn = true,
             elmOn = false
         )
-
         val api = TrackingApi.getInstance()
-        settings.stopTrackingTimeout(15)
-        settings.autoStartOn(true)
-        api.initialize(this, settings)
-        api.setDeviceID(
-            android.provider.Settings.Secure.getString(
-                this.contentResolver,
-                android.provider.Settings.Secure.ANDROID_ID
-            )
-        )
+        api.initialize(applicationContext, settings)
         isTrackingInitialized = true
+
     }
 
     private fun enableTracking() {
@@ -205,19 +195,23 @@ class MainActivity : AppCompatActivity() {
             ).show()
             return
         }
-        api.setEnableSdk(true)
-        /*if(api.isSdkEnabled() && !api.isTracking()) {
+        if(api.areAllRequiredPermissionsAndSensorsGranted()) {
+            api.setDeviceID(
+                android.provider.Settings.Secure.getString(
+                    this.contentResolver,
+                    android.provider.Settings.Secure.ANDROID_ID
+                )
+            )
+            api.setEnableSdk(true)
+            api.startTracking()
+        }
+       /* if(api.isSdkEnabled() && !api.isTracking()) {
             api.startTracking()
         }*/
         // register it in SDK
         //   TrackingApi.getInstance().setLocationListener(callback)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        //TrackingApi.getInstance().setLocationListener(null)
-
-    }
 }
 
 
