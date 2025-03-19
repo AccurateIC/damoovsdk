@@ -1,10 +1,13 @@
 package com.example.accuratedamoov.ui.feed.adapter
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.example.accuratedamoov.databinding.ListItemTripBinding
 import com.example.accuratedamoov.model.TrackModel
+import com.example.accuratedamoov.ui.tripDetails.TripDetailsActivity
 
 class TrackAdapter(
     private val objects: List<TrackModel>,
@@ -31,6 +34,7 @@ class TrackAdapter(
 
             root.setOnClickListener {
                 item.trackId?.let { selectedBlock(it) }
+
             }
             detailsButton.setOnClickListener {
                 item.trackId?.let { selectedBlock(it) }
@@ -39,4 +43,6 @@ class TrackAdapter(
     }
 
     override fun getItemCount() = objects.size
+
+
 }

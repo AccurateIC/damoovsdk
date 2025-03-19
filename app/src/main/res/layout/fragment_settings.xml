@@ -1,61 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.settings.SettingsFragment"
-    android:padding="16dp">
+    android:padding="24dp"
+    tools:context=".ui.settings.SettingsFragment">
 
-    <EditText
-        android:id="@+id/apiUrlEditText"
+    <!-- API URL Input Field -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/apiUrlTextInputLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="@string/enter_api_url"
-        android:inputType="textUri"
-        style="@style/ThemeOverlay.Material3.TextInputEditText"
-        android:layout_marginTop="16dp"
+        app:boxStrokeColor="@color/purple_500"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent">
 
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/apiUrlEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textUri"
+            android:textColor="@android:color/black"
+            android:background="@color/white"
+            android:textSize="16sp"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Interval Selection -->
     <LinearLayout
-        android:id="@+id/intervalSelectorll"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:id="@+id/intervalSelectorLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/apiUrlEditText"
+        android:gravity="center_vertical"
+        android:layout_marginTop="20dp"
+        app:layout_constraintTop_toBottomOf="@id/apiUrlTextInputLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
             android:layout_width="0dp"
-            android:layout_weight="0.5"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:textSize="20sp"
-            android:layout_gravity="start"
-            android:textColor="@color/black"
-            android:text="@string/select_interval_for_sync" />
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/select_interval_for_sync"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            android:padding="8dp"/>
 
-        <Spinner
-            android:id="@+id/syncIntervalSpinner"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="0dp"
-            android:layout_weight="0.5"
-            android:gravity="center_vertical"
-            android:layout_gravity="center_horizontal"
-            android:layout_height="match_parent"
-             />
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:boxStrokeColor="@color/purple_500">
 
+            <Spinner
+                android:id="@+id/syncIntervalSpinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
-    <Button
+
+    <!-- Save Button -->
+   <!-- <com.google.android.material.button.MaterialButton
         android:id="@+id/saveButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="@string/save_apply"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginTop="24dp"
+        android:paddingVertical="12dp"
+        app:cornerRadius="16dp"
+        app:iconPadding="8dp"
+        app:layout_constraintTop_toBottomOf="@id/intervalSelectorLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>-->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/saveButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textColor="@color/purple_500"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/intervalSelectorll"
+        android:paddingVertical="12dp"
+        app:cornerRadius="16dp"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:text="@string/save_apply"
+        app:iconPadding="8dp"
+        app:layout_constraintTop_toBottomOf="@id/intervalSelectorLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 

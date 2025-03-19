@@ -124,7 +124,91 @@ class FeedViewModel : ViewModel() {
                         shareType = "public",
                         cityStart = "Chicago",
                         cityFinish = "Houston"
-                    )
+                    ),
+                  TrackModel(
+                      addressStart = "123 Main St, New York, NY",
+                      addressEnd = "456 Elm St, Los Angeles, CA",
+                      endDate = "2025-03-05T18:30:00Z",
+                      startDate = "2025-03-05T15:00:00Z",
+                      trackId = "track_001",
+                      accelerationCount = 12,
+                      decelerationCount = 8,
+                      distance = 350.5,
+                      duration = 12600.0, // in seconds (3.5 hours)
+                      rating = 4.5,
+                      phoneUsage = 2.0,
+                      originalCode = "ORIG_001",
+                      hasOriginChanged = false,
+                      midOverSpeedMileage = 5.2,
+                      highOverSpeedMileage = 1.1,
+                      drivingTips = "Avoid sudden braking",
+                      shareType = "private",
+                      cityStart = "New York",
+                      cityFinish = "Los Angeles"
+                  ),
+                  TrackModel(
+                      addressStart = "789 Pine St, Chicago, IL",
+                      addressEnd = "321 Oak St, Houston, TX",
+                      endDate = "2025-03-06T22:00:00Z",
+                      startDate = "2025-03-06T18:45:00Z",
+                      trackId = "track_002",
+                      accelerationCount = 15,
+                      decelerationCount = 10,
+                      distance = 450.2,
+                      duration = 11700.0, // in seconds (3.25 hours)
+                      rating = 4.8,
+                      phoneUsage = 0.0,
+                      originalCode = "ORIG_002",
+                      hasOriginChanged = true,
+                      midOverSpeedMileage = 3.8,
+                      highOverSpeedMileage = 0.9,
+                      drivingTips = "Maintain a steady speed",
+                      shareType = "public",
+                      cityStart = "Chicago",
+                      cityFinish = "Houston"
+                  ),
+                  TrackModel(
+                      addressStart = "123 Main St, New York, NY",
+                      addressEnd = "456 Elm St, Los Angeles, CA",
+                      endDate = "2025-03-05T18:30:00Z",
+                      startDate = "2025-03-05T15:00:00Z",
+                      trackId = "track_001",
+                      accelerationCount = 12,
+                      decelerationCount = 8,
+                      distance = 350.5,
+                      duration = 12600.0, // in seconds (3.5 hours)
+                      rating = 4.5,
+                      phoneUsage = 2.0,
+                      originalCode = "ORIG_001",
+                      hasOriginChanged = false,
+                      midOverSpeedMileage = 5.2,
+                      highOverSpeedMileage = 1.1,
+                      drivingTips = "Avoid sudden braking",
+                      shareType = "private",
+                      cityStart = "New York",
+                      cityFinish = "Los Angeles"
+                  ),
+                  TrackModel(
+                      addressStart = "789 Pine St, Chicago, IL",
+                      addressEnd = "321 Oak St, Houston, TX",
+                      endDate = "2025-03-06T22:00:00Z",
+                      startDate = "2025-03-06T18:45:00Z",
+                      trackId = "track_002",
+                      accelerationCount = 15,
+                      decelerationCount = 10,
+                      distance = 450.2,
+                      duration = 11700.0, // in seconds (3.25 hours)
+                      rating = 4.8,
+                      phoneUsage = 0.0,
+                      originalCode = "ORIG_002",
+                      hasOriginChanged = true,
+                      midOverSpeedMileage = 3.8,
+                      highOverSpeedMileage = 0.9,
+                      drivingTips = "Maintain a steady speed",
+                      shareType = "public",
+                      cityStart = "Chicago",
+                      cityFinish = "Houston"
+                  )
                 )
                 _tracks.value = trackModels
             }
