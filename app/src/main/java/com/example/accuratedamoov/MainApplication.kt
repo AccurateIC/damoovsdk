@@ -3,6 +3,8 @@ package com.example.accuratedamoov
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
+
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
@@ -12,6 +14,8 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.accuratedamoov.worker.TrackTableCheckWorker
 import com.example.accuratedamoov.worker.TrackingWorker
+import com.raxeltelematics.v2.sdk.TrackingApi
+
 import java.util.concurrent.TimeUnit
 
 
@@ -20,9 +24,13 @@ class MainApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        if (!TrackingApi.getInstance().isInitialized()) {
+            Log.d("MainApplication","SDK not initialized")
+            TrackingApi.getInstance().initialize(this)
+        }
         // Retrieve saved interval from SharedPreferences, default to 60 minutes
         val sharedPreferences = getSharedPreferences("appSettings", Context.MODE_PRIVATE)
-        val syncInterval = sharedPreferences.getInt("sync_interval", 15).toLong() // Default is 60 minutes
+        val syncInterval = sharedPreferences.getInt("sync_interval", 15).toLong() // Default is 15 minutes
 
         scheduleWorker(syncInterval)
         //scheduleTrackingWorker()

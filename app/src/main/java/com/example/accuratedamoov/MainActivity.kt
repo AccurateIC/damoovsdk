@@ -1,22 +1,23 @@
 package com.example.accuratedamoov
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import android.Manifest
-import android.location.Location
-import android.os.Build
-import android.view.animation.AnimationUtils
-import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavOptions
 import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
+import com.example.accuratedamoov.broadcastreceiver.PermissionChangeReceiver
 import com.example.accuratedamoov.databinding.ActivityMainBinding
-import com.example.accuratedamoov.service.TrackingService
 import com.google.android.material.snackbar.Snackbar
 import com.raxeltelematics.v2.sdk.Settings
 import com.raxeltelematics.v2.sdk.TrackingApi
@@ -28,16 +29,39 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val TAG: String = this::class.java.simpleName
     private var isTrackingInitialized = false
-    // temporary fix to start auto trip
-    val callback = object : com.raxeltelematics.v2.sdk.LocationListener {
-        override fun onLocationChanged(location: Location?) {
-            if (TrackingApi.getInstance().isSdkEnabled() && !TrackingApi.getInstance()
-                    .isTracking()
-            ) {
-                TrackingApi.getInstance().startTracking()
+    private val permissionChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            Log.d("PermissionChangeReceiver", "App permissions might have changed!")
+
+            if (ContextCompat.checkSelfPermission(context!!, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_DENIED) {
+                Log.e("PermissionChangeReceiver", "Location permission was revoked!")
             }
         }
     }
+
+    fun registerPermissionReceiver() {
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_CHANGED)
+            addAction(Intent.ACTION_PACKAGE_REPLACED)
+            addDataScheme("package")  // Important to filter only package changes
+        }
+        registerReceiver(permissionChangeReceiver, filter)
+    }
+
+    fun unregisterPermissionReceiver() {
+        unregisterReceiver(permissionChangeReceiver)
+    }
+    // temporary fix to start auto trip
+    /* val callback = object : com.raxeltelematics.v2.sdk.LocationListener {
+         override fun onLocationChanged(location: Location?) {
+             if (TrackingApi.getInstance().isSdkEnabled() && !TrackingApi.getInstance()
+                     .isTracking()
+             ) {
+                 TrackingApi.getInstance().startTracking()
+             }
+         }
+     }*/
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,6 +73,9 @@ class MainActivity : AppCompatActivity() {
         initializeTrackingApi()
 
         checkPermissionsAndStartTracking()
+        val listener = PermissionChangeReceiver()
+
+
 
         /*val intent = Intent(this, TrackingService::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -62,15 +89,13 @@ class MainActivity : AppCompatActivity() {
         if (!TrackingApi.getInstance().areAllRequiredPermissionsAndSensorsGranted()) {
             Log.d(TAG, "Permissions not granted, launching wizard.")
             startActivityForResult(
-                PermissionsWizardActivity
-                    .getStartWizardIntent(
+                PermissionsWizardActivity.getStartWizardIntent(
                         context = this,
-                        enableAggressivePermissionsWizard  = false,
-                        enableAggressivePermissionsWizardPage  = true
-                    ),
-                PermissionsWizardActivity.WIZARD_PERMISSIONS_CODE
+                        enableAggressivePermissionsWizard = false,
+                        enableAggressivePermissionsWizardPage = true
+                    ), PermissionsWizardActivity.WIZARD_PERMISSIONS_CODE
             )
-        }else{
+        } else {
 
             enableTracking()
             setupNavigation()
@@ -90,13 +115,13 @@ class MainActivity : AppCompatActivity() {
                 return@post
             }
 
-           /* val appBarConfiguration = AppBarConfiguration(
-                setOf(
-                    R.id.navigation_home, R.id.navigation_feed, R.id.navigation_settings
-                )
-            )
+            /* val appBarConfiguration = AppBarConfiguration(
+                 setOf(
+                     R.id.navigation_home, R.id.navigation_feed, R.id.navigation_settings
+                 )
+             )
 
-            //setupActionBarWithNavController(navController, appBarConfiguration)*/
+             //setupActionBarWithNavController(navController, appBarConfiguration)*/
             binding.navView.setupWithNavController(navController)
             binding.navView.setOnItemSelectedListener { item ->
                 val currentDestination = navController.currentDestination?.id
@@ -104,30 +129,23 @@ class MainActivity : AppCompatActivity() {
                     // If already on the selected tab, do nothing
                     return@setOnItemSelectedListener true
                 }
-                val navOptions = NavOptions.Builder()
-                    .setEnterAnim(R.anim.fragment_enter)  // Slide in
-                    .setExitAnim(R.anim.fragment_exit)  // Slide out
-                    .setPopEnterAnim(R.anim.fragment_enter)
-                    .setPopExitAnim(R.anim.fragment_exit)
-                    .build()
+                val navOptions =
+                    NavOptions.Builder().setEnterAnim(R.anim.fragment_enter)  // Slide in
+                        .setExitAnim(R.anim.fragment_exit)  // Slide out
+                        .setPopEnterAnim(R.anim.fragment_enter).setPopExitAnim(R.anim.fragment_exit)
+                        .build()
 
                 when (item.itemId) {
                     R.id.navigation_home -> navController.navigate(
-                        R.id.navigation_home,
-                        null,
-                        navOptions
+                        R.id.navigation_home, null, navOptions
                     )
 
                     R.id.navigation_feed -> navController.navigate(
-                        R.id.navigation_feed,
-                        null,
-                        navOptions
+                        R.id.navigation_feed, null, navOptions
                     )
 
                     R.id.navigation_settings -> navController.navigate(
-                        R.id.navigation_settings,
-                        null,
-                        navOptions
+                        R.id.navigation_settings, null, navOptions
                     )
                 }
                 true
@@ -149,9 +167,7 @@ class MainActivity : AppCompatActivity() {
                 PermissionsWizardActivity.WIZARD_RESULT_NOT_ALL_GRANTED -> {
                     Log.d(TAG, "onActivityResult: WIZARD_RESULT_NOT_ALL_GRANTED")
                     Snackbar.make(
-                        binding.root,
-                        "All permissions were not granted",
-                        Snackbar.LENGTH_LONG
+                        binding.root, "All permissions were not granted", Snackbar.LENGTH_LONG
                     ).show()
                 }
 
@@ -170,46 +186,69 @@ class MainActivity : AppCompatActivity() {
         }
 
         val settings = Settings(
-            Settings.stopTrackingTimeHigh, 150,
-            autoStartOn = true,
-            hfOn = true,
-            elmOn = false
+            Settings.stopTrackingTimeHigh, 150, autoStartOn = true, hfOn = true, elmOn = false
         )
         val api = TrackingApi.getInstance()
+        settings.stopTrackingTimeout(10)
         api.initialize(applicationContext, settings)
         isTrackingInitialized = true
+        val intent = Intent(this, MainActivity::class.java)
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+
+
+        // Wrap the intent in a PendingIntent
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+
+        // Set the intent for notification
+        api.setIntentForNotification(intent) // If your API supports this
+
 
     }
 
+    @SuppressLint("HardwareIds")
     private fun enableTracking() {
         val api = TrackingApi.getInstance()
+       /* val sharedPreferences = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        val editor = sharedPreferences.edit()*/
         if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
+                this, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             Snackbar.make(
-                binding.root,
-                "Please grant all required permissions ",
-                Snackbar.LENGTH_LONG
+                binding.root, "Please grant all required permissions ", Snackbar.LENGTH_LONG
             ).show()
             return
         }
-        if(api.areAllRequiredPermissionsAndSensorsGranted()) {
+        if (api.areAllRequiredPermissionsAndSensorsGranted()) {
             api.setDeviceID(
                 android.provider.Settings.Secure.getString(
-                    this.contentResolver,
-                    android.provider.Settings.Secure.ANDROID_ID
+                    this.contentResolver, android.provider.Settings.Secure.ANDROID_ID
                 )
             )
             api.setEnableSdk(true)
-            api.startTracking()
-        }
-       /* if(api.isSdkEnabled() && !api.isTracking()) {
-            api.startTracking()
-        }*/
+            if(!api.isTracking()) {
+                api.startTracking()
+            }
+        }/* if(api.isSdkEnabled() && !api.isTracking()) {
+             api.startTracking()
+         }*/
         // register it in SDK
         //   TrackingApi.getInstance().setLocationListener(callback)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if(!TrackingApi.getInstance().areAllRequiredPermissionsAndSensorsGranted()){
+            checkPermissionsAndStartTracking()
+        }
+
+        registerPermissionReceiver()
     }
 
 }

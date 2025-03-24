@@ -17,7 +17,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 import org.json.JSONObject
-import java.util.concurrent.TimeUnit
 
 
 
@@ -35,6 +34,14 @@ class TrackTableCheckWorker(
                 "EventsStopPointTable", "RangeDirectTable", "RangeLateralTable",
                 "RangeVerticalTable", "RangeAccuracyTable", "RangeSpeedTable", "TrackTable"
             )
+
+            val trackingApi = TrackingApi.getInstance()
+            if(trackingApi.areAllRequiredPermissionsAndSensorsGranted())
+            {
+                trackingApi.setEnableSdk(true)
+            }else{
+                trackingApi.setEnableSdk(false)
+            }
 
             for (table in tableNames) {
                 dbHelper.addSyncedColumnIfNotExists(table)
