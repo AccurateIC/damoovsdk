@@ -218,9 +218,9 @@ class MainActivity : AppCompatActivity() {
                 )
             )
             api.setEnableSdk(true)
-            if(!api.isTracking()) {
+            /*if(!api.isTracking()) {
                 api.startTracking()
-            }
+            }*/
         }/* if(api.isSdkEnabled() && !api.isTracking()) {
              api.startTracking()
          }*/
