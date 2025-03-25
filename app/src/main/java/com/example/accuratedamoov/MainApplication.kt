@@ -14,6 +14,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.accuratedamoov.worker.TrackTableCheckWorker
 import com.example.accuratedamoov.worker.TrackingWorker
+import com.raxeltelematics.v2.sdk.Settings
 import com.raxeltelematics.v2.sdk.TrackingApi
 
 import java.util.concurrent.TimeUnit
@@ -26,7 +27,13 @@ class MainApplication : Application() {
 
         if (!TrackingApi.getInstance().isInitialized()) {
             Log.d("MainApplication","SDK not initialized")
-            TrackingApi.getInstance().initialize(this)
+            val settings = Settings(
+                Settings.stopTrackingTimeHigh, 150, autoStartOn = true, hfOn = true, elmOn = false
+            )
+            val api = TrackingApi.getInstance()
+            settings.stopTrackingTimeout(10)
+            api.initialize(applicationContext, settings)
+            Log.d("MainApplication","SDK initialized")
         }
         // Retrieve saved interval from SharedPreferences, default to 60 minutes
         val sharedPreferences = getSharedPreferences("appSettings", Context.MODE_PRIVATE)

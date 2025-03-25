@@ -192,21 +192,7 @@ class MainActivity : AppCompatActivity() {
         settings.stopTrackingTimeout(10)
         api.initialize(applicationContext, settings)
         isTrackingInitialized = true
-        val intent = Intent(this, MainActivity::class.java)
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
 
-
-        // Wrap the intent in a PendingIntent
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            0,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-
-        // Set the intent for notification
-        api.setIntentForNotification(intent) // If your API supports this
 
 
     }
