@@ -5,6 +5,7 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.provider.Settings
 import android.util.Log
 
 import androidx.work.Constraints
@@ -17,8 +18,8 @@ import androidx.work.WorkManager
 import com.example.accuratedamoov.service.PermissionMonitorService
 import com.example.accuratedamoov.worker.TrackTableCheckWorker
 import com.example.accuratedamoov.worker.TrackingWorker
-import com.raxeltelematics.v2.sdk.Settings
-import com.raxeltelematics.v2.sdk.TrackingApi
+import com.telematicssdk.tracking.TrackingApi
+import java.util.UUID
 
 import java.util.concurrent.TimeUnit
 
@@ -30,18 +31,18 @@ class MainApplication : Application() {
 
         if (!TrackingApi.getInstance().isInitialized()) {
             Log.d("MainApplication","SDK not initialized")
-            val settings = Settings(
-                Settings.stopTrackingTimeHigh, 150, autoStartOn = true, hfOn = true, elmOn = false
+            val settings = com.telematicssdk.tracking.Settings(
+                com.telematicssdk.tracking.Settings.stopTrackingTimeHigh, 150, autoStartOn = true, hfOn = true, elmOn = false
             )
             val api = TrackingApi.getInstance()
             settings.stopTrackingTimeout(10)
             api.initialize(applicationContext, settings)
+            api.setAutoStartEnabled(true,true)
+
+            val androidId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
+            val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
             if (api.areAllRequiredPermissionsAndSensorsGranted()) {
-                api.setDeviceID(
-                    android.provider.Settings.Secure.getString(
-                        this.contentResolver, android.provider.Settings.Secure.ANDROID_ID
-                    )
-                )
+                api.setDeviceID(deviceId)
                 api.setEnableSdk(true)
             }
             Log.d("MainApplication","SDK initialized")

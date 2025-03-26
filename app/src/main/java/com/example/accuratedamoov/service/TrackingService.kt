@@ -6,11 +6,11 @@ import android.location.Location
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.example.accuratedamoov.R
-import com.raxeltelematics.v2.sdk.TrackingApi
+import com.telematicssdk.tracking.TrackingApi
 
 class TrackingService : Service() {
 
-    private val callback = object : com.raxeltelematics.v2.sdk.LocationListener {
+    private val callback = object : com.telematicssdk.tracking.LocationListener {
         override fun onLocationChanged(location: Location?) {
             val trackingApi = TrackingApi.getInstance()
             if (trackingApi.isSdkEnabled() && !trackingApi.isTracking()) {

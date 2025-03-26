@@ -19,9 +19,10 @@ import androidx.navigation.ui.setupWithNavController
 import com.example.accuratedamoov.broadcastreceiver.PermissionChangeReceiver
 import com.example.accuratedamoov.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
-import com.raxeltelematics.v2.sdk.Settings
-import com.raxeltelematics.v2.sdk.TrackingApi
-import com.raxeltelematics.v2.sdk.utils.permissions.PermissionsWizardActivity
+import com.telematicssdk.tracking.Settings
+import com.telematicssdk.tracking.TrackingApi
+import com.telematicssdk.tracking.utils.permissions.PermissionsWizardActivity
+import java.util.UUID
 
 
 class MainActivity : AppCompatActivity() {
@@ -29,7 +30,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val TAG: String = this::class.java.simpleName
     private var isTrackingInitialized = false
-    private val permissionChangeReceiver = object : BroadcastReceiver() {
+   /* private val permissionChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             Log.d("PermissionChangeReceiver", "App permissions might have changed!")
 
@@ -38,9 +39,9 @@ class MainActivity : AppCompatActivity() {
                 Log.e("PermissionChangeReceiver", "Location permission was revoked!")
             }
         }
-    }
+    }*/
 
-    fun registerPermissionReceiver() {
+   /* fun registerPermissionReceiver() {
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_PACKAGE_CHANGED)
             addAction(Intent.ACTION_PACKAGE_REPLACED)
@@ -51,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 
     fun unregisterPermissionReceiver() {
         unregisterReceiver(permissionChangeReceiver)
-    }
+    }*/
     // temporary fix to start auto trip
     /* val callback = object : com.raxeltelematics.v2.sdk.LocationListener {
          override fun onLocationChanged(location: Location?) {
@@ -73,7 +74,7 @@ class MainActivity : AppCompatActivity() {
         initializeTrackingApi()
 
         checkPermissionsAndStartTracking()
-        val listener = PermissionChangeReceiver()
+        //val listener = PermissionChangeReceiver()
 
 
 
@@ -192,7 +193,7 @@ class MainActivity : AppCompatActivity() {
         settings.stopTrackingTimeout(10)
         api.initialize(applicationContext, settings)
         isTrackingInitialized = true
-
+        api.setAutoStartEnabled(true,true)
 
 
     }
@@ -212,12 +213,12 @@ class MainActivity : AppCompatActivity() {
             return
         }
         if (api.areAllRequiredPermissionsAndSensorsGranted()) {
-            api.setDeviceID(
-                android.provider.Settings.Secure.getString(
-                    this.contentResolver, android.provider.Settings.Secure.ANDROID_ID
-                )
-            )
-            api.setEnableSdk(true)
+            val androidId = android.provider.Settings.Secure.getString(contentResolver, android.provider.Settings.Secure.ANDROID_ID)
+            val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
+            if (api.areAllRequiredPermissionsAndSensorsGranted()) {
+                api.setDeviceID(deviceId)
+                api.setEnableSdk(true)
+            }
             if(!api.isTracking()) {
                 api.startTracking()
             }
@@ -226,7 +227,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        registerPermissionReceiver()
+        //registerPermissionReceiver()
     }
 
 }

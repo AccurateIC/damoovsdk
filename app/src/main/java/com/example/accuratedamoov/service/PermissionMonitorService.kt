@@ -19,7 +19,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.example.accuratedamoov.R
-import com.raxeltelematics.v2.sdk.TrackingApi
+import com.telematicssdk.tracking.TrackingApi
 
 class PermissionMonitorService : Service() {
 
@@ -75,10 +75,7 @@ class PermissionMonitorService : Service() {
                         Log.d("PermissionMonitorService", "SDK disabled. Enabling SDK.")
                         api.setEnableSdk(true)
                     }
-                    if (!api.isTracking()) {
-                        Log.d("PermissionMonitorService", "Starting tracking.")
-                        api.startTracking()
-                    }
+
                 } else {
                     Log.e("PermissionMonitorService", "Location permission revoked. Stopping tracking.")
                     showNotification()

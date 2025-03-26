@@ -3,14 +3,16 @@ package com.example.accuratedamoov.database
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
+import android.provider.Settings
 import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
 
 import java.io.File
+import java.util.UUID
 
 class DatabaseHelper(context: Context) {
-    val dbPath = "/data/data/com.example.accuratedamoov/databases/raxel_traker_db"
+    val dbPath = "/data/data/com.example.accuratedamoov/databases/com.telematicssdk.tracking.database"
 
     // 🔹 Check if the database file exists
     private fun databaseExists(): Boolean {
@@ -141,9 +143,9 @@ class DatabaseHelper(context: Context) {
                 }
             }
             cursor.close()
+            val androidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+            val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
 
-            val deviceId = android.provider.Settings.Secure.getString(
-               context.contentResolver , android.provider.Settings.Secure.ANDROID_ID)
             // If "device_id" column does not exist, add it
             if (!columnExists) {
                 db.execSQL("ALTER TABLE $tableName ADD COLUMN device_id TEXT DEFAULT '$deviceId'")
