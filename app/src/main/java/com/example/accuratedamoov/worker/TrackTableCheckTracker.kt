@@ -3,16 +3,13 @@ package com.example.accuratedamoov.worker
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
-import androidx.work.Constraints
 import androidx.work.CoroutineWorker
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
+
 import androidx.work.WorkerParameters
 import com.example.accuratedamoov.data.network.RetrofitClient
 import com.example.accuratedamoov.data.network.SyncRequest
 import com.example.accuratedamoov.database.DatabaseHelper
-import com.raxeltelematics.v2.sdk.TrackingApi
+import com.telematicssdk.tracking.TrackingApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -35,13 +32,7 @@ class TrackTableCheckWorker(
                 "RangeVerticalTable", "RangeAccuracyTable", "RangeSpeedTable", "TrackTable"
             )
 
-            val trackingApi = TrackingApi.getInstance()
-            if(trackingApi.areAllRequiredPermissionsAndSensorsGranted())
-            {
-                trackingApi.setEnableSdk(true)
-            }else{
-                trackingApi.setEnableSdk(false)
-            }
+
 
             for (table in tableNames) {
                 dbHelper.addSyncedColumnIfNotExists(table)
@@ -98,7 +89,7 @@ class TrackTableCheckWorker(
                     val value = item.get(key)
                     if (value == JSONObject.NULL || (value is String && value.isBlank())) {
                         isValidRecord = false
-                    } else {
+                    } else if (!key.equals("_id", ignoreCase = true)) {
                         map[key] = value
                     }
                 }
@@ -106,10 +97,10 @@ class TrackTableCheckWorker(
                 if (isValidRecord) {
                     dataList.add(map)
 
-                    if (item.has("id")) {
-                        syncedIds.add(item.getInt("id"))
-                    } else if (item.has("ID")) {
-                        syncedIds.add(item.getInt("ID"))
+                    if (item.has("_id")) {
+                        syncedIds.add(item.getInt("_id"))
+                    } else if (item.has("_ID")) {
+                        syncedIds.add(item.getInt("_ID"))
                     }
                 }
             }
@@ -123,7 +114,7 @@ class TrackTableCheckWorker(
 
             try {
                 val response = withContext(Dispatchers.IO) {
-                    apiService.syncData(tableName.replace("_", "-"), request).execute()
+                    apiService.syncData(tableName, request).execute()
                 }
 
                 if (response.isSuccessful) {

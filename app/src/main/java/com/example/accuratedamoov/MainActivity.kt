@@ -218,10 +218,9 @@ class MainActivity : AppCompatActivity() {
             if (api.areAllRequiredPermissionsAndSensorsGranted()) {
                 api.setDeviceID(deviceId)
                 api.setEnableSdk(true)
+                api.setAutoStartEnabled(true,true)
             }
-            if(!api.isTracking()) {
-                api.startTracking()
-            }
+
         }
     }
 

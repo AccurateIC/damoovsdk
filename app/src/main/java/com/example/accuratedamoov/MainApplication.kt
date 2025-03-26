@@ -37,13 +37,14 @@ class MainApplication : Application() {
             val api = TrackingApi.getInstance()
             settings.stopTrackingTimeout(10)
             api.initialize(applicationContext, settings)
-            api.setAutoStartEnabled(true,true)
+
 
             val androidId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
             val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
             if (api.areAllRequiredPermissionsAndSensorsGranted()) {
                 api.setDeviceID(deviceId)
                 api.setEnableSdk(true)
+                api.setAutoStartEnabled(true,true)
             }
             Log.d("MainApplication","SDK initialized")
         }
