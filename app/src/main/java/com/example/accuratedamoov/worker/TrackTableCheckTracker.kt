@@ -45,6 +45,7 @@ class TrackTableCheckWorker(
 
             for (table in tableNames) {
                 dbHelper.addSyncedColumnIfNotExists(table)
+                dbHelper.addDeviceIdColumnIfNotExists(table,applicationContext)
             }
 
             val jsonData = JSONObject()

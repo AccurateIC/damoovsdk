@@ -3,6 +3,8 @@ package com.example.accuratedamoov
 
 import android.app.Application
 import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.util.Log
 
 import androidx.work.Constraints
@@ -12,6 +14,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.accuratedamoov.service.PermissionMonitorService
 import com.example.accuratedamoov.worker.TrackTableCheckWorker
 import com.example.accuratedamoov.worker.TrackingWorker
 import com.raxeltelematics.v2.sdk.Settings
@@ -33,13 +36,27 @@ class MainApplication : Application() {
             val api = TrackingApi.getInstance()
             settings.stopTrackingTimeout(10)
             api.initialize(applicationContext, settings)
+            if (api.areAllRequiredPermissionsAndSensorsGranted()) {
+                api.setDeviceID(
+                    android.provider.Settings.Secure.getString(
+                        this.contentResolver, android.provider.Settings.Secure.ANDROID_ID
+                    )
+                )
+                api.setEnableSdk(true)
+            }
             Log.d("MainApplication","SDK initialized")
         }
-        // Retrieve saved interval from SharedPreferences, default to 60 minutes
+        // Retrieve saved interval from SharedPreferences, default to 15 minutes
         val sharedPreferences = getSharedPreferences("appSettings", Context.MODE_PRIVATE)
         val syncInterval = sharedPreferences.getInt("sync_interval", 15).toLong() // Default is 15 minutes
 
         scheduleWorker(syncInterval)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(Intent(this, PermissionMonitorService::class.java))
+        } else {
+            startService(Intent(this, PermissionMonitorService::class.java))
+        }
         //scheduleTrackingWorker()
     }
 

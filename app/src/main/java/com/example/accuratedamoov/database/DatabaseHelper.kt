@@ -125,6 +125,37 @@ class DatabaseHelper(context: Context) {
         return jsonArray
     }
 
+    fun addDeviceIdColumnIfNotExists(tableName: String,context: Context) {
+        val db = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READWRITE)
+
+        try {
+            // Check if "device_id" column exists
+            val cursor = db.rawQuery("PRAGMA table_info($tableName)", null)
+            var columnExists = false
+
+            while (cursor.moveToNext()) {
+                val columnName = cursor.getString(cursor.getColumnIndexOrThrow("name"))
+                if (columnName == "device_id") {
+                    columnExists = true
+                    break
+                }
+            }
+            cursor.close()
+
+            val deviceId = android.provider.Settings.Secure.getString(
+               context.contentResolver , android.provider.Settings.Secure.ANDROID_ID)
+            // If "device_id" column does not exist, add it
+            if (!columnExists) {
+                db.execSQL("ALTER TABLE $tableName ADD COLUMN device_id TEXT DEFAULT '$deviceId'")
+                Log.d("DatabaseHelper", "✅ Added 'device_id' column to $tableName")
+            }
+        } catch (e: Exception) {
+            Log.e("DatabaseHelper", "❌ Failed to add 'device_id' column to $tableName: ${e.message}")
+        } finally {
+            db.close()
+        }
+    }
+
 
 
 }

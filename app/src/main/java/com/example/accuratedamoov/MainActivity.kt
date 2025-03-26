@@ -218,22 +218,14 @@ class MainActivity : AppCompatActivity() {
                 )
             )
             api.setEnableSdk(true)
-            /*if(!api.isTracking()) {
+            if(!api.isTracking()) {
                 api.startTracking()
-            }*/
-        }/* if(api.isSdkEnabled() && !api.isTracking()) {
-             api.startTracking()
-         }*/
-        // register it in SDK
-        //   TrackingApi.getInstance().setLocationListener(callback)
+            }
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        if(!TrackingApi.getInstance().areAllRequiredPermissionsAndSensorsGranted()){
-            checkPermissionsAndStartTracking()
-        }
-
         registerPermissionReceiver()
     }
 
