@@ -74,6 +74,7 @@ class PermissionMonitorService : Service() {
                     if (!api.isSdkEnabled()) {
                         Log.d("PermissionMonitorService", "SDK disabled. Enabling SDK.")
                         api.setEnableSdk(true)
+                        api.setAutoStartEnabled(true,true)
                     }
 
                 } else {
