@@ -193,7 +193,7 @@ class MainActivity : AppCompatActivity() {
         settings.stopTrackingTimeout(10)
         api.initialize(applicationContext, settings)
         isTrackingInitialized = true
-        api.setAutoStartEnabled(true,true)
+
 
 
     }
