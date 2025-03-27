@@ -5,7 +5,6 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.provider.Settings
 import android.util.Log
 
 import androidx.work.Constraints
@@ -18,6 +17,8 @@ import androidx.work.WorkManager
 import com.example.accuratedamoov.service.PermissionMonitorService
 import com.example.accuratedamoov.worker.TrackTableCheckWorker
 import com.example.accuratedamoov.worker.TrackingWorker
+import com.telematicssdk.tracking.Settings
+import com.telematicssdk.tracking.Settings.Companion.stopTrackingTimeHigh
 import com.telematicssdk.tracking.TrackingApi
 import java.util.UUID
 
@@ -25,29 +26,36 @@ import java.util.concurrent.TimeUnit
 
 
 class MainApplication : Application() {
-
+ val api = TrackingApi.getInstance()
     override fun onCreate() {
         super.onCreate()
+        val androidId = android.provider.Settings.Secure.getString(
+            contentResolver,
+            android.provider.Settings.Secure.ANDROID_ID
+        )
+        val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
+        if (!api.isInitialized()) {
+            Log.d("MainApplication", "SDK not initialized")
 
-        if (!TrackingApi.getInstance().isInitialized()) {
-            Log.d("MainApplication","SDK not initialized")
-            val settings = com.telematicssdk.tracking.Settings(
-                com.telematicssdk.tracking.Settings.stopTrackingTimeHigh, 150, autoStartOn = true, hfOn = true, elmOn = false
+            val settings = Settings(
+                stopTrackingTimeHigh,
+                150,
+                true,
+                true,
+                false
             )
-            val api = TrackingApi.getInstance()
-            settings.stopTrackingTimeout(10)
+
             api.initialize(applicationContext, settings)
-
-
-            val androidId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
-            val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
-            if (api.areAllRequiredPermissionsAndSensorsGranted()) {
-                api.setDeviceID(deviceId)
-                api.setEnableSdk(true)
-                api.setAutoStartEnabled(true,true)
-            }
-            Log.d("MainApplication","SDK initialized")
+            Log.d("MainApplication", "SDK initialized")
         }
+
+// Common setup after initialization
+        if (api.areAllRequiredPermissionsAndSensorsGranted()) {
+            api.setDeviceID(deviceId)
+            api.setEnableSdk(true)
+            api.setAutoStartEnabled(true, true)
+        }
+
         // Retrieve saved interval from SharedPreferences, default to 15 minutes
         val sharedPreferences = getSharedPreferences("appSettings", Context.MODE_PRIVATE)
         val syncInterval = sharedPreferences.getInt("sync_interval", 15).toLong() // Default is 15 minutes

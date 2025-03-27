@@ -12,15 +12,16 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.accuratedamoov.databinding.FragmentHomeBinding
 import com.google.android.material.snackbar.Snackbar
+import com.telematicssdk.tracking.TrackingApi
 
 class HomeFragment : Fragment() {
-    val TAG:String = this::class.java.simpleName
+    val TAG: String = this::class.java.simpleName
 
     private var _binding: FragmentHomeBinding? = null
 
 
     private val binding get() = _binding!!
-
+    private val trackinApi = TrackingApi.getInstance()
     private val homeViewModel: HomeViewModel by viewModels()
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,17 +41,27 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        homeViewModel.errMsg.observe(viewLifecycleOwner, Observer {errMsg ->
+        homeViewModel.errMsg.observe(viewLifecycleOwner, Observer { errMsg ->
 
-            if(errMsg.isNotEmpty()){
-                Snackbar.make(binding.root,errMsg,Toast.LENGTH_LONG).show()
+            if (errMsg.isNotEmpty()) {
+                Snackbar.make(binding.root, errMsg, Toast.LENGTH_LONG).show()
 
             }
 
         })
+        if (!trackinApi.isTracking()) {
+            binding.stopTripManually.isClickable = false
+        }
+
 
         binding.startTripManually.setOnClickListener {
-            homeViewModel.startTracking()
+            if (trackinApi.isTracking()) {
+                Snackbar.make(
+                    binding.root, "Tracking is in progress", Snackbar.LENGTH_LONG
+                ).show()
+            } else {
+                homeViewModel.startTracking()
+            }
         }
 
         binding.stopTripManually.setOnClickListener {

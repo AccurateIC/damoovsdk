@@ -2,25 +2,21 @@ package com.example.accuratedamoov
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.PendingIntent
-import android.content.BroadcastReceiver
-import android.content.Context
+
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.navigation.NavOptions
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
-import com.example.accuratedamoov.broadcastreceiver.PermissionChangeReceiver
 import com.example.accuratedamoov.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
 import com.telematicssdk.tracking.Settings
 import com.telematicssdk.tracking.TrackingApi
+import com.telematicssdk.tracking.server.model.Locale
 import com.telematicssdk.tracking.utils.permissions.PermissionsWizardActivity
 import java.util.UUID
 
@@ -29,72 +25,25 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val TAG: String = this::class.java.simpleName
-    private var isTrackingInitialized = false
-   /* private val permissionChangeReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            Log.d("PermissionChangeReceiver", "App permissions might have changed!")
-
-            if (ContextCompat.checkSelfPermission(context!!, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_DENIED) {
-                Log.e("PermissionChangeReceiver", "Location permission was revoked!")
-            }
-        }
-    }*/
-
-   /* fun registerPermissionReceiver() {
-        val filter = IntentFilter().apply {
-            addAction(Intent.ACTION_PACKAGE_CHANGED)
-            addAction(Intent.ACTION_PACKAGE_REPLACED)
-            addDataScheme("package")  // Important to filter only package changes
-        }
-        registerReceiver(permissionChangeReceiver, filter)
-    }
-
-    fun unregisterPermissionReceiver() {
-        unregisterReceiver(permissionChangeReceiver)
-    }*/
-    // temporary fix to start auto trip
-    /* val callback = object : com.raxeltelematics.v2.sdk.LocationListener {
-         override fun onLocationChanged(location: Location?) {
-             if (TrackingApi.getInstance().isSdkEnabled() && !TrackingApi.getInstance()
-                     .isTracking()
-             ) {
-                 TrackingApi.getInstance().startTracking()
-             }
-         }
-     }*/
-
-
+    private val trackingApi = TrackingApi.getInstance()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        initializeTrackingApi()
-
         checkPermissionsAndStartTracking()
-        //val listener = PermissionChangeReceiver()
 
-
-
-        /*val intent = Intent(this, TrackingService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
-        }*/
     }
 
     private fun checkPermissionsAndStartTracking() {
-        if (!TrackingApi.getInstance().areAllRequiredPermissionsAndSensorsGranted()) {
+        if (!trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
             Log.d(TAG, "Permissions not granted, launching wizard.")
             startActivityForResult(
                 PermissionsWizardActivity.getStartWizardIntent(
-                        context = this,
-                        enableAggressivePermissionsWizard = false,
-                        enableAggressivePermissionsWizardPage = true
-                    ), PermissionsWizardActivity.WIZARD_PERMISSIONS_CODE
+                    context = this,
+                    enableAggressivePermissionsWizard = false,
+                    enableAggressivePermissionsWizardPage = true
+                ), PermissionsWizardActivity.WIZARD_PERMISSIONS_CODE
             )
         } else {
 
@@ -180,29 +129,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun initializeTrackingApi() {
-        if (isTrackingInitialized) {
-            Log.d(TAG, "Tracking API is already initialized, skipping re-initialization.")
-            return
-        }
-
-        val settings = Settings(
-            Settings.stopTrackingTimeHigh, 150, autoStartOn = true, hfOn = true, elmOn = false
-        )
-        val api = TrackingApi.getInstance()
-        settings.stopTrackingTimeout(10)
-        api.initialize(applicationContext, settings)
-        isTrackingInitialized = true
-
-
-
-    }
 
     @SuppressLint("HardwareIds")
     private fun enableTracking() {
-        val api = TrackingApi.getInstance()
-       /* val sharedPreferences = getSharedPreferences("app_prefs", MODE_PRIVATE)
-        val editor = sharedPreferences.edit()*/
         if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
@@ -212,22 +141,25 @@ class MainActivity : AppCompatActivity() {
             ).show()
             return
         }
-        if (api.areAllRequiredPermissionsAndSensorsGranted()) {
-            val androidId = android.provider.Settings.Secure.getString(contentResolver, android.provider.Settings.Secure.ANDROID_ID)
+        val settings = Settings(
+            Settings.stopTrackingTimeHigh, 150, autoStartOn = true, hfOn = true, elmOn = false
+        )
+        settings.stopTrackingTimeout(10)
+        trackingApi.initialize(applicationContext, settings)
+        if (trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
+            val androidId = android.provider.Settings.Secure.getString(
+                contentResolver,
+                android.provider.Settings.Secure.ANDROID_ID
+            )
             val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
-            if (api.areAllRequiredPermissionsAndSensorsGranted()) {
-                api.setDeviceID(deviceId)
-                api.setEnableSdk(true)
-                api.setAutoStartEnabled(true,true)
-            }
-
+            trackingApi.setDeviceID(deviceId)
+            trackingApi.setEnableSdk(true)
+            trackingApi.setAutoStartEnabled(true, true)
         }
+
+
     }
 
-    override fun onResume() {
-        super.onResume()
-        //registerPermissionReceiver()
-    }
 
 }
 
