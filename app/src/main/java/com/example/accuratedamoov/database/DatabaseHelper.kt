@@ -27,7 +27,7 @@ class DatabaseHelper(context: Context) {
         var count = 0
 
         try {
-            db = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READONLY)
+            db = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READWRITE)
             cursor = db.rawQuery("SELECT COUNT(*) FROM $tableName", null)
 
             if (cursor.moveToFirst()) {
@@ -51,7 +51,7 @@ class DatabaseHelper(context: Context) {
         var cursor: android.database.Cursor? = null
 
         try {
-            db = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READONLY)
+            db = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READWRITE)
             cursor = db.rawQuery("SELECT * FROM $tableName", null)
 
             if (cursor.moveToFirst()) {
@@ -102,7 +102,7 @@ class DatabaseHelper(context: Context) {
 
 
     fun getUnsyncedTableData(tableName: String): JSONArray {
-        val db = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READONLY)
+        val db = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READWRITE)
         val cursor = db.rawQuery("SELECT * FROM $tableName WHERE synced = 0", null)
         return cursorToJson(cursor)
     }
