@@ -14,10 +14,10 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.accuratedamoov.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
-import com.telematicssdk.tracking.Settings
-import com.telematicssdk.tracking.TrackingApi
-import com.telematicssdk.tracking.server.model.Locale
-import com.telematicssdk.tracking.utils.permissions.PermissionsWizardActivity
+import com.raxeltelematics.v2.sdk.Settings
+import com.raxeltelematics.v2.sdk.TrackingApi
+import com.raxeltelematics.v2.sdk.utils.permissions.PermissionsWizardActivity
+
 import java.util.UUID
 
 
@@ -152,9 +152,13 @@ class MainActivity : AppCompatActivity() {
                 android.provider.Settings.Secure.ANDROID_ID
             )
             val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
-            trackingApi.setDeviceID(deviceId)
-            trackingApi.setEnableSdk(true)
-            trackingApi.setAutoStartEnabled(true, true)
+            if(!trackingApi.isSdkEnabled()) {
+                trackingApi.setDeviceID(deviceId)
+                trackingApi.setEnableSdk(true)
+            }
+            /*if(!trackingApi.isTracking()) {
+                trackingApi.startTracking()
+            }*/
         }
 
 

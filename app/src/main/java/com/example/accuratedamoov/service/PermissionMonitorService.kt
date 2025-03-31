@@ -19,7 +19,9 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.example.accuratedamoov.R
-import com.telematicssdk.tracking.TrackingApi
+import com.raxeltelematics.v2.sdk.Settings.Companion.stopTrackingTimeHigh
+import com.raxeltelematics.v2.sdk.TrackingApi
+import java.util.UUID
 
 class PermissionMonitorService : Service() {
 
@@ -61,8 +63,9 @@ class PermissionMonitorService : Service() {
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .build()
     }
+
     private fun checkPermissions() {
-        val api = TrackingApi.getInstance()
+        val trackingApi = TrackingApi.getInstance()
 
         handler.postDelayed(object : Runnable {
             override fun run() {
@@ -70,19 +73,42 @@ class PermissionMonitorService : Service() {
                     this@PermissionMonitorService, Manifest.permission.ACCESS_FINE_LOCATION
                 ) == PackageManager.PERMISSION_GRANTED
 
-                if (isPermissionGranted ) {
-                    if (!api.isSdkEnabled()) {
-                        Log.d("PermissionMonitorService", "SDK disabled. Enabling SDK.")
-                        api.setEnableSdk(true)
-                        api.setAutoStartEnabled(true,true)
+                if (isPermissionGranted && trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
+                    val androidId = android.provider.Settings.Secure.getString(
+                        contentResolver,
+                        android.provider.Settings.Secure.ANDROID_ID
+                    )
+                    val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
+                    if (!trackingApi.isInitialized()) {
+                        Log.d("MainApplication", "SDK not initialized")
+
+                        val settings = com.raxeltelematics.v2.sdk.Settings(
+                            stopTrackingTimeHigh,
+                            150,
+                            true,
+                            true,
+                            false
+                        )
+                        trackingApi.initialize(applicationContext, settings)
+                        Log.d("MainApplication", "SDK initialized")
                     }
 
+                    // Common setup after initialization
+                    if(!trackingApi.isSdkEnabled()) {
+                        trackingApi.setDeviceID(deviceId)
+                        trackingApi.setEnableSdk(true)
+                    }
+
+
                 } else {
-                    Log.e("PermissionMonitorService", "Location permission revoked. Stopping tracking.")
+                    Log.e(
+                        "PermissionMonitorService",
+                        "Location permission revoked. Stopping tracking."
+                    )
                     showNotification()
-                    if (api.isTracking()) {
-                        api.stopTracking()
-                        api.setEnableSdk(false)
+                    if (trackingApi.isTracking()) {
+                        trackingApi.stopTracking()
+                        trackingApi.setEnableSdk(false)
                     }
                 }
 
@@ -109,7 +135,12 @@ class PermissionMonitorService : Service() {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
             data = Uri.fromParts("package", packageName, null)
         }
-        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
         val builder = NotificationCompat.Builder(this, "tracking_alerts")
             .setSmallIcon(R.drawable.ic_stop_circle)

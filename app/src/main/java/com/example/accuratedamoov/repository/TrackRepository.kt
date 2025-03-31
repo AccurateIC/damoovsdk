@@ -2,7 +2,6 @@ package com.example.accuratedamoov.repository
 
 import android.util.Log
 import com.example.accuratedamoov.data.network.RetrofitClient
-import com.telematicssdk.tracking.model.database.models.Track
 
 /*class TrackRepository {
     val TAG:String = this::class.java.simpleName

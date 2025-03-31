@@ -12,7 +12,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.accuratedamoov.databinding.FragmentHomeBinding
 import com.google.android.material.snackbar.Snackbar
-import com.telematicssdk.tracking.TrackingApi
+import com.raxeltelematics.v2.sdk.TrackingApi
 
 class HomeFragment : Fragment() {
     val TAG: String = this::class.java.simpleName

@@ -3,20 +3,21 @@ package com.example.accuratedamoov.worker
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 
 import androidx.work.WorkerParameters
 import com.example.accuratedamoov.data.network.RetrofitClient
 import com.example.accuratedamoov.data.network.SyncRequest
 import com.example.accuratedamoov.database.DatabaseHelper
-import com.telematicssdk.tracking.TrackingApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-
 import org.json.JSONObject
-
-
-
+import java.util.concurrent.TimeUnit
 
 class TrackTableCheckWorker(
     appContext: Context,
@@ -32,18 +33,16 @@ class TrackTableCheckWorker(
                 "RangeVerticalTable", "RangeAccuracyTable", "RangeSpeedTable", "TrackTable"
             )
 
-
-
             for (table in tableNames) {
                 dbHelper.addSyncedColumnIfNotExists(table)
-                dbHelper.addDeviceIdColumnIfNotExists(table,applicationContext)
+                dbHelper.addDeviceIdColumnIfNotExists(table, applicationContext)
             }
 
             val jsonData = JSONObject()
             var hasDataToSync = false
 
             for (table in tableNames) {
-                val tableData = dbHelper.getUnsyncedTableData(table) // Fetch only unsynced records
+                val tableData = dbHelper.getUnsyncedTableData(table)
                 if (tableData.length() > 0) {
                     jsonData.put(table, tableData)
                     hasDataToSync = true
@@ -58,7 +57,8 @@ class TrackTableCheckWorker(
             val success = withContext(Dispatchers.IO) { syncData(jsonData) }
 
             if (success) {
-                Log.d("WorkManager", "✅ Data sync successful, marked records as synced.")
+                Log.d("WorkManager", "✅ Data sync successful, marked records as synced and deleted.")
+                scheduleWorker(1)
                 Result.success()
             } else {
                 Log.e("WorkManager", "❌ Data sync failed, will retry.")
@@ -89,18 +89,17 @@ class TrackTableCheckWorker(
                     val value = item.get(key)
                     if (value == JSONObject.NULL || (value is String && value.isBlank())) {
                         isValidRecord = false
-                    } else if (!key.equals("_id", ignoreCase = true)) {
+                    } else if (!key.equals("id", ignoreCase = true)) {
                         map[key] = value
                     }
                 }
 
                 if (isValidRecord) {
                     dataList.add(map)
-
-                    if (item.has("_id")) {
-                        syncedIds.add(item.getInt("_id"))
-                    } else if (item.has("_ID")) {
-                        syncedIds.add(item.getInt("_ID"))
+                    if (item.has("id")) {
+                        syncedIds.add(item.getInt("id"))
+                    } else if (item.has("ID")) {
+                        syncedIds.add(item.getInt("ID"))
                     }
                 }
             }
@@ -114,14 +113,14 @@ class TrackTableCheckWorker(
 
             try {
                 val response = withContext(Dispatchers.IO) {
-                    apiService.syncData(tableName, request).execute()
+                    apiService.syncData(tableName.replace("_", "-"), request).execute()
                 }
 
                 if (response.isSuccessful) {
                     withContext(Dispatchers.IO) {
-                        markRecordsAsSynced(applicationContext, tableName, syncedIds)
+                        deleteSyncedRecords(applicationContext, tableName, syncedIds)
                     }
-                    Log.d("WorkManager", "✅ Sync successful for $tableName")
+                    Log.d("WorkManager", "✅ Sync successful for $tableName, records deleted.")
                 } else {
                     Log.e("WorkManager", "❌ Sync failed for $tableName: ${response.errorBody()?.string()}")
                     allSuccessful = false
@@ -135,7 +134,7 @@ class TrackTableCheckWorker(
         return allSuccessful
     }
 
-    private fun markRecordsAsSynced(context: Context, tableName: String, ids: List<Int>) {
+    private fun deleteSyncedRecords(context: Context, tableName: String, ids: List<Int>) {
         if (ids.isEmpty()) return
 
         val dbHelper = DatabaseHelper(context)
@@ -144,15 +143,37 @@ class TrackTableCheckWorker(
         db.beginTransaction()
         try {
             val idList = ids.joinToString(",")
-            db.execSQL("UPDATE $tableName SET synced = 1 WHERE id IN ($idList)")
+            db.execSQL("DELETE FROM $tableName WHERE id IN ($idList)")
             db.setTransactionSuccessful()
-            Log.d("WorkManager", "✅ Marked records as synced in $tableName")
+            Log.d("WorkManager", "🗑️ Deleted synced records from $tableName")
         } catch (e: Exception) {
-            Log.e("WorkManager", "❌ Failed to mark records as synced in $tableName: ${e.message}")
+            Log.e("WorkManager", "❌ Failed to delete records from $tableName: ${e.message}")
         } finally {
             db.endTransaction()
         }
     }
+
+
+    private fun scheduleWorker(syncInterval: Long) {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .setRequiresBatteryNotLow(true)
+            .build()
+
+        val workRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
+            .setConstraints(constraints)
+            .setInitialDelay(syncInterval, TimeUnit.MINUTES)
+            .build()
+
+        WorkManager.getInstance(applicationContext).enqueueUniqueWork(
+            "TrackTableCheckWorker_OneTime",
+            ExistingWorkPolicy.REPLACE,
+            workRequest
+        )
+
+
+    }
 }
+
 
 

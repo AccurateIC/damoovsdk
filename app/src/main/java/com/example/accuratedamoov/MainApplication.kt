@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
-
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
@@ -17,24 +16,26 @@ import androidx.work.WorkManager
 import com.example.accuratedamoov.service.PermissionMonitorService
 import com.example.accuratedamoov.worker.TrackTableCheckWorker
 import com.example.accuratedamoov.worker.TrackingWorker
-import com.telematicssdk.tracking.Settings
-import com.telematicssdk.tracking.Settings.Companion.stopTrackingTimeHigh
-import com.telematicssdk.tracking.TrackingApi
-import java.util.UUID
+import com.raxeltelematics.v2.sdk.Settings
+import com.raxeltelematics.v2.sdk.Settings.Companion.stopTrackingTimeHigh
+import com.raxeltelematics.v2.sdk.TrackingApi
 
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 
 class MainApplication : Application() {
- val api = TrackingApi.getInstance()
+ val trackingApi = TrackingApi.getInstance()
     override fun onCreate() {
         super.onCreate()
+
+
         val androidId = android.provider.Settings.Secure.getString(
             contentResolver,
             android.provider.Settings.Secure.ANDROID_ID
         )
         val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
-        if (!api.isInitialized()) {
+        if (!trackingApi.isInitialized()) {
             Log.d("MainApplication", "SDK not initialized")
 
             val settings = Settings(
@@ -45,22 +46,22 @@ class MainApplication : Application() {
                 false
             )
 
-            api.initialize(applicationContext, settings)
+            trackingApi.initialize(applicationContext, settings)
             Log.d("MainApplication", "SDK initialized")
         }
 
-// Common setup after initialization
-        if (api.areAllRequiredPermissionsAndSensorsGranted()) {
-            api.setDeviceID(deviceId)
-            api.setEnableSdk(true)
-            api.setAutoStartEnabled(true, true)
+        // Common setup after initialization
+        if (trackingApi.areAllRequiredPermissionsAndSensorsGranted() && !trackingApi.isSdkEnabled()) {
+            trackingApi.setDeviceID(deviceId)
+            trackingApi.setEnableSdk(true)
+
         }
 
         // Retrieve saved interval from SharedPreferences, default to 15 minutes
         val sharedPreferences = getSharedPreferences("appSettings", Context.MODE_PRIVATE)
-        val syncInterval = sharedPreferences.getInt("sync_interval", 15).toLong() // Default is 15 minutes
+        //val syncInterval = sharedPreferences.getInt("sync_interval", 1).toLong() // Default is 15 minutes
 
-        scheduleWorker(syncInterval)
+        scheduleWorker(1)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(Intent(this, PermissionMonitorService::class.java))
@@ -71,23 +72,23 @@ class MainApplication : Application() {
     }
 
     private fun scheduleWorker(syncInterval: Long) {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED) // Requires network
-            .setRequiresBatteryNotLow(true) // Avoids running on low battery
-            .build()
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .setRequiresBatteryNotLow(true)
+                .build()
 
-        val workRequest = PeriodicWorkRequestBuilder<TrackTableCheckWorker>(
-            syncInterval, TimeUnit.MINUTES // Apply user-defined interval
-        )
-            .setInitialDelay(60, TimeUnit.SECONDS) // Delay before first execution
-            .setConstraints(constraints) // Apply constraints
-            .build()
+            val workRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
+                .setConstraints(constraints)
+                .setInitialDelay(syncInterval, TimeUnit.MINUTES)
+                .build()
 
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "TrackTableCheckWorker",
-            ExistingPeriodicWorkPolicy.UPDATE, // Ensure the new interval takes effect
-            workRequest
-        )
+            WorkManager.getInstance(this).enqueueUniqueWork(
+                "TrackTableCheckWorker_OneTime",
+                ExistingWorkPolicy.REPLACE,
+                workRequest
+            )
+
+
     }
 
 
