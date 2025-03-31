@@ -151,9 +151,8 @@ class MainActivity : AppCompatActivity() {
                 contentResolver,
                 android.provider.Settings.Secure.ANDROID_ID
             )
-            val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
             if(!trackingApi.isSdkEnabled()) {
-                trackingApi.setDeviceID(deviceId)
+                trackingApi.setDeviceID(androidId)
                 trackingApi.setEnableSdk(true)
             }
             /*if(!trackingApi.isTracking()) {

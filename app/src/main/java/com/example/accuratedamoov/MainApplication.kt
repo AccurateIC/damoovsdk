@@ -3,24 +3,18 @@ package com.example.accuratedamoov
 
 import android.app.Application
 import android.content.Context
-import android.content.Intent
-import android.os.Build
 import android.util.Log
 import androidx.work.Constraints
-import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.example.accuratedamoov.service.PermissionMonitorService
 import com.example.accuratedamoov.worker.TrackTableCheckWorker
 import com.example.accuratedamoov.worker.TrackingWorker
 import com.raxeltelematics.v2.sdk.Settings
 import com.raxeltelematics.v2.sdk.Settings.Companion.stopTrackingTimeHigh
 import com.raxeltelematics.v2.sdk.TrackingApi
-
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 
@@ -34,7 +28,7 @@ class MainApplication : Application() {
             contentResolver,
             android.provider.Settings.Secure.ANDROID_ID
         )
-        val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
+
         if (!trackingApi.isInitialized()) {
             Log.d("MainApplication", "SDK not initialized")
 
@@ -52,7 +46,7 @@ class MainApplication : Application() {
 
         // Common setup after initialization
         if (trackingApi.areAllRequiredPermissionsAndSensorsGranted() && !trackingApi.isSdkEnabled()) {
-            trackingApi.setDeviceID(deviceId)
+            trackingApi.setDeviceID(androidId)
             trackingApi.setEnableSdk(true)
 
         }
@@ -62,14 +56,24 @@ class MainApplication : Application() {
         //val syncInterval = sharedPreferences.getInt("sync_interval", 1).toLong() // Default is 15 minutes
 
         scheduleWorker(1)
+        observeAndCancelWork( )
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(Intent(this, PermissionMonitorService::class.java))
-        } else {
-            startService(Intent(this, PermissionMonitorService::class.java))
-        }
-        //scheduleTrackingWorker()
     }
+
+    private fun observeAndCancelWork() {
+        val workManager = WorkManager.getInstance(applicationContext)
+
+        workManager.getWorkInfosByTagLiveData("com.raxeltelematics.v2.sdk.sync.common.tag")
+            .observeForever { workInfos ->
+                workInfos?.forEach { workInfo ->
+                    if (!workInfo.tags.contains("com.example.accuratedamoov.worker.TrackTableCheckWorker")) {
+                        Log.d("WorkManager", "Cancelling Work: ${workInfo.id}")
+                        workManager.cancelWorkById(workInfo.id)
+                    }
+                }
+            }
+    }
+
 
     private fun scheduleWorker(syncInterval: Long) {
             val constraints = Constraints.Builder()

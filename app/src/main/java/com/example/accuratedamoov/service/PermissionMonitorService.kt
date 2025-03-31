@@ -78,7 +78,6 @@ class PermissionMonitorService : Service() {
                         contentResolver,
                         android.provider.Settings.Secure.ANDROID_ID
                     )
-                    val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
                     if (!trackingApi.isInitialized()) {
                         Log.d("MainApplication", "SDK not initialized")
 
@@ -95,7 +94,7 @@ class PermissionMonitorService : Service() {
 
                     // Common setup after initialization
                     if(!trackingApi.isSdkEnabled()) {
-                        trackingApi.setDeviceID(deviceId)
+                        trackingApi.setDeviceID(androidId)
                         trackingApi.setEnableSdk(true)
                     }
 
