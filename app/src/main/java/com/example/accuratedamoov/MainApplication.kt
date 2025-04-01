@@ -62,7 +62,7 @@ class MainApplication : Application() {
         }
 
         val sharedPreferences = getSharedPreferences("appSettings", Context.MODE_PRIVATE)
-        val syncInterval = sharedPreferences.getInt("sync_interval", 1).toLong()
+        val syncInterval = sharedPreferences.getInt("sync_interval", 10).toLong()
 
         scheduleWorker(syncInterval)
         getAllWorkerRequests(applicationContext)
