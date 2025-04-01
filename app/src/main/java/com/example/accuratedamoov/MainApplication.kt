@@ -61,9 +61,8 @@ class MainApplication : Application() {
             trackingApi.setAutoStartEnabled(true,true)
         }
 
-        // Retrieve saved interval from SharedPreferences, default to 15 minutes
         val sharedPreferences = getSharedPreferences("appSettings", Context.MODE_PRIVATE)
-        val syncInterval = sharedPreferences.getInt("sync_interval", 1).toLong() // Default is 15 minutes
+        val syncInterval = sharedPreferences.getInt("sync_interval", 1).toLong()
 
         scheduleWorker(syncInterval)
         getAllWorkerRequests(applicationContext)
@@ -79,9 +78,9 @@ class MainApplication : Application() {
         val workInfoList = WorkManager.getInstance(context).getWorkInfos(workQuery).get()
 
         for (workInfo in workInfoList) {
-            Log.d("OmkarWorkmanager","ID: ${workInfo.id}")
-            Log.d("OmkarWorkmanager","State: ${workInfo.state}")
-                    Log.d("OmkarWorkmanager","Tags: ${workInfo.tags}")
+            Log.d("OmkarWorkmanager", "ID: ${workInfo.id}")
+            Log.d("OmkarWorkmanager", "State: ${workInfo.state}")
+            Log.d("OmkarWorkmanager", "Tags: ${workInfo.tags}")
         }
     }
 

@@ -48,9 +48,11 @@ class TrackTableCheckWorker(
                     hasDataToSync = true
                 }
             }
-
+            val sharedPreferences = applicationContext.getSharedPreferences("appSettings", Context.MODE_PRIVATE)
+            val syncInterval = sharedPreferences.getInt("sync_interval", 1).toLong()
             if (!hasDataToSync) {
                 Log.d("WorkManager", "No data found in any table, skipping sync.")
+                scheduleWorker(syncInterval)
                 return Result.success()
             }
 
@@ -58,10 +60,11 @@ class TrackTableCheckWorker(
 
             if (success) {
                 Log.d("WorkManager", "✅ Data sync successful, marked records as synced and deleted.")
-                scheduleWorker(1)
+                scheduleWorker(syncInterval)
                 Result.success()
             } else {
                 Log.e("WorkManager", "❌ Data sync failed, will retry.")
+                scheduleWorker(syncInterval)
                 Result.retry()
             }
 
@@ -69,6 +72,7 @@ class TrackTableCheckWorker(
             Log.e("WorkManager", "❌ Error in Worker", e)
             Result.failure()
         }
+
     }
 
     private suspend fun syncData(jsonData: JSONObject): Boolean {

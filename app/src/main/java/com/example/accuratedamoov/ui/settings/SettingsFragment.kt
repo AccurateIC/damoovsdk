@@ -16,7 +16,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.accuratedamoov.databinding.FragmentSettingsBinding
@@ -72,7 +74,7 @@ class SettingsFragment : Fragment() {
             .putInt("sync_interval", intervalMinutes)
             .apply()
 
-        scheduleWorker(intervalMinutes)
+        scheduleWorker(intervalMinutes.toLong())
 
         hideKeyboard(binding.apiUrlEditText)
         Snackbar.make(
@@ -84,25 +86,26 @@ class SettingsFragment : Fragment() {
 
     }
 
-    private fun scheduleWorker(intervalMinutes: Int) {
+    private fun scheduleWorker(syncInterval: Long) {
         val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED) // Requires network
-            .setRequiresBatteryNotLow(true) // Avoids running on low battery
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .setRequiresBatteryNotLow(true)
             .build()
 
-        val workRequest = PeriodicWorkRequestBuilder<TrackTableCheckWorker>(
-            intervalMinutes.toLong(), TimeUnit.MINUTES // Apply user-defined interval
-        )
-            .setInitialDelay(60, TimeUnit.SECONDS) // Delay before first execution
-            .setConstraints(constraints) // Apply constraints
+        val workRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
+            .setConstraints(constraints)
+            .setInitialDelay(syncInterval, TimeUnit.SECONDS)
             .build()
 
-        WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
+        WorkManager.getInstance(requireContext()).enqueueUniqueWork(
             "TrackTableCheckWorker",
-            ExistingPeriodicWorkPolicy.UPDATE, // Ensure the new interval takes effect
+            ExistingWorkPolicy.REPLACE,
             workRequest
         )
+
+
     }
+
 
 
 
