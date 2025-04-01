@@ -18,21 +18,25 @@ import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import androidx.work.WorkQuery
 import com.example.accuratedamoov.R
-import com.raxeltelematics.v2.sdk.Settings.Companion.stopTrackingTimeHigh
-import com.raxeltelematics.v2.sdk.TrackingApi
+import com.telematicssdk.tracking.Settings.Companion.stopTrackingTimeHigh
+import com.telematicssdk.tracking.TrackingApi
+
 import java.util.UUID
 
 class PermissionMonitorService : Service() {
 
     private val handler = Handler(Looper.getMainLooper())
-    private val checkInterval: Long = 15000 // Check every 30 seconds
+    private val checkInterval: Long = 5000
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
         startForegroundService()
         checkPermissions()
-
+        observeAndCancelWork()
         return START_STICKY
     }
 
@@ -81,7 +85,7 @@ class PermissionMonitorService : Service() {
                     if (!trackingApi.isInitialized()) {
                         Log.d("MainApplication", "SDK not initialized")
 
-                        val settings = com.raxeltelematics.v2.sdk.Settings(
+                        val settings = com.telematicssdk.tracking.Settings(
                             stopTrackingTimeHigh,
                             150,
                             true,
@@ -94,10 +98,11 @@ class PermissionMonitorService : Service() {
 
                     // Common setup after initialization
                     if(!trackingApi.isSdkEnabled()) {
-                        trackingApi.setDeviceID(androidId)
+                        trackingApi.setDeviceID(UUID.nameUUIDFromBytes(androidId.toByteArray(Charsets.UTF_8))
+                            .toString())
                         trackingApi.setEnableSdk(true)
                     }
-
+                    trackingApi.setAutoStartEnabled(true,true)
 
                 } else {
                     Log.e(
@@ -154,5 +159,31 @@ class PermissionMonitorService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
+    }
+
+    private fun observeAndCancelWork() {
+        val workManager = WorkManager.getInstance(applicationContext)
+
+        val workQuery = WorkQuery.Builder
+            .fromStates(listOf(WorkInfo.State.ENQUEUED))
+            .build()
+        // Observe all enqueued work
+        workManager.getWorkInfosLiveData(workQuery).observeForever  { workInfos ->
+            workInfos?.forEach { workInfo ->
+                val tags = workInfo.tags
+                val workId = workInfo.id
+
+                // Log the details
+                Log.d("WorkManager", "ID: $workId")
+                Log.d("WorkManager", "State: ${workInfo.state}")
+                Log.d("WorkManager", "Tags: $tags")
+
+                // Cancel work if it's NOT TrackTableCheckWorker
+                if (!tags.contains("com.example.accuratedamoov.worker.TrackTableCheckWorker")) {
+                    Log.d("WorkManager", "Cancelling Work: $workId")
+                    workManager.cancelWorkById(workId)
+                }
+            }
+        }
     }
 }

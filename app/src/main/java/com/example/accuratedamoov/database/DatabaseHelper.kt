@@ -12,7 +12,7 @@ import java.io.File
 import java.util.UUID
 
 class DatabaseHelper(context: Context) {
-    val dbPath = "/data/data/com.example.accuratedamoov/databases/raxel_traker_db"
+    val dbPath = "/data/data/com.example.accuratedamoov/databases/com.telematicssdk.tracking.database"
 
     // 🔹 Check if the database file exists
     private fun databaseExists(): Boolean {

@@ -4,10 +4,10 @@ import android.annotation.SuppressLint
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.accuratedamoov.MainApplication
 import com.example.accuratedamoov.model.TrackModel
-import com.raxeltelematics.v2.sdk.TrackingApi
-import com.raxeltelematics.v2.sdk.server.model.Locale
+import com.telematicssdk.tracking.TrackingApi
+import com.telematicssdk.tracking.server.model.Locale
+
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

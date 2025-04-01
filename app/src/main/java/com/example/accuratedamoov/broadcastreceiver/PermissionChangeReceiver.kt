@@ -12,7 +12,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.example.accuratedamoov.R
-import com.raxeltelematics.v2.sdk.TrackingApi
+import com.telematicssdk.tracking.TrackingApi
 
 class PermissionChangeReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {

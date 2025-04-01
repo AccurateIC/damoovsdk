@@ -162,11 +162,11 @@ class TrackTableCheckWorker(
 
         val workRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
             .setConstraints(constraints)
-            .setInitialDelay(syncInterval, TimeUnit.MINUTES)
+            .setInitialDelay(syncInterval, TimeUnit.SECONDS)
             .build()
 
         WorkManager.getInstance(applicationContext).enqueueUniqueWork(
-            "TrackTableCheckWorker_OneTime",
+            "TrackTableCheckWorker",
             ExistingWorkPolicy.REPLACE,
             workRequest
         )

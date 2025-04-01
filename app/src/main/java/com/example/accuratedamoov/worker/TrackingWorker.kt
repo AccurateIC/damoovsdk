@@ -10,7 +10,7 @@ import android.util.Log
 
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import com.raxeltelematics.v2.sdk.TrackingApi
+import com.telematicssdk.tracking.TrackingApi
 import java.util.concurrent.TimeUnit
 
 class TrackingWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
