@@ -1,16 +1,8 @@
 package com.example.accuratedamoov.worker
 
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
 import android.util.Log
-import androidx.work.Constraints
-import androidx.work.CoroutineWorker
-import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-
-import androidx.work.WorkerParameters
+import androidx.work.*
 import com.example.accuratedamoov.data.network.RetrofitClient
 import com.example.accuratedamoov.data.network.SyncRequest
 import com.example.accuratedamoov.database.DatabaseHelper
@@ -25,14 +17,15 @@ class TrackTableCheckWorker(
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
+        val dbHelper = DatabaseHelper.getInstance(applicationContext)
         return try {
-            val dbHelper = DatabaseHelper(applicationContext)
             val tableNames = listOf(
                 "LastKnownPointTable", "EventsStartPointTable", "EventsTable",
                 "EventsStopPointTable", "RangeDirectTable", "RangeLateralTable",
                 "RangeVerticalTable", "RangeAccuracyTable", "RangeSpeedTable", "TrackTable"
             )
 
+            // Ensure required columns exist
             for (table in tableNames) {
                 dbHelper.addSyncedColumnIfNotExists(table)
                 dbHelper.addDeviceIdColumnIfNotExists(table, applicationContext)
@@ -48,34 +41,38 @@ class TrackTableCheckWorker(
                     hasDataToSync = true
                 }
             }
+
             val sharedPreferences = applicationContext.getSharedPreferences("appSettings", Context.MODE_PRIVATE)
-            val syncInterval = sharedPreferences.getInt("sync_interval", 1).toLong()
+            val syncInterval = sharedPreferences.getInt("sync_interval", 10).toLong()
+
             if (!hasDataToSync) {
-                Log.d("WorkManager", "No data found in any table, skipping sync.")
+                Log.d("WorkManager", "✅ No new data, rescheduling worker.")
                 scheduleWorker(syncInterval)
                 return Result.success()
             }
 
-            val success = withContext(Dispatchers.IO) { syncData(jsonData) }
+            val success = withContext(Dispatchers.IO) { syncData(dbHelper, jsonData) }
+
+            dbHelper.closeDatabase() // ✅ Ensures DB is closed after syncing
 
             if (success) {
-                Log.d("WorkManager", "✅ Data sync successful, marked records as synced and deleted.")
+                Log.d("WorkManager", "✅ Data sync successful.")
                 scheduleWorker(syncInterval)
                 Result.success()
             } else {
-                Log.e("WorkManager", "❌ Data sync failed, will retry.")
+                Log.e("WorkManager", "❌ Data sync failed, retrying.")
                 scheduleWorker(syncInterval)
                 Result.retry()
             }
 
         } catch (e: Exception) {
             Log.e("WorkManager", "❌ Error in Worker", e)
+            dbHelper.closeDatabase() // ✅ Ensures DB is closed on error
             Result.failure()
         }
-
     }
 
-    private suspend fun syncData(jsonData: JSONObject): Boolean {
+    private suspend fun syncData(dbHelper: DatabaseHelper, jsonData: JSONObject): Boolean {
         val apiService = RetrofitClient.getApiService(applicationContext)
         var allSuccessful = true
 
@@ -109,7 +106,7 @@ class TrackTableCheckWorker(
             }
 
             if (dataList.isEmpty()) {
-                Log.d("WorkManager", "⚠️ No valid records found for $tableName, skipping sync.")
+                Log.d("WorkManager", "⚠️ No valid records for $tableName, skipping sync.")
                 continue
             }
 
@@ -122,9 +119,9 @@ class TrackTableCheckWorker(
 
                 if (response.isSuccessful) {
                     withContext(Dispatchers.IO) {
-                        deleteSyncedRecords(applicationContext, tableName, syncedIds)
+                        deleteSyncedRecords(dbHelper, tableName, syncedIds)
                     }
-                    Log.d("WorkManager", "✅ Sync successful for $tableName, records deleted.")
+                    Log.d("WorkManager", "✅ Synced $tableName, records deleted.")
                 } else {
                     Log.e("WorkManager", "❌ Sync failed for $tableName: ${response.errorBody()?.string()}")
                     allSuccessful = false
@@ -138,11 +135,10 @@ class TrackTableCheckWorker(
         return allSuccessful
     }
 
-    private fun deleteSyncedRecords(context: Context, tableName: String, ids: List<Int>) {
+    private fun deleteSyncedRecords(dbHelper: DatabaseHelper, tableName: String, ids: List<Int>) {
         if (ids.isEmpty()) return
 
-        val dbHelper = DatabaseHelper(context)
-        val db = SQLiteDatabase.openDatabase(dbHelper.dbPath, null, SQLiteDatabase.OPEN_READWRITE)
+        val db = dbHelper.openDatabase() ?: return
 
         db.beginTransaction()
         try {
@@ -156,7 +152,6 @@ class TrackTableCheckWorker(
             db.endTransaction()
         }
     }
-
 
     private fun scheduleWorker(syncInterval: Long) {
         val constraints = Constraints.Builder()
@@ -174,10 +169,5 @@ class TrackTableCheckWorker(
             ExistingWorkPolicy.REPLACE,
             workRequest
         )
-
-
     }
 }
-
-
-
