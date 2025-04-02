@@ -1,6 +1,8 @@
 package com.example.accuratedamoov.worker
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.work.*
 import com.example.accuratedamoov.data.network.RetrofitClient
@@ -18,6 +20,7 @@ class TrackTableCheckWorker(
 
     override suspend fun doWork(): Result {
         val dbHelper = DatabaseHelper.getInstance(applicationContext)
+        observeAndCancelWork()
         return try {
             val tableNames = listOf(
                 "LastKnownPointTable", "EventsStartPointTable", "EventsTable",
@@ -169,5 +172,31 @@ class TrackTableCheckWorker(
             ExistingWorkPolicy.REPLACE,
             workRequest
         )
+    }
+    private fun observeAndCancelWork() {
+        val workManager = WorkManager.getInstance(applicationContext)
+
+        val workQuery = WorkQuery.Builder
+            .fromStates(listOf(WorkInfo.State.ENQUEUED))
+            .build()
+
+        Handler(Looper.getMainLooper()).post {
+            workManager.getWorkInfosLiveData(workQuery).observeForever { workInfos ->
+                workInfos?.forEach { workInfo ->
+                    val tags = workInfo.tags
+                    val workId = workInfo.id
+
+                    Log.d("WorkManager", "ID: $workId")
+                    Log.d("WorkManager", "State: ${workInfo.state}")
+                    Log.d("WorkManager", "Tags: $tags")
+
+                    // Cancel work if it's NOT TrackTableCheckWorker
+                    if (!tags.contains("com.example.accuratedamoov.worker.TrackTableCheckWorker")) {
+                        Log.d("WorkManager", "Cancelling Work: $workId")
+                        workManager.cancelWorkById(workId)
+                    }
+                }
+            }
+        }
     }
 }

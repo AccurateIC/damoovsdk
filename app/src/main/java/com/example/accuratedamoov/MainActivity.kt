@@ -1,10 +1,12 @@
 package com.example.accuratedamoov
 
+
 import android.Manifest
 import android.annotation.SuppressLint
-
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -14,10 +16,9 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.accuratedamoov.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
-import com.telematicssdk.tracking.Settings
-import com.telematicssdk.tracking.TrackingApi
-import com.telematicssdk.tracking.utils.permissions.PermissionsWizardActivity
-
+import com.raxeltelematics.v2.sdk.Settings
+import com.raxeltelematics.v2.sdk.TrackingApi
+import com.raxeltelematics.v2.sdk.utils.permissions.PermissionsWizardActivity
 
 import java.util.UUID
 
@@ -25,7 +26,7 @@ import java.util.UUID
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val TAG: String = this::class.java.simpleName
+    private val TAG: String = this::class.java.simpleName+"Omkar"
     private val trackingApi = TrackingApi.getInstance()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +34,6 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         checkPermissionsAndStartTracking()
-
     }
 
     private fun checkPermissionsAndStartTracking() {
@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity() {
                 ), PermissionsWizardActivity.WIZARD_PERMISSIONS_CODE
             )
         } else {
-
+            Log.d(TAG, "Permission granted")
             enableTracking()
             setupNavigation()
         }
@@ -147,18 +147,22 @@ class MainActivity : AppCompatActivity() {
         )
         settings.stopTrackingTimeout(10)
         trackingApi.initialize(applicationContext, settings)
-        if (trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
             val androidId = android.provider.Settings.Secure.getString(
                 contentResolver,
                 android.provider.Settings.Secure.ANDROID_ID
             )
             if(!trackingApi.isSdkEnabled()) {
-                trackingApi.setDeviceID(UUID.nameUUIDFromBytes(androidId.toByteArray(Charsets.UTF_8))
-                    .toString())
+                // for tracking 2.2.63
+                trackingApi.setDeviceID(androidId)
+                // for tracking 3.0.0
+                /* trackingApi.setDeviceID(
+                     UUID.nameUUIDFromBytes(androidId.toByteArray(Charsets.UTF_8)).toString()
+                 )*/
                 trackingApi.setEnableSdk(true)
+                Log.d(TAG,"tracking SDK enabled")
 
-            }
-            trackingApi.setAutoStartEnabled(true,true)
+            // for tracking 3.0.0,not present in 2.2.263
+            //trackingApi.setAutoStartEnabled(true,true)
             /*if(!trackingApi.isTracking()) {
                 trackingApi.startTracking()
             }*/

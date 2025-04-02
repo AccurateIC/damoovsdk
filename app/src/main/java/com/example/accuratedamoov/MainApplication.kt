@@ -3,8 +3,12 @@ package com.example.accuratedamoov
 
 import android.app.Application
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
-import androidx.lifecycle.LifecycleOwner
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
@@ -12,13 +16,14 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkQuery
+import com.example.accuratedamoov.broadcastreceiver.PermissionChangeReceiver
+import com.example.accuratedamoov.service.NetworkMonitorService
+import com.example.accuratedamoov.service.PermissionMonitorService
 import com.example.accuratedamoov.worker.TrackTableCheckWorker
 import com.example.accuratedamoov.worker.TrackingWorker
-import com.telematicssdk.tracking.Settings
-import com.telematicssdk.tracking.Settings.Companion.stopTrackingTimeHigh
-import com.telematicssdk.tracking.TrackingApi
-import java.util.Arrays
-import java.util.UUID
+import com.raxeltelematics.v2.sdk.Settings
+import com.raxeltelematics.v2.sdk.Settings.Companion.stopTrackingTimeHigh
+import com.raxeltelematics.v2.sdk.TrackingApi
 import java.util.concurrent.TimeUnit
 
 
@@ -27,6 +32,28 @@ class MainApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+
+        val permissionMonitorServicesIntent = Intent(this, PermissionMonitorService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(permissionMonitorServicesIntent)
+        } else {
+            startService(permissionMonitorServicesIntent)
+        }
+        /*val permissionReceiver = PermissionChangeReceiver()
+        val filter = IntentFilter(Intent.ACTION_PACKAGE_CHANGED).apply {
+            addDataScheme("package")
+        }
+        registerReceiver(permissionReceiver, filter)*/
+
+        Log.d("MainApplication", "PermissionChangeReceiver registered")
+
+        Log.d("MainApplication", "PermissionReceiver registered")
+        val networkServiceIntent = Intent(this, NetworkMonitorService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(networkServiceIntent)
+        } else {
+            startService(networkServiceIntent)
+        }
 
         val androidId = android.provider.Settings.Secure.getString(
             contentResolver,
@@ -46,19 +73,24 @@ class MainApplication : Application() {
 
             trackingApi.initialize(applicationContext, settings)
             Log.d("MainApplication", "SDK initialized")
+
         }
 
         // Common setup after initialization
-        if (trackingApi.areAllRequiredPermissionsAndSensorsGranted() && !trackingApi.isSdkEnabled()) {
-            trackingApi.setDeviceID(
-                UUID.nameUUIDFromBytes(androidId.toByteArray(Charsets.UTF_8))
-                .toString())
-            trackingApi.setEnableSdk(true)
-            trackingApi.setAutoStartEnabled(true,true)
+        if (trackingApi.isInitialized() && trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
 
-        }
-        if(trackingApi.areAllRequiredPermissionsAndSensorsGranted() && trackingApi.isSdkEnabled()){
-            trackingApi.setAutoStartEnabled(true,true)
+                // for tracking 2.2.63
+                trackingApi.setDeviceID(androidId)
+
+
+                // for tracking 3.0.0
+               /* trackingApi.setDeviceID(
+                    UUID.nameUUIDFromBytes(androidId.toByteArray(Charsets.UTF_8)).toString()
+                )*/
+                trackingApi.setEnableSdk(true)
+                Log.d("MainApplication","tracking SDK enabled")
+            // for tracking 3.0.0,not present in 2.2.263
+            //trackingApi.setAutoStartEnabled(true,true)
         }
 
         val sharedPreferences = getSharedPreferences("appSettings", Context.MODE_PRIVATE)
@@ -72,7 +104,7 @@ class MainApplication : Application() {
 
     fun getAllWorkerRequests(context: Context) {
         val workQuery = WorkQuery.Builder
-            .fromStates(listOf(WorkInfo.State.ENQUEUED, WorkInfo.State.RUNNING))
+            .fromStates(WorkInfo.State.entries)
             .build()
 
         val workInfoList = WorkManager.getInstance(context).getWorkInfos(workQuery).get()
@@ -104,21 +136,22 @@ class MainApplication : Application() {
         val workQuery = WorkQuery.Builder
             .fromStates(listOf(WorkInfo.State.ENQUEUED))
             .build()
-        // Observe all enqueued work
-        workManager.getWorkInfosLiveData(workQuery).observeForever  { workInfos ->
-            workInfos?.forEach { workInfo ->
-                val tags = workInfo.tags
-                val workId = workInfo.id
 
-                // Log the details
-                Log.d("WorkManager", "ID: $workId")
-                Log.d("WorkManager", "State: ${workInfo.state}")
-                Log.d("WorkManager", "Tags: $tags")
+        Handler(Looper.getMainLooper()).post {
+            workManager.getWorkInfosLiveData(workQuery).observeForever { workInfos ->
+                workInfos?.forEach { workInfo ->
+                    val tags = workInfo.tags
+                    val workId = workInfo.id
 
-                // Cancel work if it's NOT TrackTableCheckWorker
-                if (!tags.contains("com.example.accuratedamoov.worker.TrackTableCheckWorker")) {
-                    Log.d("WorkManager", "Cancelling Work: $workId")
-                    workManager.cancelWorkById(workId)
+                    Log.d("WorkManager", "ID: $workId")
+                    Log.d("WorkManager", "State: ${workInfo.state}")
+                    Log.d("WorkManager", "Tags: $tags")
+
+                    // Cancel work if it's NOT TrackTableCheckWorker
+                    if (!tags.contains("com.example.accuratedamoov.worker.TrackTableCheckWorker")) {
+                        Log.d("WorkManager", "Cancelling Work: $workId")
+                        workManager.cancelWorkById(workId)
+                    }
                 }
             }
         }

@@ -5,8 +5,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.accuratedamoov.model.TrackModel
-import com.telematicssdk.tracking.TrackingApi
-import com.telematicssdk.tracking.server.model.Locale
+import com.raxeltelematics.v2.sdk.TrackingApi
+import com.raxeltelematics.v2.sdk.server.model.Locale
 
 
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,12 +50,13 @@ class FeedViewModel : ViewModel() {
         withContext(Dispatchers.IO) {
             // Currently getting zero tracks as getTracks failed due to an API key issue.
             // TODO(): Fetch data from our own REST API instead of using the Damoov API.
-            val result = trackingApi!!.getTracks(
+           /* val result = trackingApi!!.getTracks(
                 locale = Locale.EN,
                 offset = 0,
                 limit = 10
-            )
+            )*/
 
+            val result = ArrayList<TrackModel>()
             if(result.isNotEmpty()) {
                 val trackModels = result?.map {
                     TrackModel(
