@@ -182,7 +182,6 @@ class MainActivity : AppCompatActivity() {
                 Settings.stopTrackingTimeHigh, 150, autoStartOn = true, hfOn = true, elmOn = false
             )
             settings.stopTrackingTimeout(10)
-
             trackingApi.initialize(applicationContext, settings)
         }
             if (trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
@@ -196,7 +195,9 @@ class MainActivity : AppCompatActivity() {
                 if(!trackingApi.isSdkEnabled()) {
                     trackingApi.setDeviceID(androidId)
                     trackingApi.setEnableSdk(true)
+
                 }
+                trackingApi.startTracking()
                 /*if(!trackingApi.isTracking()) {
                     trackingApi.startTracking()
                 }*/
