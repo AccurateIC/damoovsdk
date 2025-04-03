@@ -84,12 +84,12 @@
 
         <service
             android:name=".service.PermissionMonitorService"
-            android:foregroundServiceType="location"
+            android:foregroundServiceType="connectedDevice"
             android:exported="false"/>
 
         <service
             android:name=".service.NetworkMonitorService"
-            android:foregroundServiceType="location"
+            android:foregroundServiceType="connectedDevice"
             android:exported="false"/>
     </application>
 

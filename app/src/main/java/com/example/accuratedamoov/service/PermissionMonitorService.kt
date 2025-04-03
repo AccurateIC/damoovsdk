@@ -91,6 +91,7 @@ class PermissionMonitorService : Service() {
                 trackingApi.initialize(applicationContext, settings)
                 Log.d("PermissionMonitorService", "SDK initialized")
             }
+            if(!trackingApi.isSdkEnabled()) {
                 // for tracking 2.2.63
                 trackingApi.setDeviceID(androidId)
                 // for tracking 3.0.0
@@ -98,7 +99,10 @@ class PermissionMonitorService : Service() {
                      UUID.nameUUIDFromBytes(androidId.toByteArray(Charsets.UTF_8)).toString()
                  )*/
                 trackingApi.setEnableSdk(true)
-                Log.d("PermissionMonitorService","tracking SDK enabled")
+                Log.d("PermissionMonitorService", "tracking SDK enabled")
+            }else{
+                Log.d("PermissionMonitorService", "Already tracking SDK enabled, no need to enable again and tracking is ${trackingApi.isTracking()}")
+            }
                 // trackingApi.setAutoStartEnabled(true, true)  //for tracking 3.0.0
         } else {
             Log.e("PermissionMonitorService", "Location permission revoked. Stopping tracking.")
@@ -119,7 +123,7 @@ class PermissionMonitorService : Service() {
             val channel = NotificationChannel(
                 "tracking_alerts",
                 "Tracking Alerts",
-                NotificationManager.IMPORTANCE_HIGH
+                NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = "Alerts for tracking issues"
             }

@@ -26,7 +26,7 @@ import java.util.UUID
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val TAG: String = this::class.java.simpleName+"Omkar"
+    private val TAG: String = this::class.java.simpleName
     private val trackingApi = TrackingApi.getInstance()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -133,7 +133,7 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("HardwareIds")
     private fun enableTracking() {
-        if (ActivityCompat.checkSelfPermission(
+        /*if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
@@ -155,18 +155,52 @@ class MainActivity : AppCompatActivity() {
                 // for tracking 2.2.63
                 trackingApi.setDeviceID(androidId)
                 // for tracking 3.0.0
-                /* trackingApi.setDeviceID(
+                *//* trackingApi.setDeviceID(
                      UUID.nameUUIDFromBytes(androidId.toByteArray(Charsets.UTF_8)).toString()
-                 )*/
+                 )*//*
                 trackingApi.setEnableSdk(true)
                 Log.d(TAG,"tracking SDK enabled")
 
             // for tracking 3.0.0,not present in 2.2.263
             //trackingApi.setAutoStartEnabled(true,true)
-            /*if(!trackingApi.isTracking()) {
+            *//*if(!trackingApi.isTracking()) {
                 trackingApi.startTracking()
-            }*/
+            }*//*
+        }*/
+
+            if (ActivityCompat.checkSelfPermission(
+                    this, Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                Snackbar.make(
+                    binding.root, "Please grant all required permissions ", Snackbar.LENGTH_LONG
+                ).show()
+                return
+            }
+        if(!trackingApi.isInitialized()) {
+            val settings = Settings(
+                Settings.stopTrackingTimeHigh, 150, autoStartOn = true, hfOn = true, elmOn = false
+            )
+            settings.stopTrackingTimeout(10)
+
+            trackingApi.initialize(applicationContext, settings)
         }
+            if (trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
+                val androidId = android.provider.Settings.Secure.getString(
+                    contentResolver,
+                    android.provider.Settings.Secure.ANDROID_ID
+                )
+
+
+                //trackingApi.setAutoStartEnabled(true, true)
+                if(!trackingApi.isSdkEnabled()) {
+                    trackingApi.setDeviceID(androidId)
+                    trackingApi.setEnableSdk(true)
+                }
+                /*if(!trackingApi.isTracking()) {
+                    trackingApi.startTracking()
+                }*/
+            }
 
 
     }
