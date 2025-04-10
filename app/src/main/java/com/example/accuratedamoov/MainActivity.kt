@@ -181,7 +181,7 @@ class MainActivity : AppCompatActivity() {
             val settings = Settings(
                 Settings.stopTrackingTimeHigh, 150, autoStartOn = true, hfOn = true, elmOn = false
             )
-            settings.stopTrackingTimeout(10)
+            settings.stopTrackingTimeout(15)
             trackingApi.initialize(applicationContext, settings)
         }
             if (trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
@@ -197,7 +197,9 @@ class MainActivity : AppCompatActivity() {
                     trackingApi.setEnableSdk(true)
 
                 }
-                trackingApi.startTracking()
+               /* if(!trackingApi.startTracking()) {
+                    trackingApi.startTracking()
+                }*/
                 /*if(!trackingApi.isTracking()) {
                     trackingApi.startTracking()
                 }*/

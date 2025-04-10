@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
@@ -31,6 +32,9 @@ class MainApplication : Application() {
  val trackingApi = TrackingApi.getInstance()
     override fun onCreate() {
         super.onCreate()
+
+       /* to Detect night mode and handle UI*/
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
 
         val permissionMonitorServicesIntent = Intent(this, PermissionMonitorService::class.java)
@@ -70,7 +74,7 @@ class MainApplication : Application() {
                 true,
                 false
             )
-
+            settings.stopTrackingTimeout(15)
             trackingApi.initialize(applicationContext, settings)
             Log.d("MainApplication", "SDK initialized")
 

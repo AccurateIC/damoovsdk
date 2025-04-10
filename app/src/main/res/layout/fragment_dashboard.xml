@@ -8,6 +8,9 @@
     android:padding="10dp"
     tools:context=".ui.feed.FeedFragment">
 
+
+
+
     <!-- TextView for 'No Trips Found' -->
     <TextView
         android:id="@+id/tvZeroTrips"

@@ -14,7 +14,6 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="@string/enter_api_url"
-        app:boxStrokeColor="@color/purple_500"
         app:boxCornerRadiusTopStart="12dp"
         app:boxCornerRadiusTopEnd="12dp"
         app:boxCornerRadiusBottomStart="12dp"
@@ -82,18 +81,13 @@
         app:layout_constraintTop_toBottomOf="@id/intervalSelectorLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>-->
-    <com.google.android.material.button.MaterialButton
+    <ImageView
         android:id="@+id/saveButton"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:textColor="@color/purple_500"
-        android:layout_marginTop="16dp"
-        android:paddingVertical="12dp"
-        app:cornerRadius="16dp"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        android:text="@string/save_apply"
-        app:iconPadding="8dp"
+        android:src="@drawable/btn_save_and_apply"
+        android:contentDescription="@string/save_apply"
+        android:layout_margin="16dp"
         app:layout_constraintTop_toBottomOf="@id/intervalSelectorLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>

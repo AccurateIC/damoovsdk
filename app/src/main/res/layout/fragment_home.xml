@@ -1,55 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.home.HomeFragment"
-    android:padding="20dp">
+    tools:context=".ui.home.HomeFragment">
 
+    <!-- Map in the background -->
+    <com.google.android.gms.maps.MapView
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Floating control buttons -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center"
         android:padding="16dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:layout_gravity="top|end"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp">
 
-        <!-- Start Trip Button -->
-        <com.google.android.material.button.MaterialButton
+        <ImageView
             android:id="@+id/startTripManually"
-            android:layout_width="200dp"
-            android:layout_height="0dp"
-            android:text="@string/start_trip"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            app:cornerRadius="16dp"
-            android:textSize="16sp"
-            android:paddingVertical="12dp"
-            android:layout_weight=".5"
-            android:layout_marginBottom="12dp"
-            app:icon="@drawable/ic_play_circle"
-            app:iconGravity="textStart"
-            app:iconPadding="8dp" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/btn_start_trip"
+            android:layout_marginBottom="12dp" />
 
-        <!-- Stop Trip Button -->
-        <com.google.android.material.button.MaterialButton
+        <ImageView
             android:id="@+id/stopTripManually"
-            android:layout_width="200dp"
-            android:layout_height="0dp"
-            android:text="@string/stop_trip"
-            android:layout_weight=".5"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            app:cornerRadius="16dp"
-            android:textSize="16sp"
-            android:paddingVertical="12dp"
-            app:icon="@drawable/ic_stop_circle"
-            app:iconGravity="textStart"
-            app:iconPadding="8dp" />
-
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/btn_stop_trip" />
     </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- Draggable Bottom Sheet -->
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/bottom_sheet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fillViewport="true"
+        android:background="@android:color/white"
+        app:behavior_peekHeight="24dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="5dp">
+
+            <View
+                android:id="@+id/bottom_sheet_handle"
+                android:layout_width="40dp"
+                android:layout_height="6dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/rectangle" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Sliding content here" />
+
+            <!-- Add more content if needed -->
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

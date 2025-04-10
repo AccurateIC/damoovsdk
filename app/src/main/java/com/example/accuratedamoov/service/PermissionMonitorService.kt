@@ -88,6 +88,7 @@ class PermissionMonitorService : Service() {
                     true,
                     false
                 )
+                settings.stopTrackingTimeout(15)
                 trackingApi.initialize(applicationContext, settings)
                 Log.d("PermissionMonitorService", "SDK initialized")
             }

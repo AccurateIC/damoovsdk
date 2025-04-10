@@ -15,9 +15,9 @@
     <color name="colorOnPrimary">#FFFFFF</color>
 
 
-    <color name="colorSecondary">#B0BEC5</color> <!-- Soft grey-blue -->
-    <color name="colorSecondaryVariant">#90A4AE</color> <!-- Slightly darker variant -->
-    <color name="colorOnSecondary">#000000</color> <!-- Keep contrast readable -->
+    <color name="colorSecondary">#455A64</color> <!-- Soft grey-blue -->
+    <color name="colorSecondaryVariant">#37474F</color> <!-- Slightly darker variant -->
+    <color name="colorOnSecondary">#FFFFFF</color> <!-- Keep contrast readable -->
 
 
 
