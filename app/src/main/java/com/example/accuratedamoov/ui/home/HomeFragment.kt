@@ -1,24 +1,37 @@
 package com.example.accuratedamoov.ui.home
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.app.ActivityCompat
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import com.example.accuratedamoov.R
 import com.example.accuratedamoov.databinding.FragmentHomeBinding
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.MapView
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.Snackbar
 import com.raxeltelematics.v2.sdk.TrackingApi
+import org.mapsforge.core.model.LatLong
+import org.mapsforge.map.android.graphics.AndroidGraphicFactory
+import org.mapsforge.map.android.util.AndroidUtil
+import org.mapsforge.map.layer.renderer.TileRendererLayer
+import org.mapsforge.map.reader.MapFile
+import org.osmdroid.api.IGeoPoint
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapController
+import org.osmdroid.views.overlay.Marker
+import java.io.FileInputStream
 
 class HomeFragment : Fragment() {
     val TAG: String = this::class.java.simpleName
@@ -34,7 +47,14 @@ class HomeFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+       /* AndroidGraphicFactory.createInstance(context)
+        val contract =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                result.data?.data?.let { uri ->
+                    openMap(uri)
+                }
 
+            }*/
 
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
@@ -43,14 +63,67 @@ class HomeFragment : Fragment() {
 
     }
 
+   /* private fun openMap(uri: Uri) {
+        _binding!!.mapView.mapScaleBar.isVisible = true
+        _binding!!.mapView.setBuiltInZoomControls(true)
+        val cache = AndroidUtil.createTileCache(
+            context,
+            "mycache",
+            _binding!!.mapView.model.displayModel.tileSize,
+            1f,
+            _binding!!.mapView.model.frameBufferModel.overdrawFactor
+        )
+        val stream: FileInputStream =
+            context?.contentResolver?.openOutputStream(uri) as FileInputStream
+        val mapStore = MapFile(stream)
+        val renderLayer = TileRendererLayer(
+            cache,
+            mapStore,
+            _binding!!.mapView.model.mapViewPosition,
+            AndroidGraphicFactory.INSTANCE
+        )
+        _binding!!.mapView.layerManager.layers.add(renderLayer)
+        _binding!!.mapView.setCenter(LatLong(18.5889, 73.7031))
+    }*/
+
     @SuppressLint("HardwareIds")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val mapView = view.findViewById<MapView>(R.id.mapView)
-        mapView.onCreate(savedInstanceState)
-        mapView.getMapAsync { googleMap ->
-            // Customize map (e.g., move camera, add markers)
+        _binding!!.mapView.setTileSource(TileSourceFactory.MAPNIK)
+        _binding!!.mapView.setBuiltInZoomControls(true)
+        _binding!!.mapView.setMultiTouchControls(true)
+
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            Snackbar.make(
+                binding.root, "Please grant all required permissions ", Snackbar.LENGTH_LONG
+            ).show()
+            return
+        }
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            if (location != null) {
+                val currentPoint = GeoPoint(location.latitude, location.longitude)
+                val mapController = _binding!!.mapView.controller as MapController
+                mapController.setZoom(15.0)
+                mapController.setCenter(currentPoint)
+
+                val marker = Marker(_binding!!.mapView)
+                marker.position = currentPoint
+                marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                _binding!!.mapView.overlays.add(marker)
+                _binding!!.mapView.invalidate()
+            } else {
+                Toast.makeText(context, "Unable to get current location", Toast.LENGTH_SHORT).show()
+            }
         }
 
 
@@ -94,7 +167,6 @@ class HomeFragment : Fragment() {
         val handle = view.findViewById<View>(R.id.bottom_sheet_handle)
 
 
-
         val behavior = BottomSheetBehavior.from(bottomSheet)
 
         behavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
@@ -126,7 +198,7 @@ class HomeFragment : Fragment() {
 
         super.onResume()
 
-        if(trackinApi.isTracking()){
+        if (trackinApi.isTracking()) {
             binding.stopTripManually.visibility = View.VISIBLE
             binding.startTripManually.visibility = View.GONE
 
@@ -134,7 +206,7 @@ class HomeFragment : Fragment() {
                 binding.root, "Tracking is in progress", Snackbar.LENGTH_LONG
             ).show()
 
-        }else{
+        } else {
             binding.stopTripManually.visibility = View.GONE
             binding.startTripManually.visibility = View.VISIBLE
         }

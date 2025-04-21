@@ -61,6 +61,8 @@ dependencies {
     implementation(libs.play.services.maps)
     implementation(libs.androidx.lifecycle.service)
     implementation(libs.androidx.espresso.intents)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.play.services.location)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -87,4 +89,17 @@ dependencies {
     // JUnit (if you're not using it already)
     testImplementation(libs.junit)
 
+
+    ///maps
+    implementation ("com.github.mapsforge.mapsforge:mapsforge-core:0.25.0")
+    implementation ("com.github.mapsforge.mapsforge:mapsforge-map:0.25.0")
+    implementation( "com.github.mapsforge.mapsforge:mapsforge-map-reader:0.25.0")
+    implementation ("com.github.mapsforge.mapsforge:mapsforge-themes:0.25.0")
+    implementation ("com.github.mapsforge.mapsforge:mapsforge-core:0.25.0")
+    implementation ("com.github.mapsforge.mapsforge:mapsforge-poi:0.25.0")
+    implementation ("com.github.mapsforge.mapsforge:mapsforge-map-android:0.25.0")
+    implementation ("com.caverock:androidsvg:1.4")
+
+    implementation ("org.osmdroid:osmdroid-android:6.1.16")
+    implementation("com.google.guava:guava:31.1-android")
 }

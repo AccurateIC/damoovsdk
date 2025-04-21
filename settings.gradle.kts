@@ -17,6 +17,7 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven { url = uri("https://s3.us-east-2.amazonaws.com/android.telematics.sdk.production/") }
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
