@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.play.services.maps)
     implementation(libs.androidx.lifecycle.service)
+    implementation(libs.androidx.espresso.intents)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -71,4 +72,19 @@ dependencies {
     implementation (libs.logging.interceptor)
     implementation (libs.androidx.lifecycle.viewmodel.ktx.v262)
     implementation (libs.androidx.fragment.ktx)
+    androidTestImplementation (libs.androidx.junit.v115)
+    androidTestImplementation (libs.androidx.espresso.core.v351)
+    testImplementation (libs.mockito.core)
+    testImplementation(libs.junit)
+    testImplementation(libs.mockito.core.v5110)
+
+    // For Kotlin-friendly API
+    testImplementation(libs.mockito.kotlin)
+
+    // Instrumented tests (if needed)
+    androidTestImplementation(libs.mockito.android)
+
+    // JUnit (if you're not using it already)
+    testImplementation(libs.junit)
+
 }

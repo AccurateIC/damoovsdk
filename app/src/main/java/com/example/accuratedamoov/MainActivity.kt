@@ -33,25 +33,10 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        checkPermissionsAndStartTracking()
+        enableTracking()
+        setupNavigation()
     }
 
-    private fun checkPermissionsAndStartTracking() {
-        if (!trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
-            Log.d(TAG, "Permissions not granted, launching wizard.")
-            startActivityForResult(
-                PermissionsWizardActivity.getStartWizardIntent(
-                    context = this,
-                    enableAggressivePermissionsWizard = false,
-                    enableAggressivePermissionsWizardPage = true
-                ), PermissionsWizardActivity.WIZARD_PERMISSIONS_CODE
-            )
-        } else {
-            Log.d(TAG, "Permission granted")
-            enableTracking()
-            setupNavigation()
-        }
-    }
 
     private fun setupNavigation() {
         binding.root.post {
@@ -103,33 +88,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == PermissionsWizardActivity.WIZARD_PERMISSIONS_CODE) {
-            when (resultCode) {
-                PermissionsWizardActivity.WIZARD_RESULT_ALL_GRANTED -> {
-                    Log.d(TAG, "onActivityResult: WIZARD_RESULT_ALL_GRANTED")
-                    enableTracking()
-                    setupNavigation()
-                }
-
-                PermissionsWizardActivity.WIZARD_RESULT_NOT_ALL_GRANTED -> {
-                    Log.d(TAG, "onActivityResult: WIZARD_RESULT_NOT_ALL_GRANTED")
-                    Snackbar.make(
-                        binding.root, "All permissions were not granted", Snackbar.LENGTH_LONG
-                    ).show()
-                }
-
-                PermissionsWizardActivity.WIZARD_RESULT_CANCELED -> {
-                    Log.d(TAG, "onActivityResult: WIZARD_RESULT_CANCELED")
-                    Snackbar.make(binding.root, "Wizard cancelled", Snackbar.LENGTH_LONG).show()
-                }
-            }
-        }
-    }
-
 
     @SuppressLint("HardwareIds")
     private fun enableTracking() {
@@ -200,14 +158,27 @@ class MainActivity : AppCompatActivity() {
                /* if(!trackingApi.startTracking()) {
                     trackingApi.startTracking()
                 }*/
-                /*if(!trackingApi.isTracking()) {
+                if(!trackingApi.isTracking()) {
                     trackingApi.startTracking()
-                }*/
+                }
             }
 
 
     }
 
+    override fun onResume() {
+        super.onResume()
+        if(!trackingApi.areAllRequiredPermissionsAndSensorsGranted()){
+            Snackbar.make(
+                findViewById(android.R.id.content),
+                "All permissions are required to proceed.",
+                Snackbar.LENGTH_LONG
+            ).show()
+            startActivity(Intent(this@MainActivity, SplashScreenActivity::class.java))
+            finish()
+
+        }
+    }
 
 }
 

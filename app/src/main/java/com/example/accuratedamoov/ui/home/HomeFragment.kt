@@ -53,18 +53,7 @@ class HomeFragment : Fragment() {
             // Customize map (e.g., move camera, add markers)
         }
 
-        if(trackinApi.isTracking()){
-            binding.stopTripManually.visibility = View.VISIBLE
-            binding.startTripManually.visibility = View.GONE
 
-            Snackbar.make(
-                binding.root, "Tracking is in progress", Snackbar.LENGTH_LONG
-            ).show()
-
-        }else{
-            binding.stopTripManually.visibility = View.GONE
-            binding.startTripManually.visibility = View.VISIBLE
-        }
         homeViewModel.errMsg.observe(viewLifecycleOwner, Observer { errMsg ->
 
             if (errMsg.isNotEmpty()) {
@@ -83,11 +72,13 @@ class HomeFragment : Fragment() {
                 Snackbar.make(
                     binding.root, "Tracking is in progress", Snackbar.LENGTH_LONG
                 ).show()
+
             } else {
                 homeViewModel.startTracking()
-                binding.stopTripManually.visibility = View.VISIBLE
-                binding.startTripManually.visibility = View.GONE
+
             }
+            binding.stopTripManually.visibility = View.VISIBLE
+            binding.startTripManually.visibility = View.GONE
         }
 
         binding.stopTripManually.setOnClickListener {
@@ -129,5 +120,24 @@ class HomeFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onResume() {
+
+        super.onResume()
+
+        if(trackinApi.isTracking()){
+            binding.stopTripManually.visibility = View.VISIBLE
+            binding.startTripManually.visibility = View.GONE
+
+            Snackbar.make(
+                binding.root, "Tracking is in progress", Snackbar.LENGTH_LONG
+            ).show()
+
+        }else{
+            binding.stopTripManually.visibility = View.GONE
+            binding.startTripManually.visibility = View.VISIBLE
+        }
+
     }
 }
