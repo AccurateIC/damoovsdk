@@ -12,6 +12,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
+import android.widget.Toast
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkQuery
@@ -36,6 +37,7 @@ class NetworkMonitorService : Service() {
             if (isConnected == true || isConnected == null) { // Notify only if status changes
                 isConnected = false
                 Log.d("NetworkMonitorService", "No internet connection")
+                Toast.makeText(applicationContext,"No internet connection",Toast.LENGTH_SHORT).show()
                 observeAndCancelWork()
             }
         }

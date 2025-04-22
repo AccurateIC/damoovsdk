@@ -85,11 +85,10 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/mileageView"
+                    android:id="@+id/totalDistanceView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Mileage: 0 km"
-                    android:textSize="14sp"
+                     android:textSize="14sp"
                     android:textColor="@android:color/black"/>
 
                 <TextView
@@ -100,13 +99,7 @@
                     android:textSize="14sp"
                     android:textColor="@android:color/black"/>
 
-                <TextView
-                    android:id="@+id/transportTypeView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Transport Type: Car"
-                    android:textSize="14sp"
-                    android:textColor="@android:color/black"/>
+
             </LinearLayout>
 
             <!-- Show Map Button -->
