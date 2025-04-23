@@ -1,0 +1,14 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.accuratedamoov">
+
+    <application
+        android:name=".MainApplication"
+        android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
+        <activity android:name=".SplashScreenActivity"
+            android:theme="@style/Theme.AppCompat">
+            <!-- other attributes -->
+        </activity>
+
+    </application>
+
+</manifest>
