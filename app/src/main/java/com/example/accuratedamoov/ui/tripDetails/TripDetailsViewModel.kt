@@ -36,7 +36,7 @@ class TripDetailsViewModel(application: Application) : AndroidViewModel(applicat
 
     private fun handleResponse(responseList: List<GeoPointModel>) {
         if (responseList.isNotEmpty()) {
-            _geoPoints.value = responseList // Update LiveData with the response
+            _geoPoints.value = responseList
         } else {
             _geoPoints.value = mutableListOf()
         }

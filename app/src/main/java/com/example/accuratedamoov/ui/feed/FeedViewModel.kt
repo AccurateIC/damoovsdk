@@ -11,6 +11,7 @@ import com.example.accuratedamoov.data.model.TripApiResponse
 import com.example.accuratedamoov.data.model.TripData
 import com.example.accuratedamoov.data.network.RetrofitClient
 import com.example.accuratedamoov.model.TrackModel
+import com.example.accuratedamoov.service.NetworkMonitorService
 import com.raxeltelematics.v2.sdk.TrackingApi
 import kotlinx.coroutines.CoroutineScope
 
@@ -32,7 +33,9 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         viewModelScope.launch {
-            loadData()
+            if(NetworkMonitorService.isConnected == true) {
+                loadData()
+            }
         }
 
     }
@@ -46,7 +49,12 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
 
     private suspend fun loadData() {
         try {
-            fetchTrips()
+            if(NetworkMonitorService.isConnected == true) {
+                fetchTrips()
+            }else{
+
+
+            }
         } catch (e: Exception) {
             Log.e("FeedViewModel", "Error fetching tracks: ${e.message}")
         }
@@ -63,7 +71,7 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                         _tracks.value = trips
                     }
                     trips?.forEach {
-                        Log.d("TripOmkar", "Trip ID: ${it.UNIQUE_ID}, Distance: ${it.distance_km}")
+                        Log.d("Trip", "Trip ID: ${it.UNIQUE_ID}, Distance: ${it.distance_km}")
                     }
                 } else {
                     Log.e("API Error", response.errorBody()?.string() ?: "Unknown error")

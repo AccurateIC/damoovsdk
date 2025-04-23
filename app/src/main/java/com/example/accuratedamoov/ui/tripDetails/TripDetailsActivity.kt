@@ -20,6 +20,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.example.accuratedamoov.databinding.ActivityTripDetailsBinding
 import com.example.accuratedamoov.model.GeoPointModel
+import com.example.accuratedamoov.service.NetworkMonitorService
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -49,7 +50,7 @@ class TripDetailsActivity : AppCompatActivity() {
         mapView.setTileSource(TileSourceFactory.MAPNIK)
         mapView.setMultiTouchControls(true)
 
-        if (uniqueId != null) {
+        if (uniqueId != null && NetworkMonitorService.isConnected == true) {
             tripDetailsViewModel.fetchGeoPoints(uniqueId)
 
             tripDetailsViewModel.geoPoints.observe(this) { geoPoints ->
@@ -60,7 +61,7 @@ class TripDetailsActivity : AppCompatActivity() {
                 }
             }
         } else {
-            Toast.makeText(this, "No unique ID found", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show()
         }
     }
 

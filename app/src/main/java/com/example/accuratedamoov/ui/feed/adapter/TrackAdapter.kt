@@ -12,6 +12,7 @@ import com.example.accuratedamoov.data.model.TripData
 import com.example.accuratedamoov.data.network.RetrofitClient
 import com.example.accuratedamoov.databinding.ListItemTripBinding
 import com.example.accuratedamoov.model.TrackModel
+import com.example.accuratedamoov.service.NetworkMonitorService
 import com.example.accuratedamoov.ui.tripDetails.TripDetailsActivity
 import java.time.Instant
 import java.time.ZoneId
@@ -49,14 +50,19 @@ class TrackAdapter(
              totalTimeView.text = String.format("Total time: %d mins",)*/
 
             root.setOnClickListener {
-                val intent = Intent(mContext, TripDetailsActivity::class.java)
-                intent.putExtra("ID", item.UNIQUE_ID.toString())
-                mContext.startActivity(intent)
+                if (NetworkMonitorService.isConnected == true) {
+                    val intent = Intent(mContext, TripDetailsActivity::class.java)
+                    intent.putExtra("ID", item.UNIQUE_ID.toString())
+                    mContext.startActivity(intent)
+                }
+
             }
             detailsButton.setOnClickListener {
-                val intent = Intent(mContext, TripDetailsActivity::class.java)
-                intent.putExtra("ID", item.UNIQUE_ID.toString())
-                mContext.startActivity(intent)
+                if (NetworkMonitorService.isConnected == true) {
+                    val intent = Intent(mContext, TripDetailsActivity::class.java)
+                    intent.putExtra("ID", item.UNIQUE_ID.toString())
+                    mContext.startActivity(intent)
+                }
             }
         }
     }

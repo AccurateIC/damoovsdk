@@ -20,8 +20,13 @@ import androidx.work.WorkQuery
 
 class NetworkMonitorService : Service() {
 
+    companion object {
+        @Volatile
+        var isConnected: Boolean? = null
+
+    }
     private lateinit var connectivityManager: ConnectivityManager
-    private var isConnected: Boolean? = null
+
     private val CHANNEL_ID = "network_monitor_service"
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
@@ -30,6 +35,7 @@ class NetworkMonitorService : Service() {
                 isConnected = true
                 Log.d("NetworkMonitorService", "Internet is available")
                 observeAndCancelWork()
+                notifyConnectionChange(true)
             }
         }
 
@@ -39,8 +45,17 @@ class NetworkMonitorService : Service() {
                 Log.d("NetworkMonitorService", "No internet connection")
                 Toast.makeText(applicationContext,"No internet connection",Toast.LENGTH_SHORT).show()
                 observeAndCancelWork()
+                notifyConnectionChange(false)
             }
         }
+
+       
+    }
+
+    private fun notifyConnectionChange(isConnected: Boolean) {
+        val intent = Intent("network_status_changed")
+        intent.putExtra("isConnected", isConnected)
+        sendBroadcast(intent)
     }
 
     override fun onCreate() {
@@ -113,6 +128,7 @@ class NetworkMonitorService : Service() {
             }
         }
     }
+
 
 }
 

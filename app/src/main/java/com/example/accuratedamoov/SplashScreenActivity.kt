@@ -1,48 +1,57 @@
 package com.example.accuratedamoov
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import com.example.accuratedamoov.service.NetworkMonitorService
 import com.google.android.material.snackbar.Snackbar
 import com.raxeltelematics.v2.sdk.TrackingApi
 import com.raxeltelematics.v2.sdk.utils.permissions.PermissionsWizardActivity
-
-
-/*
-@SuppressLint("CustomSplashScreen")
-class SplashScreenActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_splash_screen)
-
-        Handler().postDelayed({
-            startActivity(Intent(this@SplashScreenActivity, MainActivity::class.java))
-            finish()
-        }, 2000) // 2-second delay
-    }
-}*/
 
 
 @SuppressLint("CustomSplashScreen")
 open class SplashScreenActivity : AppCompatActivity() {
 
     private val TAG = "SplashScreenActivity"
-    public val trackingApi = TrackingApi.getInstance()
-
+    val trackingApi = TrackingApi.getInstance()
+    private val networkReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val isConnected = intent?.getBooleanExtra("isConnected", false) ?: false
+            if (isConnected) {
+                checkPermissionsAndContinue()
+            } else {
+                Toast.makeText(this@SplashScreenActivity, "Waiting for internet...", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash_screen)
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(networkReceiver, IntentFilter("network_status_changed"), RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(networkReceiver, IntentFilter("network_status_changed"))
+        }
         Handler(Looper.getMainLooper()).postDelayed({
             checkPermissionsAndContinue()
-        }, 1000) // Slight delay for splash
+        }, 1000)
+
+
+
     }
 
-    public fun checkPermissionsAndContinue() {
+    private fun checkPermissionsAndContinue() {
         if (!allPermissionGranted()) {
             Log.d(TAG, "Permissions not granted, launching wizard.")
             startActivityForResult(
@@ -54,11 +63,20 @@ open class SplashScreenActivity : AppCompatActivity() {
             )
         } else {
             Log.d(TAG, "All permissions granted, navigating to MainActivity")
-            navigateToMain()
+            if(NetworkMonitorService.isConnected == true) {
+                navigateToMain()
+            }else{
+                Snackbar.make(
+                    findViewById(android.R.id.content),
+                    "No internet, Try again",
+                    Snackbar.LENGTH_LONG
+                ).show()
+
+            }
         }
     }
 
-    public open fun allPermissionGranted() = trackingApi.areAllRequiredPermissionsAndSensorsGranted()
+    open fun allPermissionGranted() = trackingApi.areAllRequiredPermissionsAndSensorsGranted()
 
     private fun navigateToMain() {
         startActivity(Intent(this@SplashScreenActivity, MainActivity::class.java))
@@ -93,5 +111,11 @@ open class SplashScreenActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+
+    override fun onResume() {
+        super.onResume()
+        checkPermissionsAndContinue()
     }
 }
