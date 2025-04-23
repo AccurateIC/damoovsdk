@@ -41,7 +41,12 @@ android {
         resources {
             excludes += setOf(
                 "META-INF/INDEX.LIST",
-                "META-INF/io.netty.versions.properties"
+                "META-INF/io.netty.versions.properties",
+                "META-INF/LICENSE.md",
+                "META-INF/LICENSE-notice.md",
+                "META-INF/DEPENDENCIES",
+                "META-INF/NOTICE",
+                "META-INF/LICENSE"
             )
         }
     }
@@ -63,6 +68,7 @@ dependencies {
     implementation(libs.androidx.espresso.intents)
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.play.services.location)
+    implementation(libs.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -88,6 +94,12 @@ dependencies {
 
     // JUnit (if you're not using it already)
     testImplementation(libs.junit)
+
+    testImplementation ("io.mockk:mockk:1.13.3")
+
+// For instrumentation tests (Android)
+    androidTestImplementation ("io.mockk:mockk-android:1.13.3")
+
 
 
     ///maps

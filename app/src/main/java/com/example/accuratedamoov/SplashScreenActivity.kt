@@ -17,6 +17,7 @@ import com.example.accuratedamoov.service.NetworkMonitorService
 import com.google.android.material.snackbar.Snackbar
 import com.raxeltelematics.v2.sdk.TrackingApi
 import com.raxeltelematics.v2.sdk.utils.permissions.PermissionsWizardActivity
+import org.jetbrains.annotations.TestOnly
 
 
 @SuppressLint("CustomSplashScreen")
@@ -59,7 +60,7 @@ open class SplashScreenActivity : AppCompatActivity() {
 
     }
 
-    private fun checkPermissionsAndContinue() {
+    fun  checkPermissionsAndContinue() {
         if (!allPermissionGranted()) {
             Log.d(TAG, "Permissions not granted, launching wizard.")
             startActivityForResult(
@@ -134,4 +135,5 @@ open class SplashScreenActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
     }
+
 }
