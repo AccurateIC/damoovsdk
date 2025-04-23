@@ -63,6 +63,7 @@ class FeedFragment : Fragment() {
         lifecycleScope.launch {
             feedViewModel.tracks.collectLatest { trackList ->
                 if (!isAdded || _binding == null) return@collectLatest  // Check before accessing binding
+                binding.recycleView.adapter = TrackAdapter(trackList)
                 binding.recycleView.visibility = if (trackList.isNotEmpty()) View.VISIBLE else View.GONE
                 binding.tvZeroTrips.visibility = if (trackList.isEmpty()) View.VISIBLE else View.GONE
             }

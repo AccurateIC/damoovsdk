@@ -30,23 +30,31 @@ open class SplashScreenActivity : AppCompatActivity() {
             if (isConnected) {
                 checkPermissionsAndContinue()
             } else {
-                Toast.makeText(this@SplashScreenActivity, "Waiting for internet...", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@SplashScreenActivity,
+                    "Waiting for internet...",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash_screen)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(networkReceiver, IntentFilter("network_status_changed"), RECEIVER_NOT_EXPORTED)
+            registerReceiver(
+                networkReceiver,
+                IntentFilter("network_status_changed"),
+                RECEIVER_NOT_EXPORTED
+            )
         } else {
             registerReceiver(networkReceiver, IntentFilter("network_status_changed"))
         }
         Handler(Looper.getMainLooper()).postDelayed({
             checkPermissionsAndContinue()
         }, 1000)
-
 
 
     }
@@ -63,9 +71,9 @@ open class SplashScreenActivity : AppCompatActivity() {
             )
         } else {
             Log.d(TAG, "All permissions granted, navigating to MainActivity")
-            if(NetworkMonitorService.isConnected == true) {
+            if (NetworkMonitorService.isConnected == true) {
                 navigateToMain()
-            }else{
+            } else {
                 Snackbar.make(
                     findViewById(android.R.id.content),
                     "No internet, Try again",
@@ -89,7 +97,16 @@ open class SplashScreenActivity : AppCompatActivity() {
             when (resultCode) {
                 PermissionsWizardActivity.WIZARD_RESULT_ALL_GRANTED -> {
                     Log.d(TAG, "Permissions granted from wizard")
-                    navigateToMain()
+                    if (NetworkMonitorService.isConnected == true) {
+                        navigateToMain()
+                    } else {
+                        Snackbar.make(
+                            findViewById(android.R.id.content),
+                            "No internet, Try again",
+                            Snackbar.LENGTH_LONG
+                        ).show()
+
+                    }
                 }
 
                 PermissionsWizardActivity.WIZARD_RESULT_NOT_ALL_GRANTED -> {
@@ -116,6 +133,5 @@ open class SplashScreenActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        checkPermissionsAndContinue()
     }
 }

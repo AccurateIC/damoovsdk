@@ -21,7 +21,6 @@ import java.time.format.DateTimeFormatter
 
 class TrackAdapter(
     private val objects: List<TripData>,
-    private val selectedBlock: (trackId: String) -> Unit
 ) : RecyclerView.Adapter<TrackAdapter.MyViewHolder>() {
     lateinit var mContext: Context
 
