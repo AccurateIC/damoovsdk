@@ -27,9 +27,16 @@ class TripDetailsViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             try {
                 val response = apiService.getGeoPoints(uniqueId)
-                handleResponse(response)
+                if (response.isSuccessful) {
+                    response.body()?.data?.let { geoPoints ->
+                        handleResponse(geoPoints.toList())
+                    } ?: run {
+                        Log.e("TripDetailsViewModel", "Response body is null")
+                    }
+                }
             } catch (e: Exception) {
-
+                Log.e("TripDetailsViewModel",e.message.toString())
+                _geoPoints.value = mutableListOf()
             }
         }
     }

@@ -2,6 +2,7 @@ package com.example.accuratedamoov.data.network
 
 import com.example.accuratedamoov.data.model.TripApiResponse
 import com.example.accuratedamoov.model.GeoPointModel
+import com.example.accuratedamoov.model.GeoPointResponse
 import okhttp3.RequestBody
 import org.osmdroid.util.GeoPoint
 import retrofit2.Call
@@ -43,6 +44,10 @@ interface ApiService {
     suspend fun getTrips(): Response<TripApiResponse>
 
 
-    @GET("/geopoints")
-    suspend fun getGeoPoints(@Query("unique_id") uniqueId: String):  List<GeoPointModel>
+    @GET("geopoints")
+    suspend fun getGeoPoints(@Query("unique_id") uniqueId: String): Response<GeoPointResponse>
+
+
+    @GET("triprecordfordevice")
+    suspend fun getTripsForDevice(@Query("device_id") uniqueId: String): Response<TripApiResponse>
 }

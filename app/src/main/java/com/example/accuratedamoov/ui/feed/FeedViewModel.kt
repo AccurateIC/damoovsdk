@@ -3,6 +3,7 @@ package com.example.accuratedamoov.ui.feed
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
+import android.provider.Settings
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Response
+import java.util.UUID
 
 class FeedViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -63,8 +65,10 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
     fun fetchTrips() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                val androidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+                val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
                 val response:
-                        Response<TripApiResponse> = RetrofitClient.getApiService(context).getTrips()
+                        Response<TripApiResponse> = RetrofitClient.getApiService(context).getTripsForDevice(deviceId)
                 if (response.isSuccessful) {
                     val trips = response.body()?.data
                     if (trips != null) {
