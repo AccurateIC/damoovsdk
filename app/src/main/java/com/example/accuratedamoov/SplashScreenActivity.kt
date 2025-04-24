@@ -25,19 +25,23 @@ open class SplashScreenActivity : AppCompatActivity() {
 
     private val TAG = "SplashScreenActivity"
     val trackingApi = TrackingApi.getInstance()
+    private var hasCheckedPermissions = false
     private val networkReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val isConnected = intent?.getBooleanExtra("isConnected", false) ?: false
             if (isConnected) {
                 checkPermissionsAndContinue()
+
             } else {
                 Toast.makeText(
                     this@SplashScreenActivity,
                     "Waiting for internet...",
                     Toast.LENGTH_SHORT
                 ).show()
+                hasCheckedPermissions = false
             }
         }
+
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -61,6 +65,8 @@ open class SplashScreenActivity : AppCompatActivity() {
     }
 
     fun  checkPermissionsAndContinue() {
+        if (hasCheckedPermissions) return
+        hasCheckedPermissions = true
         if (!allPermissionGranted()) {
             Log.d(TAG, "Permissions not granted, launching wizard.")
             startActivityForResult(
