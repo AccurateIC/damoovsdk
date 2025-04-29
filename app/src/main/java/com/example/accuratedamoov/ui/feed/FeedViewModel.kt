@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.accuratedamoov.data.model.TripApiResponse
 import com.example.accuratedamoov.data.model.TripData
 import com.example.accuratedamoov.data.network.RetrofitClient
+import com.example.accuratedamoov.model.FeedUiState
 import com.example.accuratedamoov.model.TrackModel
 import com.example.accuratedamoov.service.NetworkMonitorService
 import com.raxeltelematics.v2.sdk.TrackingApi
@@ -28,34 +29,44 @@ import java.util.UUID
 class FeedViewModel(application: Application) : AndroidViewModel(application) {
 
     private val trackingApi = TrackingApi.getInstance()
-    private val _tracks = MutableStateFlow<List<TripData>>(emptyList())
-    val tracks: StateFlow<List<TripData>> = _tracks.asStateFlow()
+    private val _uiState = MutableStateFlow<FeedUiState>(FeedUiState.Loading)
+    val uiState: StateFlow<FeedUiState> = _uiState.asStateFlow()
     @SuppressLint("StaticFieldLeak")
     private val context = application.applicationContext
 
-    init {
+    /*init {
         viewModelScope.launch {
             if(NetworkMonitorService.isConnected == true) {
                 loadData()
             }
         }
 
+    }*/
+
+    private var hasLoadedTrips = false
+
+    fun loadTripsIfNeeded() {
+        if (!hasLoadedTrips ) {
+            viewModelScope.launch {
+                fetchTrips()
+            }
+            hasLoadedTrips = true
+        }
     }
 
-    fun isSdkEnabled(): Boolean = trackingApi!!.isSdkEnabled()
+    fun isSdkEnabled(): Boolean = trackingApi.isSdkEnabled()
 
     @SuppressLint("MissingPermission")
     fun enableSdk() {
         trackingApi!!.setEnableSdk(true)
     }
 
-    private suspend fun loadData() {
+    private fun loadData() {
         try {
             if(NetworkMonitorService.isConnected == true) {
                 fetchTrips()
             }else{
-
-
+                _uiState.value = FeedUiState.Error("No internet connection")
             }
         } catch (e: Exception) {
             Log.e("FeedViewModel", "Error fetching tracks: ${e.message}")
@@ -63,7 +74,7 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun fetchTrips() {
-        CoroutineScope(Dispatchers.IO).launch {
+        viewModelScope.launch((Dispatchers.IO)) {
             try {
                 val androidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
                 val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
@@ -72,16 +83,18 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                 if (response.isSuccessful) {
                     val trips = response.body()?.data
                     if (trips != null) {
-                        _tracks.value = trips
+                        _uiState.value = FeedUiState.Success(trips)
                     }
                     trips?.forEach {
                         Log.d("Trip", "Trip ID: ${it.UNIQUE_ID}, Distance: ${it.distance_km}")
                     }
                 } else {
-                    Log.e("API Error", response.errorBody()?.string() ?: "Unknown error")
+                    val error = response.errorBody()?.string() ?: "Unknown error"
+                    _uiState.value = FeedUiState.Error(error)
                 }
             } catch (e: Exception) {
                 Log.e("Network Error", e.message.toString())
+                _uiState.value = FeedUiState.Error(e.message ?: "Unknown network error")
             }
         }
     }

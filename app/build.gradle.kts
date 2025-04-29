@@ -114,4 +114,7 @@ dependencies {
 
     implementation ("org.osmdroid:osmdroid-android:6.1.16")
     implementation("com.google.guava:guava:31.1-android")
+
+
+    implementation ("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 }
