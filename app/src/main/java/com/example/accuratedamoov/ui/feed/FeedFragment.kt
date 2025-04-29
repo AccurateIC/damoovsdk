@@ -1,7 +1,6 @@
 package com.example.accuratedamoov.ui.feed
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -17,9 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.accuratedamoov.databinding.FragmentDashboardBinding
 import com.example.accuratedamoov.model.FeedUiState
 import com.example.accuratedamoov.ui.feed.adapter.TrackAdapter
-import com.example.accuratedamoov.ui.tripDetails.TripDetailsActivity
 
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 
