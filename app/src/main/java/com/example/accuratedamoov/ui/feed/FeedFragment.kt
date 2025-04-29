@@ -58,6 +58,7 @@ class FeedFragment : Fragment() {
 
         binding.swipeRefreshLayout.setOnRefreshListener {
             feedViewModel.fetchTrips()
+            binding.swipeRefreshLayout.isRefreshing = false
         }
     }
 
