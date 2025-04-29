@@ -95,26 +95,26 @@ dependencies {
     // JUnit (if you're not using it already)
     testImplementation(libs.junit)
 
-    testImplementation ("io.mockk:mockk:1.13.3")
+    testImplementation (libs.mockk.v1133)
 
 // For instrumentation tests (Android)
-    androidTestImplementation ("io.mockk:mockk-android:1.13.3")
+    androidTestImplementation (libs.mockk.android)
 
 
 
     ///maps
-    implementation ("com.github.mapsforge.mapsforge:mapsforge-core:0.25.0")
-    implementation ("com.github.mapsforge.mapsforge:mapsforge-map:0.25.0")
-    implementation( "com.github.mapsforge.mapsforge:mapsforge-map-reader:0.25.0")
-    implementation ("com.github.mapsforge.mapsforge:mapsforge-themes:0.25.0")
-    implementation ("com.github.mapsforge.mapsforge:mapsforge-core:0.25.0")
-    implementation ("com.github.mapsforge.mapsforge:mapsforge-poi:0.25.0")
-    implementation ("com.github.mapsforge.mapsforge:mapsforge-map-android:0.25.0")
-    implementation ("com.caverock:androidsvg:1.4")
+    implementation (libs.mapsforge.core)
+    implementation (libs.mapsforge.map)
+    implementation (libs.mapsforge.map.reader)
+    implementation (libs.mapsforge.themes)
+    implementation (libs.mapsforge.core)
+    implementation (libs.mapsforge.poi)
+    implementation (libs.mapsforge.map.android)
+    implementation (libs.androidsvg)
 
-    implementation ("org.osmdroid:osmdroid-android:6.1.16")
-    implementation("com.google.guava:guava:31.1-android")
+    implementation (libs.osmdroid.android)
+    implementation(libs.guava)
 
 
-    implementation ("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation (libs.androidx.swiperefreshlayout)
 }
