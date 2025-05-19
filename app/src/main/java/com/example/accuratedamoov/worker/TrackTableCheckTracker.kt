@@ -25,7 +25,7 @@ class TrackTableCheckWorker(
             val tableNames = listOf(
                 "LastKnownPointTable", "EventsStartPointTable", "EventsTable",
                 "EventsStopPointTable", "RangeDirectTable", "RangeLateralTable",
-                "RangeVerticalTable", "RangeAccuracyTable", "RangeSpeedTable", "TrackTable"
+                "RangeVerticalTable", "RangeAccuracyTable", "RangeSpeedTable", "TrackTable","SampleTable"
             )
 
             // Ensure required columns exist
@@ -78,65 +78,76 @@ class TrackTableCheckWorker(
     private suspend fun syncData(dbHelper: DatabaseHelper, jsonData: JSONObject): Boolean {
         val apiService = RetrofitClient.getApiService(applicationContext)
         var allSuccessful = true
+        val chunkSize = 300
 
         for (tableName in jsonData.keys()) {
             val tableData = jsonData.getJSONArray(tableName)
-            val dataList = mutableListOf<Map<String, Any>>()
-            val syncedIds = mutableListOf<Int>()
+            if (tableData.length() == 0) continue
 
-            for (i in 0 until tableData.length()) {
-                val item = tableData.getJSONObject(i)
-                val map = mutableMapOf<String, Any>()
+            val totalRecords = tableData.length()
+            var index = 0
 
-                var isValidRecord = true
-                item.keys().forEach { key ->
-                    val value = item.get(key)
-                    if (value == JSONObject.NULL || (value is String && value.isBlank())) {
-                        isValidRecord = false
-                    } else if (!key.equals("id", ignoreCase = true)) {
-                        map[key] = value
+            while (index < totalRecords) {
+                val dataList = mutableListOf<Map<String, Any>>()
+                val syncedIds = mutableListOf<Int>()
+
+                val end = minOf(index + chunkSize, totalRecords)
+
+                for (i in index until end) {
+                    val item = tableData.getJSONObject(i)
+                    val map = mutableMapOf<String, Any>()
+                    var isValidRecord = true
+
+                    item.keys().forEach { key ->
+                        val value = item.get(key)
+                        if (value == JSONObject.NULL || (value is String && value.isBlank())) {
+                            isValidRecord = false
+                        } else if (!key.equals("id", ignoreCase = true)) {
+                            map[key] = value
+                        }
+                    }
+
+                    if (isValidRecord) {
+                        dataList.add(map)
+                        if (item.has("id")) syncedIds.add(item.getInt("id"))
+                        else if (item.has("ID")) syncedIds.add(item.getInt("ID"))
                     }
                 }
 
-                if (isValidRecord) {
-                    dataList.add(map)
-                    if (item.has("id")) {
-                        syncedIds.add(item.getInt("id"))
-                    } else if (item.has("ID")) {
-                        syncedIds.add(item.getInt("ID"))
-                    }
-                }
-            }
-
-            if (dataList.isEmpty()) {
-                Log.d("WorkManager", "⚠️ No valid records for $tableName, skipping sync.")
-                continue
-            }
-
-            val request = SyncRequest(dataList)
-
-            try {
-                val response = withContext(Dispatchers.IO) {
-                    apiService.syncData(tableName.replace("_", "-"), request).execute()
+                if (dataList.isEmpty()) {
+                    index += chunkSize
+                    continue
                 }
 
-                if (response.isSuccessful) {
-                    withContext(Dispatchers.IO) {
-                        deleteSyncedRecords(dbHelper, tableName, syncedIds)
+                val request = SyncRequest(dataList)
+                try {
+                    val response = withContext(Dispatchers.IO) {
+                        apiService.syncData(tableName.replace("_", "-"), request).execute()
                     }
-                    Log.d("WorkManager", "✅ Synced $tableName, records deleted.")
-                } else {
-                    Log.e("WorkManager", "❌ Sync failed for $tableName: ${response.errorBody()?.string()}")
+
+                    if (response.isSuccessful) {
+                        withContext(Dispatchers.IO) {
+                            deleteSyncedRecords(dbHelper, tableName, syncedIds)
+                        }
+                        Log.d("WorkManager", "✅ Synced $tableName chunk: $index–${end - 1}")
+                    } else {
+                        Log.e("WorkManager", "❌ Sync failed for $tableName chunk: ${response.errorBody()?.string()}")
+                        allSuccessful = false
+                        break // optionally stop on failure
+                    }
+                } catch (e: Exception) {
+                    Log.e("WorkManager", "❌ Sync error for $tableName chunk: ${e.message}")
                     allSuccessful = false
+                    break
                 }
-            } catch (e: Exception) {
-                Log.e("WorkManager", "❌ Sync error for $tableName: ${e.message}")
-                allSuccessful = false
+
+                index += chunkSize
             }
         }
 
         return allSuccessful
     }
+
 
     private fun deleteSyncedRecords(dbHelper: DatabaseHelper, tableName: String, ids: List<Int>) {
         if (ids.isEmpty()) return

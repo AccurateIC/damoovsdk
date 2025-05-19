@@ -139,7 +139,12 @@ class HomeFragment : Fragment() {
             binding.stopTripManually.isClickable = false
         }
 
+        if(trackinApi.isTracking()) {
+            binding.startTripManually.visibility = View.GONE
+        }else{
+            binding.startTripManually.visibility = View.VISIBLE
 
+        }
         binding.startTripManually.setOnClickListener {
             if (trackinApi.isTracking()) {
                 Snackbar.make(

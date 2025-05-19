@@ -10,6 +10,7 @@ import android.net.ConnectivityManager
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavOptions
@@ -181,6 +182,13 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this@MainActivity, SplashScreenActivity::class.java))
             finish()
 
+
+        }else{
+/*
+            if(trackingApi.isTracking())
+            {
+                Toast.makeText(this,"Tracking is in progress",Toast.LENGTH_SHORT).show()
+            }*/
         }
     }
 
