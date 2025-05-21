@@ -1,5 +1,7 @@
 package com.example.accuratedamoov.data.network
 
+import com.example.accuratedamoov.data.model.DeviceRequest
+import com.example.accuratedamoov.data.model.DeviceResponse
 import com.example.accuratedamoov.data.model.TripApiResponse
 import com.example.accuratedamoov.model.GeoPointModel
 import com.example.accuratedamoov.model.GeoPointResponse
@@ -50,4 +52,10 @@ interface ApiService {
 
     @GET("triprecordfordevice")
     suspend fun getTripsForDevice(@Query("device_id") uniqueId: String): Response<TripApiResponse>
+
+    @Headers("Content-Type: application/json")
+    @POST("api/devices")
+    fun registerDevice(
+        @Body request: DeviceRequest
+    ): Call<DeviceResponse>
 }

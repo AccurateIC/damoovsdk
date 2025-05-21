@@ -3,6 +3,7 @@ package com.example.accuratedamoov
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
@@ -56,43 +57,43 @@ class MainActivity : AppCompatActivity() {
                 return@post
             }
 
-            /* val appBarConfiguration = AppBarConfiguration(
-                 setOf(
-                     R.id.navigation_home, R.id.navigation_feed, R.id.navigation_settings
-                 )
-             )
+            val sharedPrefs = getSharedPreferences("appSettings", Context.MODE_PRIVATE)
+            val name = sharedPrefs.getString("device_name", null)
+            val url = sharedPrefs.getString("api_url", null)
 
-             //setupActionBarWithNavController(navController, appBarConfiguration)*/
+            val initialDestination = if (name.isNullOrEmpty() || url.isNullOrEmpty()) {
+                R.id.navigation_settings
+            } else {
+                R.id.navigation_home
+            }
+
+            // Manually navigate to the initial destination
+            navController.navigate(initialDestination)
+
+            // Setup bottom nav
             binding.navView.setupWithNavController(navController)
+
             binding.navView.setOnItemSelectedListener { item ->
                 val currentDestination = navController.currentDestination?.id
-                if (currentDestination == item.itemId) {
-                    // If already on the selected tab, do nothing
-                    return@setOnItemSelectedListener true
-                }
-                val navOptions =
-                    NavOptions.Builder().setEnterAnim(R.anim.fragment_enter)  // Slide in
-                        .setExitAnim(R.anim.fragment_exit)  // Slide out
-                        .setPopEnterAnim(R.anim.fragment_enter).setPopExitAnim(R.anim.fragment_exit)
-                        .build()
+                if (currentDestination == item.itemId) return@setOnItemSelectedListener true
+
+                val navOptions = NavOptions.Builder()
+                    .setEnterAnim(R.anim.fragment_enter)
+                    .setExitAnim(R.anim.fragment_exit)
+                    .setPopEnterAnim(R.anim.fragment_enter)
+                    .setPopExitAnim(R.anim.fragment_exit)
+                    .build()
 
                 when (item.itemId) {
-                    R.id.navigation_home -> navController.navigate(
-                        R.id.navigation_home, null, navOptions
-                    )
-
-                    R.id.navigation_feed -> navController.navigate(
-                        R.id.navigation_feed, null, navOptions
-                    )
-
-                    R.id.navigation_settings -> navController.navigate(
-                        R.id.navigation_settings, null, navOptions
-                    )
+                    R.id.navigation_home -> navController.navigate(R.id.navigation_home, null, navOptions)
+                    R.id.navigation_feed -> navController.navigate(R.id.navigation_feed, null, navOptions)
+                    R.id.navigation_settings -> navController.navigate(R.id.navigation_settings, null, navOptions)
                 }
                 true
             }
         }
     }
+
 
     @SuppressLint("HardwareIds")
     private fun enableTracking() {
