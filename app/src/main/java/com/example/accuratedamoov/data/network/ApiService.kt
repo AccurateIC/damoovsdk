@@ -58,4 +58,7 @@ interface ApiService {
     fun registerDevice(
         @Body request: DeviceRequest
     ): Call<DeviceResponse>
+
+    @GET("health")
+    suspend fun checkHealth(): Response<Void>
 }

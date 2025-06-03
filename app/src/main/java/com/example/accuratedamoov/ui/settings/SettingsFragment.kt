@@ -16,10 +16,15 @@ import android.widget.EditText
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.work.*
+import com.example.accuratedamoov.data.network.ApiService
+import com.example.accuratedamoov.data.network.RetrofitClient
 import com.example.accuratedamoov.databinding.FragmentSettingsBinding
 import com.example.accuratedamoov.worker.TrackTableCheckWorker
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 class SettingsFragment : Fragment() {
@@ -29,6 +34,8 @@ class SettingsFragment : Fragment() {
 
     private lateinit var sharedPreferences: android.content.SharedPreferences
     private lateinit var viewModel: SettingsViewModel
+    private lateinit var androidId: String
+    private lateinit var deviceId: String
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
@@ -37,25 +44,25 @@ class SettingsFragment : Fragment() {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
         val root = binding.root
 
-        sharedPreferences = requireContext().getSharedPreferences("appSettings", Context.MODE_PRIVATE)
+        sharedPreferences =
+            requireContext().getSharedPreferences("appSettings", Context.MODE_PRIVATE)
 
         setupSpinner()
         loadSettings()
 
         binding.saveButton.setOnClickListener { saveSettings() }
 
-        binding.textViewDeviceId.text = "Device ID: "+Settings.Secure.getString(
-            requireContext().contentResolver,
-            Settings.Secure.ANDROID_ID
-        )
-
-
+        androidId =
+            Settings.Secure.getString(requireContext().contentResolver, Settings.Secure.ANDROID_ID)
+        deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
+        binding.textViewDeviceId.text = "Device ID: " + deviceId
         return root
     }
 
     private fun setupSpinner() {
         val intervals = listOf("15 min", "30 min", "1 hour", "2 hours", "6 hours")
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, intervals)
+        val adapter =
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, intervals)
         binding.syncIntervalSpinner.adapter = adapter
     }
 
@@ -86,31 +93,46 @@ class SettingsFragment : Fragment() {
             return
         }
 
-        with(sharedPreferences.edit()) {
-            putString("api_url", apiUrl)
-            putInt("sync_interval", intervalMinutes)
+        // Use the newly typed URL directly for health check
+        val apiService = RetrofitClient.getApiService(apiUrl)
 
-            if (sharedPreferences.getString("device_name", "").isNullOrEmpty() && deviceNameInput.isNotEmpty()) {
-                viewModel.initApi(binding.apiUrlEditText.text.toString())
-                val deviceId = Settings.Secure.getString(requireContext().contentResolver, Settings.Secure.ANDROID_ID)
-                val deviceNameInput = binding.editTextDeviceName.text.toString().trim()
-                viewModel.registerDevice(deviceId, deviceNameInput)
-                putString("device_name", deviceNameInput)
-                binding.editTextDeviceName.apply {
-                    isEnabled = false
-                    isFocusable = false
-                    isCursorVisible = false
+        lifecycleScope.launch {
+            try {
+                val response = apiService.checkHealth()
+                if (response.isSuccessful) {
+                    // Health check passed — save settings
+                    with(sharedPreferences.edit()) {
+                        putString("api_url", apiUrl)
+                        putInt("sync_interval", intervalMinutes)
+
+                        if (sharedPreferences.getString("device_name", "").isNullOrEmpty()
+                            && deviceNameInput.isNotEmpty()
+                        ) {
+                            viewModel.initApi(apiUrl)
+                            viewModel.registerDevice(deviceId, deviceNameInput)
+                            putString("device_name", deviceNameInput)
+                            binding.editTextDeviceName.apply {
+                                isEnabled = false
+                                isFocusable = false
+                                isCursorVisible = false
+                            }
+                        }
+                        apply()
+                    }
+
+                    scheduleWorker(intervalMinutes.toLong())
+                    hideKeyboard(binding.apiUrlEditText)
+                    Snackbar.make(binding.root, "Settings saved", Snackbar.LENGTH_LONG).show()
+                } else {
+                    Snackbar.make(binding.root, "Server error: ${response.code()}", Snackbar.LENGTH_SHORT).show()
                 }
+            } catch (e: Exception) {
+                Snackbar.make(binding.root, "Unable to reach server: ${e.localizedMessage}", Snackbar.LENGTH_LONG).show()
             }
-
-            apply()
         }
-
-        scheduleWorker(intervalMinutes.toLong())
-        hideKeyboard(binding.apiUrlEditText)
-
-        Snackbar.make(binding.root, "Settings saved", Snackbar.LENGTH_LONG).show()
     }
+
+
 
     private fun scheduleWorker(syncInterval: Long) {
         val constraints = Constraints.Builder()
@@ -120,7 +142,10 @@ class SettingsFragment : Fragment() {
 
         val workRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
             .setConstraints(constraints)
-            .setInitialDelay(syncInterval, TimeUnit.MINUTES) // fixed: use MINUTES instead of SECONDS
+            .setInitialDelay(
+                syncInterval,
+                TimeUnit.MINUTES
+            ) // fixed: use MINUTES instead of SECONDS
             .build()
 
         WorkManager.getInstance(requireContext()).enqueueUniqueWork(
@@ -145,7 +170,8 @@ class SettingsFragment : Fragment() {
     }
 
     private fun hideKeyboard(view: View) {
-        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val imm =
+            requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
 
