@@ -144,8 +144,8 @@ class SettingsFragment : Fragment() {
             .setConstraints(constraints)
             .setInitialDelay(
                 syncInterval,
-                TimeUnit.MINUTES
-            ) // fixed: use MINUTES instead of SECONDS
+                TimeUnit.SECONDS
+            )
             .build()
 
         WorkManager.getInstance(requireContext()).enqueueUniqueWork(

@@ -150,22 +150,29 @@ class TrackTableCheckWorker(
 
 
     private fun deleteSyncedRecords(dbHelper: DatabaseHelper, tableName: String, ids: List<Int>) {
-        if (ids.isEmpty()) return
-
         val db = dbHelper.openDatabase() ?: return
 
         db.beginTransaction()
         try {
-            val idList = ids.joinToString(",")
-            db.execSQL("DELETE FROM $tableName WHERE id IN ($idList)")
+            if (tableName == "HeartbeatTable") {
+
+                db.execSQL("DELETE FROM HeartbeatTable")
+                Log.d("WorkManager", "🗑️ Deleted all records from HeartbeatTable")
+            } else {
+                if (ids.isEmpty()) return
+                val idList = ids.joinToString(",")
+                db.execSQL("DELETE FROM $tableName WHERE id IN ($idList)")
+                Log.d("WorkManager", "🗑️ Deleted synced records from $tableName")
+            }
+
             db.setTransactionSuccessful()
-            Log.d("WorkManager", "🗑️ Deleted synced records from $tableName")
         } catch (e: Exception) {
             Log.e("WorkManager", "❌ Failed to delete records from $tableName: ${e.message}")
         } finally {
             db.endTransaction()
         }
     }
+
 
     private fun scheduleWorker(syncInterval: Long) {
         val constraints = Constraints.Builder()
