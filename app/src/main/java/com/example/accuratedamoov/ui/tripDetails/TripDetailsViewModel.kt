@@ -33,6 +33,9 @@ class TripDetailsViewModel(application: Application) : AndroidViewModel(applicat
                     } ?: run {
                         Log.e("TripDetailsViewModel", "Response body is null")
                     }
+                }else{
+                    Log.e("TripDetailsViewModel",response.message())
+                    _geoPoints.value = mutableListOf()
                 }
             } catch (e: Exception) {
                 Log.e("TripDetailsViewModel",e.message.toString())

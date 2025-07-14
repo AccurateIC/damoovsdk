@@ -52,16 +52,18 @@ class TripDetailsActivity : AppCompatActivity() {
 
         if (uniqueId != null && NetworkMonitorService.isConnected == true) {
             tripDetailsViewModel.fetchGeoPoints(uniqueId)
-
+            Log.d("omkarid",uniqueId)
             tripDetailsViewModel.geoPoints.observe(this) { geoPoints ->
                 if (geoPoints.isNotEmpty()) {
                     plotRouteOnMap(geoPoints)
                 } else {
                     Toast.makeText(this, "No geo points found", Toast.LENGTH_SHORT).show()
+                    finish()
                 }
             }
         } else {
             Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show()
+            finish()
         }
     }
 

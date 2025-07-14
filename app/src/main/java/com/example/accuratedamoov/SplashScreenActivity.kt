@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.example.accuratedamoov.service.NetworkMonitorService
+import com.example.accuratedamoov.ui.login.LoginActivity
 import com.google.android.material.snackbar.Snackbar
 import com.raxeltelematics.v2.sdk.TrackingApi
 import com.raxeltelematics.v2.sdk.utils.permissions.PermissionsWizardActivity
@@ -94,8 +95,14 @@ open class SplashScreenActivity : AppCompatActivity() {
     open fun allPermissionGranted() = trackingApi.areAllRequiredPermissionsAndSensorsGranted()
 
     private fun navigateToMain() {
-        startActivity(Intent(this@SplashScreenActivity, MainActivity::class.java))
-        finish()
+        if (!isUserRegistered()) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+        } else {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+        }
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -140,6 +147,12 @@ open class SplashScreenActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+    }
+
+    private fun isUserRegistered(): Boolean {
+        // Replace with your actual logic, e.g., check SharedPreferences or Room DB
+        val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        return prefs.getBoolean("is_registered", false)
     }
 
 }

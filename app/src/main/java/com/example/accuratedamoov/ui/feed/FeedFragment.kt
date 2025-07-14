@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.accuratedamoov.databinding.FragmentDashboardBinding
+import com.example.accuratedamoov.databinding.FragmentFeedBinding
 import com.example.accuratedamoov.model.FeedUiState
 import com.example.accuratedamoov.ui.feed.adapter.TrackAdapter
 
@@ -23,7 +24,7 @@ import kotlinx.coroutines.launch
 
 class FeedFragment : Fragment() {
 
-    private var _binding: FragmentDashboardBinding? = null
+    private var _binding: FragmentFeedBinding? = null
     private val binding get() = _binding!!
     private val feedViewModel: FeedViewModel by viewModels()
 
@@ -32,7 +33,7 @@ class FeedFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentDashboardBinding.inflate(inflater, container, false)
+        _binding = FragmentFeedBinding.inflate(inflater, container, false)
         return binding.root
     }
 

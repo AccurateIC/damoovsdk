@@ -6,6 +6,12 @@
     app:startDestination="@id/navigation_home">
 
     <fragment
+        android:id="@+id/navigation_dashboard"
+        android:name="com.example.accuratedamoov.ui.dashboard.DashboardFragment"
+        android:label="Dashboard"
+        tools:layout="@layout/fragment_dashboard" />
+
+    <fragment
         android:id="@+id/navigation_home"
         android:name="com.example.accuratedamoov.ui.home.HomeFragment"
         android:label="@string/title_home"
@@ -15,7 +21,7 @@
         android:id="@+id/navigation_feed"
         android:name="com.example.accuratedamoov.ui.feed.FeedFragment"
         android:label="@string/title_feed"
-        tools:layout="@layout/fragment_dashboard" />
+        tools:layout="@layout/fragment_feed" />
 
     <fragment
         android:id="@+id/navigation_settings"

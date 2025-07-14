@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.provider.Settings
+import android.provider.Settings.*
+import android.provider.Settings.Secure.getString
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
@@ -58,7 +60,7 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
 
     @SuppressLint("MissingPermission")
     fun enableSdk() {
-        trackingApi!!.setEnableSdk(true)
+        trackingApi.setEnableSdk(true)
     }
 
     private fun loadData() {
@@ -76,16 +78,15 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
     fun fetchTrips() {
         viewModelScope.launch((Dispatchers.IO)) {
             try {
-                val androidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+                val androidId = getString(context.contentResolver, Secure.ANDROID_ID)
                 val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
                 val response:
                         Response<TripApiResponse> = RetrofitClient.getApiService(context).getTripsForDevice(deviceId)
                 if (response.isSuccessful) {
-                    val trips = response.body()?.data
-                    if (trips != null) {
-                        _uiState.value = FeedUiState.Success(trips)
-                    }
-                    trips?.forEach {
+                    val trips = response.body()?.data?.sortedByDescending { it.start_date } ?: emptyList()
+
+                    _uiState.value = FeedUiState.Success(trips)
+                    trips.forEach {
                         Log.d("Trip", "Trip ID: ${it.UNIQUE_ID}, Distance: ${it.distance_km}")
                     }
                 } else {

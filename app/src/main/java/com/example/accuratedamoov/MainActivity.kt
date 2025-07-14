@@ -39,7 +39,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         enableTracking()
         setupNavigation()
-        Configuration.getInstance().load(applicationContext, PreferenceManager.getDefaultSharedPreferences(applicationContext))
+        Configuration.getInstance().load(
+            applicationContext,
+            PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        )
 
     }
 
@@ -85,9 +88,31 @@ class MainActivity : AppCompatActivity() {
                     .build()
 
                 when (item.itemId) {
-                    R.id.navigation_home -> navController.navigate(R.id.navigation_home, null, navOptions)
-                    R.id.navigation_feed -> navController.navigate(R.id.navigation_feed, null, navOptions)
-                    R.id.navigation_settings -> navController.navigate(R.id.navigation_settings, null, navOptions)
+
+                    R.id.navigation_dashboard -> navController.navigate(
+                        R.id.navigation_dashboard,
+                        null,
+                        navOptions
+                    )
+
+
+                    R.id.navigation_home -> navController.navigate(
+                        R.id.navigation_home,
+                        null,
+                        navOptions
+                    )
+
+                    R.id.navigation_feed -> navController.navigate(
+                        R.id.navigation_feed,
+                        null,
+                        navOptions
+                    )
+
+                    R.id.navigation_settings -> navController.navigate(
+                        R.id.navigation_settings,
+                        null,
+                        navOptions
+                    )
                 }
                 true
             }
@@ -132,49 +157,49 @@ class MainActivity : AppCompatActivity() {
             }*//*
         }*/
 
-            if (ActivityCompat.checkSelfPermission(
-                    this, Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                Snackbar.make(
-                    binding.root, "Please grant all required permissions ", Snackbar.LENGTH_LONG
-                ).show()
-                return
-            }
-        if(!trackingApi.isInitialized()) {
+        if (ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            Snackbar.make(
+                binding.root, "Please grant all required permissions ", Snackbar.LENGTH_LONG
+            ).show()
+            return
+        }
+        if (!trackingApi.isInitialized()) {
             val settings = Settings(
                 Settings.stopTrackingTimeHigh, 150, autoStartOn = true, hfOn = true, elmOn = false
             )
             settings.stopTrackingTimeout(15)
             trackingApi.initialize(applicationContext, settings)
         }
-            if (trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
-                val androidId = android.provider.Settings.Secure.getString(
-                    contentResolver,
-                    android.provider.Settings.Secure.ANDROID_ID
-                )
+        if (trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
+            val androidId = android.provider.Settings.Secure.getString(
+                contentResolver,
+                android.provider.Settings.Secure.ANDROID_ID
+            )
 
 
-                //trackingApi.setAutoStartEnabled(true, true)
-                if(!trackingApi.isSdkEnabled()) {
-                    trackingApi.setDeviceID(androidId)
-                    trackingApi.setEnableSdk(true)
+            //trackingApi.setAutoStartEnabled(true, true)
+            if (!trackingApi.isSdkEnabled()) {
+                trackingApi.setDeviceID(androidId)
+                trackingApi.setEnableSdk(true)
 
-                }
-               /* if(!trackingApi.startTracking()) {
-                    trackingApi.startTracking()
-                }*/
-                if(!trackingApi.isTracking()) {
-                    trackingApi.startTracking()
-                }
             }
+            /* if(!trackingApi.startTracking()) {
+                 trackingApi.startTracking()
+             }*/
+            if (!trackingApi.isTracking()) {
+                trackingApi.startTracking()
+            }
+        }
 
 
     }
 
     override fun onResume() {
         super.onResume()
-        if(!trackingApi.areAllRequiredPermissionsAndSensorsGranted()){
+        if (!trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
             Snackbar.make(
                 findViewById(android.R.id.content),
                 "All permissions are required to proceed.",
@@ -183,13 +208,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this@MainActivity, SplashScreenActivity::class.java))
             finish()
 
-
-        }else{
-/*
-            if(trackingApi.isTracking())
-            {
-                Toast.makeText(this,"Tracking is in progress",Toast.LENGTH_SHORT).show()
-            }*/
         }
     }
 
