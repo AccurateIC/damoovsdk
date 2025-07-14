@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.core.content.ContextCompat
 import com.example.accuratedamoov.R
 
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -74,26 +75,31 @@ class TripDetailsActivity : AppCompatActivity() {
         mapView.controller.setZoom(15.0)
         mapView.controller.setCenter(geoPointList.first())
 
-        // Draw line path
+        // Draw polyline
         val line = Polyline().apply {
             setPoints(geoPointList)
             outlinePaint.color = Color.BLUE
             outlinePaint.strokeWidth = 5f
         }
-
         mapView.overlays.add(line)
 
-        // Optional: Add markers
-        geoPointList.forEachIndexed { index, point ->
-            val marker = Marker(mapView)
-            marker.position = point
-            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-            marker.title = "Point ${index + 1}"
-            if(index == 0 || index == geoPointList.size-1) {
-                mapView.overlays.add(marker)
-            }
-        }
+        // Add start marker
+        addCustomMarker(geoPointList.first(), R.drawable.ic_start_location, "started")
+
+        // Add end marker
+        addCustomMarker(geoPointList.last(), R.drawable.ic_end_location, "ended")
 
         mapView.invalidate()
     }
+
+    private fun addCustomMarker(position: GeoPoint, drawableResId: Int, title: String) {
+        val marker = Marker(mapView).apply {
+            this.position = position
+            this.title = title
+            this.icon = ContextCompat.getDrawable(this@TripDetailsActivity, drawableResId)
+            this.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+        }
+        mapView.overlays.add(marker)
+    }
+
 }

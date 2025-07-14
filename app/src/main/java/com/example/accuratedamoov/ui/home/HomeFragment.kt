@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -93,7 +94,6 @@ class HomeFragment : Fragment() {
         _binding!!.mapView.setTileSource(TileSourceFactory.MAPNIK)
         _binding!!.mapView.setBuiltInZoomControls(true)
         _binding!!.mapView.setMultiTouchControls(true)
-
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
         if (ActivityCompat.checkSelfPermission(
@@ -116,10 +116,14 @@ class HomeFragment : Fragment() {
                 mapController.setZoom(15.0)
                 mapController.setCenter(currentPoint)
 
-                val marker = Marker(_binding!!.mapView)
-                marker.position = currentPoint
-                marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                val marker = Marker(_binding!!.mapView).apply {
+                    position = currentPoint
+                    icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_start_location)
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                    title = "me"
+                }
                 _binding!!.mapView.overlays.add(marker)
+
                 _binding!!.mapView.invalidate()
             } else {
                 Toast.makeText(context, "Unable to get current location", Toast.LENGTH_SHORT).show()
