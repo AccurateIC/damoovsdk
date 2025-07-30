@@ -32,6 +32,13 @@ class PermissionMonitorService : Service() {
     private val CHANNEL_ID = "permission_monitor_service"
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val prefs = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val isLoggedIn = prefs.getBoolean("is_logged_in", false)
+        if(!isLoggedIn) {
+            Log.d("PermissionMonitorService", "User not logged in, stopping service.")
+            stopSelf()
+            return START_NOT_STICKY
+        }
         startForegroundService() // ✅ Required for Android 8+
         handler.postDelayed(::checkPermissions, checkInterval)
         observeAndCancelWork()

@@ -26,7 +26,9 @@ class TripDetailsViewModel(application: Application) : AndroidViewModel(applicat
     fun fetchGeoPoints(uniqueId: String) {
         viewModelScope.launch {
             try {
-                val response = apiService.getGeoPoints(uniqueId)
+                val sharedPrefs = mContext.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                val userId = sharedPrefs.getInt("user_id", 0)
+                val response = apiService.getGeoPoints(uniqueId,userId)
                 if (response.isSuccessful) {
                     response.body()?.data?.let { geoPoints ->
                         handleResponse(geoPoints.toList())

@@ -2,11 +2,14 @@ package com.example.accuratedamoov.data.network
 
 import com.example.accuratedamoov.data.model.DeviceRequest
 import com.example.accuratedamoov.data.model.DeviceResponse
+import com.example.accuratedamoov.data.model.LoginRequest
+import com.example.accuratedamoov.data.model.LoginResponse
+import com.example.accuratedamoov.data.model.RegisterModel
+import com.example.accuratedamoov.data.model.RegisterResponse
 import com.example.accuratedamoov.data.model.TripApiResponse
-import com.example.accuratedamoov.model.GeoPointModel
+import com.example.accuratedamoov.data.model.TripSummaryResponse
+import com.example.accuratedamoov.data.model.UserProfileResponse
 import com.example.accuratedamoov.model.GeoPointResponse
-import okhttp3.RequestBody
-import org.osmdroid.util.GeoPoint
 import retrofit2.Call
 import retrofit2.Response
 
@@ -47,11 +50,19 @@ interface ApiService {
 
 
     @GET("geopoints")
-    suspend fun getGeoPoints(@Query("unique_id") uniqueId: String): Response<GeoPointResponse>
+    suspend fun getGeoPoints(
+        @Query("unique_id") uniqueId: String,
+        @Query("user_id") userId: Int
+    ): Response<GeoPointResponse>
+
 
 
     @GET("triprecordfordevice")
-    suspend fun getTripsForDevice(@Query("device_id") uniqueId: String): Response<TripApiResponse>
+    suspend fun getTripsForDevice(
+        @Query("device_id") deviceId: String,
+        @Query("user_id") userId: Int
+    ): Response<TripApiResponse>
+
 
     @Headers("Content-Type: application/json")
     @POST("api/devices")
@@ -61,4 +72,25 @@ interface ApiService {
 
     @GET("health")
     suspend fun checkHealth(): Response<Void>
+
+    @POST("/api/registerWithDevice")
+    fun registerUserWithDevice(@Body body: RegisterModel): Call<RegisterResponse>
+
+    @POST("/api/login")
+    suspend fun loginUser(@Body request: LoginRequest): Response<LoginResponse>
+
+        @GET("/api/userprofile")
+        suspend fun getUserProfile(
+            @Query("user_id") userId: String
+        ): Response<UserProfileResponse>
+
+
+        @GET("/api/tripsummaryfordevice")
+        suspend fun getTripSummary(
+            @Query("device_id") deviceId: String,
+            @Query("user_id") userId: String
+        ): Response<TripSummaryResponse>
+
+
+
 }

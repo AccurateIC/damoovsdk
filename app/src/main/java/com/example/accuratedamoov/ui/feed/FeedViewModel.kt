@@ -33,26 +33,18 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
     private val trackingApi = TrackingApi.getInstance()
     private val _uiState = MutableStateFlow<FeedUiState>(FeedUiState.Loading)
     val uiState: StateFlow<FeedUiState> = _uiState.asStateFlow()
+
     @SuppressLint("StaticFieldLeak")
     private val context = application.applicationContext
-
-    /*init {
-        viewModelScope.launch {
-            if(NetworkMonitorService.isConnected == true) {
-                loadData()
-            }
-        }
-
-    }*/
 
     private var hasLoadedTrips = false
 
     fun loadTripsIfNeeded() {
-        if (!hasLoadedTrips ) {
+        if (!hasLoadedTrips) {
             viewModelScope.launch {
                 fetchTrips()
+                hasLoadedTrips = true // ✅ set this only after fetchTrips is complete
             }
-            hasLoadedTrips = true
         }
     }
 
@@ -63,29 +55,34 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
         trackingApi.setEnableSdk(true)
     }
 
-    private fun loadData() {
-        try {
-            if(NetworkMonitorService.isConnected == true) {
-                fetchTrips()
-            }else{
-                _uiState.value = FeedUiState.Error("No internet connection")
-            }
-        } catch (e: Exception) {
-            Log.e("FeedViewModel", "Error fetching tracks: ${e.message}")
-        }
-    }
-
     fun fetchTrips() {
-        viewModelScope.launch((Dispatchers.IO)) {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
-                val androidId = getString(context.contentResolver, Secure.ANDROID_ID)
+                val androidId = Settings.Secure.getString(
+                    context.contentResolver,
+                    Settings.Secure.ANDROID_ID
+                )
                 val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
-                val response:
-                        Response<TripApiResponse> = RetrofitClient.getApiService(context).getTripsForDevice(deviceId)
+
+                val sharedPrefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                val userId = sharedPrefs.getInt("user_id", 0)
+
+                if (userId == 0) {
+                    _uiState.value = FeedUiState.Error("User ID not found")
+                    return@launch
+                }
+
+                val response = RetrofitClient.getApiService(context)
+                    .getTripsForDevice(deviceId, userId)
+
                 if (response.isSuccessful) {
-                    val trips = response.body()?.data?.sortedByDescending { it.start_date } ?: emptyList()
+                    val trips = response.body()?.data
+                        ?.distinctBy { it.UNIQUE_ID } // ✅ remove duplicates
+                        ?.sortedByDescending { it.start_date }
+                        ?: emptyList()
 
                     _uiState.value = FeedUiState.Success(trips)
+
                     trips.forEach {
                         Log.d("Trip", "Trip ID: ${it.UNIQUE_ID}, Distance: ${it.distance_km}")
                     }
@@ -94,11 +91,9 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                     _uiState.value = FeedUiState.Error(error)
                 }
             } catch (e: Exception) {
-                Log.e("Network Error", e.message.toString())
+                Log.e("FeedViewModel", "Error fetching trips: ${e.message}")
                 _uiState.value = FeedUiState.Error(e.message ?: "Unknown network error")
             }
         }
     }
-
-
 }

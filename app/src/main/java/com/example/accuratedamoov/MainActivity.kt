@@ -1,79 +1,138 @@
 package com.example.accuratedamoov
 
-
 import android.Manifest
-import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.net.ConnectivityManager
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.util.Log
-import android.widget.Toast
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavOptions
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.accuratedamoov.databinding.ActivityMainBinding
-import com.google.android.material.snackbar.Snackbar
+import com.example.accuratedamoov.service.NetworkMonitorService
 import com.raxeltelematics.v2.sdk.Settings
 import com.raxeltelematics.v2.sdk.TrackingApi
 import com.raxeltelematics.v2.sdk.utils.permissions.PermissionsWizardActivity
-import org.osmdroid.config.Configuration
-
-import java.util.UUID
-
+import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val TAG: String = this::class.java.simpleName
+    private lateinit var networkReceiver: BroadcastReceiver
     private val trackingApi = TrackingApi.getInstance()
+    private val TAG = "MainActivity"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        enableTracking()
-        setupNavigation()
-        Configuration.getInstance().load(
-            applicationContext,
-            PreferenceManager.getDefaultSharedPreferences(applicationContext)
-        )
 
+        registerNetworkReceiver()
+        val settings = Settings(
+            Settings.stopTrackingTimeHigh, 150,
+            autoStartOn = true,
+            hfOn = true,
+            elmOn = false
+        ).apply {
+            stopTrackingTimeout(15)
+        }
+        trackingApi.initialize(applicationContext, settings)
+        if (trackingApi.isInitialized() && trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
+            initializeTrackingSdkAndNavigation()
+        } else {
+            requestPermissions()
+        }
     }
 
+    private fun registerNetworkReceiver() {
+        networkReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val isConnected = intent?.getBooleanExtra("isConnected", true) ?: true
+                binding.networkOverlay.visibility = if (isConnected) View.GONE else View.VISIBLE
+            }
+        }
+        registerReceiver(networkReceiver, IntentFilter("network_status_changed"))
+    }
+
+    private fun hasLocationPermission(): Boolean {
+        return ActivityCompat.checkSelfPermission(
+            this, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestPermissions() {
+        startActivityForResult(
+            PermissionsWizardActivity.getStartWizardIntent(
+                context = this,
+                enableAggressivePermissionsWizard = false,
+                enableAggressivePermissionsWizardPage = true
+            ),
+            PermissionsWizardActivity.WIZARD_PERMISSIONS_CODE
+        )
+    }
+
+    private fun initializeTrackingSdkAndNavigation() {
+        if (!trackingApi.isInitialized()) {
+            val settings = Settings(
+                Settings.stopTrackingTimeHigh, 150,
+                autoStartOn = true,
+                hfOn = true,
+                elmOn = false
+            ).apply {
+                stopTrackingTimeout(15)
+            }
+            trackingApi.initialize(applicationContext, settings)
+        }
+
+        setupNavigation()
+
+        if (!trackingApi.isSdkEnabled()) {
+            val androidId = android.provider.Settings.Secure.getString(
+                contentResolver,
+                android.provider.Settings.Secure.ANDROID_ID
+            )
+            trackingApi.setDeviceID(androidId)
+            trackingApi.setEnableSdk(true)
+        }
+
+        if (!trackingApi.isTracking()) {
+            trackingApi.startTracking()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == PermissionsWizardActivity.WIZARD_PERMISSIONS_CODE) {
+            if (resultCode == PermissionsWizardActivity.WIZARD_RESULT_ALL_GRANTED) {
+                initializeTrackingSdkAndNavigation()
+            } else {
+                Snackbar.make(
+                    binding.root,
+                    "All permissions are required to proceed.",
+                    Snackbar.LENGTH_LONG
+                ).show()
+                finish()
+            }
+        }
+    }
 
     private fun setupNavigation() {
         binding.root.post {
             val navController = try {
                 findNavController(R.id.nav_host_fragment_activity_main)
             } catch (e: IllegalStateException) {
-                Log.e(
-                    TAG,
-                    "NavController not found. Ensure the nav_host_fragment exists in the layout.",
-                    e
-                )
+                Log.e(TAG, "NavController not found in layout", e)
                 return@post
             }
 
-            val sharedPrefs = getSharedPreferences("appSettings", Context.MODE_PRIVATE)
-            val name = sharedPrefs.getString("device_name", null)
-            val url = sharedPrefs.getString("api_url", null)
+            navController.navigate(R.id.navigation_home)
 
-            val initialDestination = if (name.isNullOrEmpty() || url.isNullOrEmpty()) {
-                R.id.navigation_settings
-            } else {
-                R.id.navigation_home
-            }
-
-            // Manually navigate to the initial destination
-            navController.navigate(initialDestination)
-
-            // Setup bottom nav
             binding.navView.setupWithNavController(navController)
 
             binding.navView.setOnItemSelectedListener { item ->
@@ -88,30 +147,14 @@ class MainActivity : AppCompatActivity() {
                     .build()
 
                 when (item.itemId) {
-
                     R.id.navigation_dashboard -> navController.navigate(
-                        R.id.navigation_dashboard,
-                        null,
-                        navOptions
+                        R.id.navigation_dashboard, null, navOptions
                     )
-
-
                     R.id.navigation_home -> navController.navigate(
-                        R.id.navigation_home,
-                        null,
-                        navOptions
+                        R.id.navigation_home, null, navOptions
                     )
-
                     R.id.navigation_feed -> navController.navigate(
-                        R.id.navigation_feed,
-                        null,
-                        navOptions
-                    )
-
-                    R.id.navigation_settings -> navController.navigate(
-                        R.id.navigation_settings,
-                        null,
-                        navOptions
+                        R.id.navigation_feed, null, navOptions
                     )
                 }
                 true
@@ -119,98 +162,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-    @SuppressLint("HardwareIds")
-    private fun enableTracking() {
-        /*if (ActivityCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            Snackbar.make(
-                binding.root, "Please grant all required permissions ", Snackbar.LENGTH_LONG
-            ).show()
-            return
-        }
-        val settings = Settings(
-            Settings.stopTrackingTimeHigh, 150, autoStartOn = true, hfOn = true, elmOn = false
-        )
-        settings.stopTrackingTimeout(10)
-        trackingApi.initialize(applicationContext, settings)
-            val androidId = android.provider.Settings.Secure.getString(
-                contentResolver,
-                android.provider.Settings.Secure.ANDROID_ID
-            )
-            if(!trackingApi.isSdkEnabled()) {
-                // for tracking 2.2.63
-                trackingApi.setDeviceID(androidId)
-                // for tracking 3.0.0
-                *//* trackingApi.setDeviceID(
-                     UUID.nameUUIDFromBytes(androidId.toByteArray(Charsets.UTF_8)).toString()
-                 )*//*
-                trackingApi.setEnableSdk(true)
-                Log.d(TAG,"tracking SDK enabled")
-
-            // for tracking 3.0.0,not present in 2.2.263
-            //trackingApi.setAutoStartEnabled(true,true)
-            *//*if(!trackingApi.isTracking()) {
-                trackingApi.startTracking()
-            }*//*
-        }*/
-
-        if (ActivityCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            Snackbar.make(
-                binding.root, "Please grant all required permissions ", Snackbar.LENGTH_LONG
-            ).show()
-            return
-        }
-        if (!trackingApi.isInitialized()) {
-            val settings = Settings(
-                Settings.stopTrackingTimeHigh, 150, autoStartOn = true, hfOn = true, elmOn = false
-            )
-            settings.stopTrackingTimeout(15)
-            trackingApi.initialize(applicationContext, settings)
-        }
-        if (trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
-            val androidId = android.provider.Settings.Secure.getString(
-                contentResolver,
-                android.provider.Settings.Secure.ANDROID_ID
-            )
-
-
-            //trackingApi.setAutoStartEnabled(true, true)
-            if (!trackingApi.isSdkEnabled()) {
-                trackingApi.setDeviceID(androidId)
-                trackingApi.setEnableSdk(true)
-
-            }
-            /* if(!trackingApi.startTracking()) {
-                 trackingApi.startTracking()
-             }*/
-            if (!trackingApi.isTracking()) {
-                trackingApi.startTracking()
-            }
-        }
-
-
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(networkReceiver)
     }
-
-    override fun onResume() {
-        super.onResume()
-        if (!trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
-            Snackbar.make(
-                findViewById(android.R.id.content),
-                "All permissions are required to proceed.",
-                Snackbar.LENGTH_LONG
-            ).show()
-            startActivity(Intent(this@MainActivity, SplashScreenActivity::class.java))
-            finish()
-
-        }
-    }
-
 }
 
 

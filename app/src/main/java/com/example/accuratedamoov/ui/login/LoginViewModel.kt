@@ -1,7 +1,42 @@
 package com.example.accuratedamoov.ui.login
 
+import android.annotation.SuppressLint
+import android.app.Application
+import android.content.Context
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.accuratedamoov.data.model.LoginRequest
+import com.example.accuratedamoov.data.model.LoginResponse
+import com.example.accuratedamoov.data.network.RetrofitClient
+import com.google.vr.dynamite.client.a
+import kotlinx.coroutines.launch
 
-class LoginViewModel : ViewModel() {
-    // TODO: Implement the ViewModel
+// LoginViewModel.kt
+class LoginViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val _loginResult = MutableLiveData<Result<LoginResponse>>()
+    val loginResult: LiveData<Result<LoginResponse>> = _loginResult
+
+    @SuppressLint("StaticFieldLeak")
+    private val mContext:Context = application.applicationContext
+    private val apiService = RetrofitClient.getApiService(mContext)
+
+    fun loginUser(email: String, password: String) {
+        viewModelScope.launch {
+            try {
+                val response = apiService.loginUser(LoginRequest(email, password))
+                if (response.isSuccessful && response.body() != null) {
+                    _loginResult.postValue(Result.success(response.body()!!))
+                } else {
+                    val errorMsg = response.errorBody()?.string() ?: "Login failed"
+                    _loginResult.postValue(Result.failure(Exception(errorMsg)))
+                }
+            } catch (e: Exception) {
+                _loginResult.postValue(Result.failure(e))
+            }
+        }
+    }
 }

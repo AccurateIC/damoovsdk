@@ -33,68 +33,38 @@ class MainApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-       /* to Detect night mode and handle UI*/
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
+        startService(Intent(this, NetworkMonitorService::class.java))
 
-        val permissionMonitorServicesIntent = Intent(this, PermissionMonitorService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(permissionMonitorServicesIntent)
-        } else {
-            startService(permissionMonitorServicesIntent)
-        }
-        /*val permissionReceiver = PermissionChangeReceiver()
-        val filter = IntentFilter(Intent.ACTION_PACKAGE_CHANGED).apply {
-            addDataScheme("package")
-        }
-        registerReceiver(permissionReceiver, filter)*/
+        val prefs = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val isLoggedIn = prefs.getBoolean("is_logged_in", false)
 
-        Log.d("MainApplication", "PermissionChangeReceiver registered")
-
-        Log.d("MainApplication", "PermissionReceiver registered")
-        val networkServiceIntent = Intent(this, NetworkMonitorService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(networkServiceIntent)
-        } else {
-            startService(networkServiceIntent)
+        if (!isLoggedIn) {
+            Log.d("MainApplication", "User not logged in, skipping SDK init and workers.")
+            return
         }
+
+        startService(Intent(this, PermissionMonitorService::class.java))
 
         val androidId = android.provider.Settings.Secure.getString(
             contentResolver,
             android.provider.Settings.Secure.ANDROID_ID
         )
 
-        if (!trackingApi.isInitialized()) {
-            Log.d("MainApplication", "SDK not initialized")
+        val trackingApi = TrackingApi.getInstance()
 
-            val settings = Settings(
-                stopTrackingTimeHigh,
-                150,
-                true,
-                true,
-                false
-            )
+        if (!trackingApi.isInitialized()) {
+            val settings = Settings(stopTrackingTimeHigh, 150, true, true, false)
             settings.stopTrackingTimeout(15)
             trackingApi.initialize(applicationContext, settings)
             Log.d("MainApplication", "SDK initialized")
-
         }
 
-        // Common setup after initialization
         if (trackingApi.isInitialized() && trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
-
-                // for tracking 2.2.63
-                trackingApi.setDeviceID(androidId)
-
-
-                // for tracking 3.0.0
-               /* trackingApi.setDeviceID(
-                    UUID.nameUUIDFromBytes(androidId.toByteArray(Charsets.UTF_8)).toString()
-                )*/
-                trackingApi.setEnableSdk(true)
-                Log.d("MainApplication","tracking SDK enabled")
-            // for tracking 3.0.0,not present in 2.2.263
-            //trackingApi.setAutoStartEnabled(true,true)
+            trackingApi.setDeviceID(androidId)
+            trackingApi.setEnableSdk(true)
+            Log.d("MainApplication", "Tracking SDK enabled")
         }
 
         val sharedPreferences = getSharedPreferences("appSettings", Context.MODE_PRIVATE)
@@ -103,8 +73,8 @@ class MainApplication : Application() {
         scheduleWorker(syncInterval)
         getAllWorkerRequests(applicationContext)
         observeAndCancelWork()
-
     }
+
 
     fun getAllWorkerRequests(context: Context) {
         val workQuery = WorkQuery.Builder

@@ -45,9 +45,9 @@ class TrackTableCheckWorker(
                 }
             }
 
-            val sharedPreferences = applicationContext.getSharedPreferences("appSettings", Context.MODE_PRIVATE)
+            val sharedPreferences = applicationContext.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
             val syncInterval = sharedPreferences.getInt("sync_interval", 10).toLong()
-
+            val user_id = sharedPreferences.getInt("user_id", 0)
             if (!hasDataToSync) {
                 Log.d("WorkManager", "✅ No new data, rescheduling worker.")
                 scheduleWorker(syncInterval)
@@ -80,6 +80,10 @@ class TrackTableCheckWorker(
         var allSuccessful = true
         val chunkSize = 300
 
+        // Get user_id from SharedPreferences
+        val sharedPreferences = applicationContext.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val userId = sharedPreferences.getInt("user_id", 0)
+
         for (tableName in jsonData.keys()) {
             val tableData = jsonData.getJSONArray(tableName)
             if (tableData.length() == 0) continue
@@ -108,7 +112,9 @@ class TrackTableCheckWorker(
                     }
 
                     if (isValidRecord) {
+                        map["user_id"] = userId  // ➕ Add user_id to the record
                         dataList.add(map)
+
                         if (item.has("id")) syncedIds.add(item.getInt("id"))
                         else if (item.has("ID")) syncedIds.add(item.getInt("ID"))
                     }
@@ -126,14 +132,12 @@ class TrackTableCheckWorker(
                     }
 
                     if (response.isSuccessful) {
-                        withContext(Dispatchers.IO) {
-                            deleteSyncedRecords(dbHelper, tableName, syncedIds)
-                        }
                         Log.d("WorkManager", "✅ Synced $tableName chunk: $index–${end - 1}")
+                        // ❌ Do not delete synced records
                     } else {
                         Log.e("WorkManager", "❌ Sync failed for $tableName chunk: ${response.errorBody()?.string()}")
                         allSuccessful = false
-                        break // optionally stop on failure
+                        break
                     }
                 } catch (e: Exception) {
                     Log.e("WorkManager", "❌ Sync error for $tableName chunk: ${e.message}")
@@ -147,6 +151,7 @@ class TrackTableCheckWorker(
 
         return allSuccessful
     }
+
 
 
     private fun deleteSyncedRecords(dbHelper: DatabaseHelper, tableName: String, ids: List<Int>) {

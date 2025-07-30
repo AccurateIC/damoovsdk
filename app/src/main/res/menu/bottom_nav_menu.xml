@@ -16,9 +16,11 @@
         android:icon="@drawable/ic_feed"
         android:title="@string/title_feed" />
 
-    <item
+
+
+    <!--<item
         android:id="@+id/navigation_settings"
         android:icon="@drawable/ic_settingsnew"
-        android:title="@string/title_settings" />
+        android:title="@string/title_settings" />-->
 
 </menu>

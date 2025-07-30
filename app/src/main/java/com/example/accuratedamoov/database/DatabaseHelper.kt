@@ -9,6 +9,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.util.UUID
+import androidx.core.database.sqlite.transaction
 
 class DatabaseHelper private constructor(context: Context) {
 
@@ -141,4 +142,27 @@ class DatabaseHelper private constructor(context: Context) {
             Log.e("DatabaseHelper", "❌ Failed to add 'device_id' column to $tableName: ${e.message}")
         }
     }
+
+    fun markAsSynced(tableName: String, ids: List<Int>) {
+        if (ids.isEmpty()) return
+
+        val db = database
+        db?.transaction {
+            try {
+                val placeholders = ids.joinToString(",") { "?" }
+                val sql = "UPDATE $tableName SET synced = 1 WHERE id IN ($placeholders)"
+                val statement = compileStatement(sql)
+
+                ids.forEachIndexed { index, id ->
+                    statement.bindLong(index + 1, id.toLong())
+                }
+
+                statement.executeUpdateDelete()
+            } catch (e: Exception) {
+                Log.e("DatabaseHelper", "Error marking as synced in $tableName: ${e.message}")
+            } finally {
+            }
+        }
+    }
+
 }
