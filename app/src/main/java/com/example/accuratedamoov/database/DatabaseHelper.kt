@@ -147,22 +147,26 @@ class DatabaseHelper private constructor(context: Context) {
         if (ids.isEmpty()) return
 
         val db = database
-        db?.transaction {
-            try {
-                val placeholders = ids.joinToString(",") { "?" }
-                val sql = "UPDATE $tableName SET synced = 1 WHERE id IN ($placeholders)"
-                val statement = compileStatement(sql)
+        db?.beginTransaction()
+        try {
+            val placeholders = ids.joinToString(",") { "?" }
+            val sql = "UPDATE $tableName SET synced = 1 WHERE id IN ($placeholders)"
+            val statement = db?.compileStatement(sql)
 
-                ids.forEachIndexed { index, id ->
-                    statement.bindLong(index + 1, id.toLong())
-                }
-
-                statement.executeUpdateDelete()
-            } catch (e: Exception) {
-                Log.e("DatabaseHelper", "Error marking as synced in $tableName: ${e.message}")
-            } finally {
+            ids.forEachIndexed { index, id ->
+                statement?.bindLong(index + 1, id.toLong())
             }
+
+            val rowsUpdated = statement?.executeUpdateDelete()
+            Log.d("DatabaseHelper", "✅ Updated $rowsUpdated rows in $tableName as synced")
+
+            db?.setTransactionSuccessful()
+        } catch (e: Exception) {
+            Log.e("DatabaseHelper", "❌ Error marking as synced in $tableName: ${e.message}")
+        } finally {
+            db?.endTransaction()
         }
     }
+
 
 }

@@ -10,7 +10,7 @@ object RetrofitClient {
 
     fun getApiService(context: Context): ApiService {
         val sharedPreferences = context.getSharedPreferences("appSettings", Context.MODE_PRIVATE)
-        val baseUrl = sharedPreferences.getString("api_url", "http://192.168.1.119:5000/") ?: "http://192.168.1.119:5000/"
+        val baseUrl = sharedPreferences.getString("api_url", "http://192.168.11.65:5555/") ?: "http://192.168.11.65:5555/"
         return getApiService(baseUrl)
     }
 

@@ -41,27 +41,31 @@
                     android:layout_marginBottom="8dp" />
 
                 <TextView
+                    android:id="@+id/nameText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Name: John Doe"
                     android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
                     android:layout_marginBottom="4dp" />
 
-                <TextView
+              <!--  <TextView
+                    android:id="@+id/devicemodelText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Device Name: Pixel 6"
                     android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:layout_marginBottom="4dp" />
+                    android:layout_marginBottom="4dp" />-->
 
-                <TextView
+                <!--<TextView
+                    android:id="@+id/deviceidText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Device ID: 12345ABC"
                     android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:layout_marginBottom="4dp" />
+                    android:layout_marginBottom="4dp" />-->
 
                 <TextView
+                    android:id="@+id/mailText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Email: john@example.com"
@@ -96,7 +100,7 @@
                     android:id="@+id/totalDistanceText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Total Distance: 123.4 km"
+                    android:text="Total Distance: "
                     android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
                     android:layout_marginBottom="4dp" />
 
@@ -104,7 +108,7 @@
                     android:id="@+id/totalRidesText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Total Rides: 25"
+                    android:text="Total Rides: "
                     android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>

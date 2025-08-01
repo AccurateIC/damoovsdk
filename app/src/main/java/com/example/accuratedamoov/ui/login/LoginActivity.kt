@@ -40,9 +40,11 @@ class LoginActivity : AppCompatActivity() {
             result
                 .onSuccess {
                     val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
-                    prefs.edit {
+                    prefs.edit().apply {
                         putBoolean("is_registered", true)
-                            .putBoolean("is_logged_in", true)
+                        putBoolean("is_logged_in", true)
+                        putInt("user_id", it.user_id)
+                        apply()
                     }
                     Snackbar.make(binding.root, "Welcome ${it.name}", Snackbar.LENGTH_LONG).show()
 

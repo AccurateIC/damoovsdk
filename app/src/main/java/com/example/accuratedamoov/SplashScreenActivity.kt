@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.accuratedamoov.ui.login.LoginActivity
 import com.example.accuratedamoov.ui.setting.SetttingsActivity
+import androidx.core.content.edit
 
 class SplashScreenActivity : AppCompatActivity() {
 
@@ -12,9 +13,9 @@ class SplashScreenActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        //prefs.edit { clear() }
         val isLoggedIn = prefs.getBoolean("is_logged_in", false)
         val api_url = prefs.getString("api_url", "")
-
         if (isLoggedIn) {
             startActivity(Intent(this, MainActivity::class.java))
         } else {

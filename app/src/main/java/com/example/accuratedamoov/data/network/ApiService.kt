@@ -56,7 +56,6 @@ interface ApiService {
     ): Response<GeoPointResponse>
 
 
-
     @GET("triprecordfordevice")
     suspend fun getTripsForDevice(
         @Query("device_id") deviceId: String,
@@ -79,18 +78,17 @@ interface ApiService {
     @POST("/api/login")
     suspend fun loginUser(@Body request: LoginRequest): Response<LoginResponse>
 
-        @GET("/api/userprofile")
-        suspend fun getUserProfile(
-            @Query("user_id") userId: String
-        ): Response<UserProfileResponse>
+    @GET("/userprofile")
+    suspend fun getUserProfile(
+        @Query("user_id") userId: String
+    ): Response<UserProfileResponse>
 
 
-        @GET("/api/tripsummaryfordevice")
-        suspend fun getTripSummary(
-            @Query("device_id") deviceId: String,
-            @Query("user_id") userId: String
-        ): Response<TripSummaryResponse>
-
+    @GET("/tripsummaryfordevice")
+    suspend fun getTripSummary(
+        @Query("device_id") deviceId: String,
+        @Query("user_id") userId: String
+    ): Response<TripSummaryResponse>
 
 
 }

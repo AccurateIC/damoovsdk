@@ -27,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Response
 import java.util.UUID
+import androidx.core.content.edit
 
 class FeedViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -76,16 +77,28 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                     .getTripsForDevice(deviceId, userId)
 
                 if (response.isSuccessful) {
+                    Log.d("tripcounts", response.body()?.data?.size.toString())
+
                     val trips = response.body()?.data
-                        ?.distinctBy { it.UNIQUE_ID } // ✅ remove duplicates
+                        ?.distinctBy { it.UNIQUE_ID } // ✅ remove duplicates if any
                         ?.sortedByDescending { it.start_date }
                         ?: emptyList()
 
                     _uiState.value = FeedUiState.Success(trips)
 
-                    trips.forEach {
-                        Log.d("Trip", "Trip ID: ${it.UNIQUE_ID}, Distance: ${it.distance_km}")
+
+                    val sharedPref = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+
+                    val tripCount = trips.size
+                    val totalDistanceKm = trips.sumOf { it.distance_km ?: 0.0 }
+
+                    sharedPref.edit {
+                        putInt("trip_count", tripCount)
+                            .putInt("total_distance", totalDistanceKm.toInt())
                     }
+
+                    Log.d("SharedPref", "Saved Trip Count: $tripCount, Distance: $totalDistanceKm km")
+
                 } else {
                     val error = response.errorBody()?.string() ?: "Unknown error"
                     _uiState.value = FeedUiState.Error(error)

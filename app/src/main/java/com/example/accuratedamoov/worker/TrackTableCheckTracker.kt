@@ -133,6 +133,7 @@ class TrackTableCheckWorker(
 
                     if (response.isSuccessful) {
                         Log.d("WorkManager", "✅ Synced $tableName chunk: $index–${end - 1}")
+                        dbHelper.markAsSynced(tableName,syncedIds)
                         // ❌ Do not delete synced records
                     } else {
                         Log.e("WorkManager", "❌ Sync failed for $tableName chunk: ${response.errorBody()?.string()}")
