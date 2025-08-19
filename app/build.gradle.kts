@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.android.libraries.mapsplatform.secrets.gradle.plugin)
+    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -116,6 +117,12 @@ dependencies {
     implementation (libs.osmdroid.android)
     implementation(libs.guava)
 
+        implementation ("com.airbnb.android:lottie:6.0.0")  // Use latest version
+
 
     implementation (libs.androidx.swiperefreshlayout)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.room.runtime)
+    kapt(libs.androidx.room.compiler) // if using annotation processing
+
 }

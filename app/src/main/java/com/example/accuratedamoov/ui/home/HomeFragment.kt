@@ -5,6 +5,8 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.preference.PreferenceManager
 import android.view.LayoutInflater
 import android.view.View
@@ -23,6 +25,7 @@ import com.google.android.gms.maps.MapView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.Snackbar
 import com.raxeltelematics.v2.sdk.TrackingApi
+import okhttp3.internal.http2.Http2Reader
 import org.mapsforge.core.model.LatLong
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory
 import org.mapsforge.map.android.util.AndroidUtil
@@ -115,13 +118,18 @@ class HomeFragment : Fragment() {
             } else {
                 Snackbar.make(binding.root, "Tracking is already in progress", Snackbar.LENGTH_SHORT).show()
             }
-            updateTrackingUI()
+            Handler(Looper.getMainLooper()).postDelayed({
+                updateTrackingUI()
+            }, 1000)
+
         }
 
         binding.stopTripManually.setOnClickListener {
             homeViewModel.stopTracking()
             Snackbar.make(binding.root, "Tracking stopped", Snackbar.LENGTH_SHORT).show()
-            updateTrackingUI()
+            Handler(Looper.getMainLooper()).postDelayed({
+                updateTrackingUI()
+            }, 1000)
         }
 
         setupBottomSheet(view)

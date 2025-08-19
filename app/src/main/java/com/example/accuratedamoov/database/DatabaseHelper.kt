@@ -169,4 +169,29 @@ class DatabaseHelper private constructor(context: Context) {
     }
 
 
+    fun addEndDateColumnIfNotExists() {
+        val db = openDatabase() ?: return
+        try {
+            val cursor = db.rawQuery("PRAGMA table_info(TrackTable)", null)
+            var columnExists = false
+
+            while (cursor.moveToNext()) {
+                val columnName = cursor.getString(cursor.getColumnIndexOrThrow("name"))
+                if (columnName.equals("end_date", ignoreCase = true)) {
+                    columnExists = true
+                    break
+                }
+            }
+
+            if (!columnExists) {
+                db.execSQL("ALTER TABLE TrackTable ADD COLUMN end_date INTEGER")
+                Log.d("DB", "✅ Added 'end_date' column to TrackTable")
+            }
+            cursor.close()
+        } catch (e: Exception) {
+            Log.e("DB", "❌ Failed to add 'end_date' column", e)
+        }
+    }
+
+
 }

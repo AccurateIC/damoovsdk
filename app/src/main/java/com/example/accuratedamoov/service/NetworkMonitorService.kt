@@ -22,7 +22,7 @@ class NetworkMonitorService : Service() {
 
     companion object {
         @Volatile
-        var isConnected: Boolean? = null
+        var isConnected: Boolean = false
 
     }
     private lateinit var connectivityManager: ConnectivityManager
@@ -31,7 +31,7 @@ class NetworkMonitorService : Service() {
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
-            if (isConnected == false || isConnected == null) { // Notify only if status changes
+            if (!isConnected) { // Notify only if status changes
                 isConnected = true
                 Log.d("NetworkMonitorService", "Internet is available")
                 observeAndCancelWork()
@@ -40,7 +40,7 @@ class NetworkMonitorService : Service() {
         }
 
         override fun onLost(network: Network) {
-            if (isConnected == true || isConnected == null) { // Notify only if status changes
+            if (isConnected) { // Notify only if status changes
                 isConnected = false
                 Log.d("NetworkMonitorService", "No internet connection")
                 Toast.makeText(applicationContext,"No internet connection",Toast.LENGTH_SHORT).show()
@@ -68,6 +68,10 @@ class NetworkMonitorService : Service() {
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .build()
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
+
+        isConnected = isCurrentlyConnected()
+        notifyConnectionChange(isConnected)
+
         observeAndCancelWork()
     }
 
@@ -129,6 +133,11 @@ class NetworkMonitorService : Service() {
         }
     }
 
+    private fun isCurrentlyConnected(): Boolean {
+        val activeNetwork = connectivityManager.activeNetwork
+        val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
+        return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+    }
 
 }
 

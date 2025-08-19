@@ -10,39 +10,70 @@ import android.util.Log
 
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.accuratedamoov.database.DatabaseHelper
 import com.raxeltelematics.v2.sdk.TrackingApi
 import java.util.concurrent.TimeUnit
 
 class TrackingWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
 
+    private val dbHelper = DatabaseHelper.getInstance(applicationContext)
+
     override fun doWork(): Result {
-        val trackingApi = TrackingApi.getInstance()
+        Log.d("TrackingWorker", "✅ TrackingWorker started")
+        return try {
+            val trackingApi = TrackingApi.getInstance()
 
-        val nextWorkRequest = OneTimeWorkRequestBuilder<TrackingWorker>()
-            .setInitialDelay(60, TimeUnit.SECONDS) // Delay before next run
-            .build()
+            if (trackingApi.isInitialized() && trackingApi.isSdkEnabled()) {
+                val isTracking = trackingApi.isTracking()
+                Log.d("TrackingWorker", "isTracking: $isTracking")
 
-        WorkManager.getInstance(applicationContext).enqueue(nextWorkRequest)
-        // Ensure required permissions are granted
-        if (ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED) {
-            return Result.failure()
+                // Ensure column exists before processing
+                dbHelper.addEndDateColumnIfNotExists()
+
+                // If not currently tracking, update the latest active track's end_date
+                if (!isTracking) {
+                    updateLatestActiveTrackEndDate()
+                }
+            }
+            return Result.success()
+        } catch (e: Exception) {
+            Log.e("TrackingWorker", "❌ doWork failed", e)
+            Result.failure()
         }
+    }
 
-        // Initialize tracking if not already started
+    private fun updateLatestActiveTrackEndDate() {
+        try {
+            val db = dbHelper.openDatabase() ?: return
 
-        if(TrackingApi.getInstance() != null && TrackingApi.getInstance().isSdkEnabled()) {
-            Log.d("TrackingWorker ->isTracking", TrackingApi.getInstance().isTracking().toString())
+            val cursor = db.rawQuery(
+                "SELECT track_id, start_date FROM TrackTable WHERE end_date IS NULL ORDER BY start_date DESC LIMIT 1",
+                null
+            )
+
+            if (cursor.moveToFirst()) {
+                val trackId = cursor.getInt(0)
+                val startDate = cursor.getLong(1)
+                val currentMillis = System.currentTimeMillis()
+
+                // Ensure end_date is after start_date
+                if (currentMillis > startDate) {
+                    db.execSQL(
+                        "UPDATE TrackTable SET end_date = ? WHERE track_id = ?",
+                        arrayOf(currentMillis, trackId)
+                    )
+                    Log.d("TrackingWorker", "✅ Updated end_date for track_id=$trackId at $currentMillis")
+                } else {
+                    Log.w("TrackingWorker", "⚠️ Skipped update: currentMillis <= startDate")
+                }
+            } else {
+                Log.i("TrackingWorker", "ℹ️ No active track found to update.")
+            }
+
+            cursor.close()
+        } catch (e: Exception) {
+            Log.e("TrackingWorker", "❌ Failed to update end_date", e)
         }
-        if (!trackingApi.isSdkEnabled()) {
-            trackingApi.setEnableSdk(true)
-        }
-
-        if (!trackingApi.isTracking()) {
-            trackingApi.startTracking()
-        }
-
-        return Result.success()
     }
 }
 

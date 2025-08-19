@@ -56,7 +56,7 @@ class MainApplication : Application() {
 
         if (!trackingApi.isInitialized()) {
             val settings = Settings(stopTrackingTimeHigh, 150, true, true, false)
-            settings.stopTrackingTimeout(15)
+            settings.stopTrackingTimeout(10)
             trackingApi.initialize(applicationContext, settings)
             Log.d("MainApplication", "SDK initialized")
         }
@@ -90,19 +90,6 @@ class MainApplication : Application() {
         }
     }
 
-   /* private fun observeAndCancelWork() {
-        val workManager = WorkManager.getInstance(applicationContext)
-
-        workManager.getWorkInfosByTagLiveData("com.telematicssdk.tracking.sync.common.tag")
-            .observeForever { workInfos ->
-                workInfos?.forEach { workInfo ->
-                    if (!workInfo.tags.contains("com.example.accuratedamoov.worker.TrackTableCheckWorker")) {
-                        Log.d("WorkManager", "Cancelling Work: ${workInfo.id}")
-                        workManager.cancelWorkById(workInfo.id)
-                    }
-                }
-            }
-    }*/
 
     private fun observeAndCancelWork() {
         val workManager = WorkManager.getInstance(applicationContext)
@@ -171,24 +158,3 @@ class MainApplication : Application() {
         )
     }
 }
-
-
-       /* val workRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
-            .setInitialDelay(60, TimeUnit.SECONDS) // 🔹 Runs every 5 seconds
-            .build()
-
-        WorkManager.getInstance(this).enqueue(workRequest)*/
-
-       /* val periodicWorkRequest = PeriodicWorkRequestBuilder<TrackTableCheckWorker>(
-            15, TimeUnit.MINUTES
-        ).setConstraints(
-            Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
-        ).build()
-
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "TrackTableCheckWorker",
-            ExistingPeriodicWorkPolicy.KEEP,
-            periodicWorkRequest
-        )*/

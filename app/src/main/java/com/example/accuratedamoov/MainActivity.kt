@@ -6,9 +6,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavOptions
@@ -40,7 +42,7 @@ class MainActivity : AppCompatActivity() {
             hfOn = true,
             elmOn = false
         ).apply {
-            stopTrackingTimeout(15)
+            stopTrackingTimeout(10)
         }
         trackingApi.initialize(applicationContext, settings)
         if (trackingApi.isInitialized() && trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
@@ -50,6 +52,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun registerNetworkReceiver() {
         networkReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
@@ -57,7 +60,7 @@ class MainActivity : AppCompatActivity() {
                 binding.networkOverlay.visibility = if (isConnected) View.GONE else View.VISIBLE
             }
         }
-        registerReceiver(networkReceiver, IntentFilter("network_status_changed"))
+        registerReceiver(networkReceiver, IntentFilter("network_status_changed"), Context.RECEIVER_NOT_EXPORTED)
     }
 
     private fun hasLocationPermission(): Boolean {
@@ -85,7 +88,7 @@ class MainActivity : AppCompatActivity() {
                 hfOn = true,
                 elmOn = false
             ).apply {
-                stopTrackingTimeout(15)
+                stopTrackingTimeout(10)
             }
             trackingApi.initialize(applicationContext, settings)
         }
@@ -156,6 +159,10 @@ class MainActivity : AppCompatActivity() {
                     R.id.navigation_feed -> navController.navigate(
                         R.id.navigation_feed, null, navOptions
                     )
+
+                    R.id.navigation_settings -> navController.navigate(
+                        R.id.navigation_settings, null, navOptions
+                    )
                 }
                 true
             }
@@ -165,6 +172,16 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(networkReceiver)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if(NetworkMonitorService.isConnected == false) {
+            binding.networkOverlay.visibility = View.VISIBLE
+        } else {
+            binding.networkOverlay.visibility = View.GONE
+        }
+
     }
 }
 

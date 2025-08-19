@@ -31,6 +31,7 @@ import com.example.accuratedamoov.ui.login.LoginActivity
 import com.example.accuratedamoov.ui.register.RegisterActivity
 import com.example.accuratedamoov.ui.settings.SettingsViewModel
 import com.example.accuratedamoov.worker.TrackTableCheckWorker
+import com.example.accuratedamoov.worker.TrackingWorker
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -127,22 +128,23 @@ class SetttingsActivity : AppCompatActivity() {
 
 
     private fun scheduleWorker(syncInterval: Long) {
-        val constraints = Constraints.Builder()
+        val constraintsForDataSync = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .setRequiresBatteryNotLow(true)
             .build()
 
-        val workRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
-            .setConstraints(constraints)
+        val trackCheckWorkRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
+            .setConstraints(constraintsForDataSync)
             .setInitialDelay(syncInterval, TimeUnit.SECONDS)
             .build()
 
         WorkManager.getInstance(this).enqueueUniqueWork(
             "TrackTableCheckWorker",
             ExistingWorkPolicy.REPLACE,
-            workRequest
+            trackCheckWorkRequest
         )
     }
+
 
     private fun setupKeyboardHiding(view: View) {
         view.setOnTouchListener { _, event ->

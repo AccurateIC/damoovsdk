@@ -4,79 +4,145 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
+import com.example.accuratedamoov.data.local.addresscache.AddressDatabase
+import com.example.accuratedamoov.data.local.addresscache.AddressEntity
 import com.example.accuratedamoov.data.model.TripData
-import com.example.accuratedamoov.data.network.RetrofitClient
 import com.example.accuratedamoov.databinding.ListItemTripBinding
-import com.example.accuratedamoov.model.TrackModel
 import com.example.accuratedamoov.service.NetworkMonitorService
 import com.example.accuratedamoov.ui.tripDetails.TripDetailsActivity
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 
 class TrackAdapter(
-    private val objects: List<TripData>,
+    private var trips: List<TripData>,
+    context: Context
 ) : RecyclerView.Adapter<TrackAdapter.MyViewHolder>() {
-    lateinit var mContext: Context
+
+    private var selectedPosition: Int = 0
+    private val mContext = context
+    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val addressDao = AddressDatabase.getDatabase(context).addressDao()
 
     class MyViewHolder(val binding: ListItemTripBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        mContext = parent.context
-        val binding =
-            ListItemTripBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ListItemTripBinding.inflate(LayoutInflater.from(mContext), parent, false)
         return MyViewHolder(binding)
     }
 
-    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        val item = objects[position]
+        val item = trips[position]
 
         with(holder.binding) {
-            departureAddressView.text =
-                "Start address:\n${item.start_latitude.toString() + "," + item.start_longitude}"
-            destinationAddressView.text =
-                "End address:\n${item.end_latitude.toString() + "," + item.end_longitude}"
-            departureDateView.text = "Date start:\n${convertUnixToIST(item.start_date)}"
-            totalDistanceView.text =
-                "Distance covered: \n${item.distance_km.toInt().toString() + "km"}"
-            /* mileageView.text = String.format("Mileage: %.1f km", item.distance_km)
-             totalTimeView.text = String.format("Total time: %d mins",)*/
+            departureAddressView.text = "Start :\nLoading..."
+            destinationAddressView.text = "End :\nLoading..."
 
-            root.setOnClickListener {
-                if (NetworkMonitorService.isConnected == true) {
-                    val intent = Intent(mContext, TripDetailsActivity::class.java)
-                    intent.putExtra("ID", item.UNIQUE_ID.toString())
-                    mContext.startActivity(intent)
+            coroutineScope.launch {
+                // START LOCATION
+                item.start_coordinates?.let {
+                    val (lat, lon) = it.split(",").mapNotNull { s -> s.trim().toDoubleOrNull() }
+                    val key = "$lat,$lon"
+                    val cachedAddress = addressDao.getAddress(key)
+                    if (cachedAddress != null) {
+                        departureAddressView.text = "Start :\n$cachedAddress"
+                    } else {
+                        val fetched = getAddressFromCoordinates(lat, lon)
+                        if (fetched != null) {
+                            departureAddressView.text = "Start :\n$fetched"
+                            addressDao.insertAddress(AddressEntity(key, lat, lon, fetched))
+                        } else {
+                            departureAddressView.text = "Start :\nN/A"
+                        }
+                    }
                 }
 
+                // END LOCATION
+                item.end_coordinates?.let {
+                    val (lat, lon) = it.split(",").mapNotNull { s -> s.trim().toDoubleOrNull() }
+                    val key = "$lat,$lon"
+                    val cachedAddress = addressDao.getAddress(key)
+                    if (cachedAddress != null) {
+                        destinationAddressView.text = "End :\n$cachedAddress"
+                    } else {
+                        val fetched = getAddressFromCoordinates(lat, lon)
+                        if (fetched != null) {
+                            destinationAddressView.text = "End :\n$fetched"
+                            addressDao.insertAddress(AddressEntity(key, lat, lon, fetched))
+                        } else {
+                            destinationAddressView.text = "End :\nN/A"
+                        }
+                    }
+                }
             }
-            detailsButton.setOnClickListener {
+
+            departureDateView.text = "start: ${item.start_date_ist ?: "N/A"}"
+            totalDistanceView.text = "Distance covered:\n${item.distance_km?.toInt()?.toString()?.plus("km") ?: "N/A"}"
+            destinationDateView.text = "end: ${item.end_date_ist ?: "N/A"}"
+            totalTimeView.text = item.duration_hh_mm?.let {
+                val parts = it.split(":")
+                if (parts.size == 2) "${parts[0]}h ${parts[1]}m" else it
+            } ?: "N/A"
+
+            val clickListener = View.OnClickListener {
                 if (NetworkMonitorService.isConnected == true) {
+                    val startAddr = departureAddressView.text.toString().removePrefix("Start :\n")
+                    val endAddr = destinationAddressView.text.toString().removePrefix("End :\n")
                     val intent = Intent(mContext, TripDetailsActivity::class.java)
-                    intent.putExtra("ID", item.UNIQUE_ID.toString())
+                    intent.putExtra("ID", item.unique_id.toString())
+                    intent.putExtra("START_TIME", item.start_date_ist)
+                    intent.putExtra("END_TIME", item.end_date_ist)
+                    intent.putExtra("START_LOC", startAddr)
+                    intent.putExtra("END_LOC", endAddr)
                     mContext.startActivity(intent)
                 }
+            }
+
+            root.setOnClickListener(clickListener)
+            detailsButton.setOnClickListener(clickListener)
+        }
+    }
+
+    override fun getItemCount() = trips.size
+
+    suspend fun getAddressFromCoordinates(lat: Double, lon: Double): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val url = URL("https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&zoom=18&addressdetails=1")
+                val connection = (url.openConnection() as HttpURLConnection).apply {
+                    setRequestProperty("User-Agent", "AccurateDamoov/1.0")
+                    connectTimeout = 5000
+                    readTimeout = 5000
+                }
+
+                connection.inputStream.bufferedReader().use {
+                    val response = it.readText()
+                    val json = JSONObject(response)
+                    json.optString("display_name", null)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
             }
         }
     }
 
-    override fun getItemCount() = objects.size
-
-
-    @SuppressLint("NewApi")
-    fun convertUnixToIST(unixTime: Long): String {
-        val instant = Instant.ofEpochMilli(unixTime)
-        val zoneId = ZoneId.of("Asia/Kolkata")
-        val zonedDateTime = instant.atZone(zoneId)
-        val formatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy HH:mm:ss.SSS z")
-        return formatter.format(zonedDateTime)
+    @SuppressLint("NotifyDataSetChanged")
+    fun updateData(newTrips: List<TripData>) {
+        trips = newTrips
+        notifyDataSetChanged()
     }
 
 
 }
+
+
+

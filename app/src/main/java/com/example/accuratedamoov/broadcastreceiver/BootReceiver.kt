@@ -4,7 +4,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.accuratedamoov.worker.TrackTableCheckWorker
@@ -16,9 +20,10 @@ import java.util.concurrent.TimeUnit
 class BootReceiver : BroadcastReceiver() {
 
     val trackingApi = TrackingApi.getInstance()
-
+    lateinit var mContext: Context
 
     override fun onReceive(context: Context, intent: Intent) {
+        mContext = context
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
             Log.d("BootReceiver","phone restarted")
             val androidId = android.provider.Settings.Secure.getString(
@@ -35,7 +40,7 @@ class BootReceiver : BroadcastReceiver() {
                     true,
                     false
                 )
-                settings.stopTrackingTimeout(15)
+                settings.stopTrackingTimeout(10)
                 trackingApi.initialize(context, settings)
                 Log.d("MainApplication", "SDK initialized")
 
@@ -58,9 +63,29 @@ class BootReceiver : BroadcastReceiver() {
                 //trackingApi.setAutoStartEnabled(true,true)
                 if(!trackingApi.isTracking()){
                     trackingApi.startTracking()
+                    scheduleWorker(15)
                 }
             }
 
         }
     }
+
+    private fun scheduleWorker(syncInterval: Long) {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .setRequiresBatteryNotLow(true)
+            .build()
+
+        val workRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
+            .setConstraints(constraints)
+            .setInitialDelay(syncInterval, TimeUnit.SECONDS)
+            .build()
+
+        WorkManager.getInstance(mContext).enqueueUniqueWork(
+            "TrackTableCheckWorker",
+            ExistingWorkPolicy.REPLACE,
+            workRequest
+        )
+    }
+
 }

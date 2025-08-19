@@ -8,6 +8,7 @@ import androidx.work.*
 import com.example.accuratedamoov.data.network.RetrofitClient
 import com.example.accuratedamoov.data.network.SyncRequest
 import com.example.accuratedamoov.database.DatabaseHelper
+import com.raxeltelematics.v2.sdk.TrackingApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -24,8 +25,8 @@ class TrackTableCheckWorker(
         return try {
             val tableNames = listOf(
                 "LastKnownPointTable", "EventsStartPointTable", "EventsTable",
-                "EventsStopPointTable", "RangeDirectTable", "RangeLateralTable",
-                "RangeVerticalTable", "RangeAccuracyTable", "RangeSpeedTable", "TrackTable","SampleTable"
+                "EventsStopPointTable",
+                "TrackTable", "SampleTable"
             )
 
             // Ensure required columns exist
@@ -45,7 +46,8 @@ class TrackTableCheckWorker(
                 }
             }
 
-            val sharedPreferences = applicationContext.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            val sharedPreferences =
+                applicationContext.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
             val syncInterval = sharedPreferences.getInt("sync_interval", 10).toLong()
             val user_id = sharedPreferences.getInt("user_id", 0)
             if (!hasDataToSync) {
@@ -81,7 +83,8 @@ class TrackTableCheckWorker(
         val chunkSize = 300
 
         // Get user_id from SharedPreferences
-        val sharedPreferences = applicationContext.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val sharedPreferences =
+            applicationContext.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         val userId = sharedPreferences.getInt("user_id", 0)
 
         for (tableName in jsonData.keys()) {
@@ -133,10 +136,13 @@ class TrackTableCheckWorker(
 
                     if (response.isSuccessful) {
                         Log.d("WorkManager", "✅ Synced $tableName chunk: $index–${end - 1}")
-                        dbHelper.markAsSynced(tableName,syncedIds)
+                        dbHelper.markAsSynced(tableName, syncedIds)
                         // ❌ Do not delete synced records
                     } else {
-                        Log.e("WorkManager", "❌ Sync failed for $tableName chunk: ${response.errorBody()?.string()}")
+                        Log.e(
+                            "WorkManager",
+                            "❌ Sync failed for $tableName chunk: ${response.errorBody()?.string()}"
+                        )
                         allSuccessful = false
                         break
                     }
@@ -152,7 +158,6 @@ class TrackTableCheckWorker(
 
         return allSuccessful
     }
-
 
 
     private fun deleteSyncedRecords(dbHelper: DatabaseHelper, tableName: String, ids: List<Int>) {
@@ -197,6 +202,7 @@ class TrackTableCheckWorker(
             workRequest
         )
     }
+
     private fun observeAndCancelWork() {
         val workManager = WorkManager.getInstance(applicationContext)
 

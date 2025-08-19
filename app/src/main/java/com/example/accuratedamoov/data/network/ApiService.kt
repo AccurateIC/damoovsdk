@@ -6,6 +6,7 @@ import com.example.accuratedamoov.data.model.LoginRequest
 import com.example.accuratedamoov.data.model.LoginResponse
 import com.example.accuratedamoov.data.model.RegisterModel
 import com.example.accuratedamoov.data.model.RegisterResponse
+import com.example.accuratedamoov.data.model.SafetySummaryResponse
 import com.example.accuratedamoov.data.model.TripApiResponse
 import com.example.accuratedamoov.data.model.TripSummaryResponse
 import com.example.accuratedamoov.data.model.UserProfileResponse
@@ -58,7 +59,6 @@ interface ApiService {
 
     @GET("triprecordfordevice")
     suspend fun getTripsForDevice(
-        @Query("device_id") deviceId: String,
         @Query("user_id") userId: Int
     ): Response<TripApiResponse>
 
@@ -80,7 +80,7 @@ interface ApiService {
 
     @GET("/userprofile")
     suspend fun getUserProfile(
-        @Query("user_id") userId: String
+        @Query("user_id") userId: Int?
     ): Response<UserProfileResponse>
 
 
@@ -91,4 +91,8 @@ interface ApiService {
     ): Response<TripSummaryResponse>
 
 
+    @GET("safety_dashboard_summary")
+    suspend fun getSafetySummary(
+        @Query("filter") filter: String
+    ): Response<SafetySummaryResponse>
 }

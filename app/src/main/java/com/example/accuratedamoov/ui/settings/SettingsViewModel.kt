@@ -1,43 +1,65 @@
 package com.example.accuratedamoov.ui.settings
 
-import androidx.lifecycle.*
 
-import com.example.accuratedamoov.data.model.DeviceRequest
-import com.example.accuratedamoov.data.network.ApiService
+import android.app.Application
+import android.util.Patterns
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
+import com.example.accuratedamoov.data.network.RetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.Response
 
-class SettingsViewModel : ViewModel() {
+class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val _registrationResult = MutableLiveData<String>()
-    val registrationResult: LiveData<String> = _registrationResult
-
-    private var deviceApi: ApiService? = null
-
-    fun initApi(baseUrl: String) {
-        deviceApi = Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
+    companion object {
+        private const val PREFS_NAME = "appSettings"
+        private const val KEY_CLOUD_URL = "api_url"
     }
 
-    fun registerDevice(deviceId: String, deviceName: String) {
-        val api = deviceApi ?: return
+    private val prefs = application.getSharedPreferences(PREFS_NAME, Application.MODE_PRIVATE)
 
+    private val _cloudUrl = MutableLiveData<String>()
+    val cloudUrl: LiveData<String> get() = _cloudUrl
+
+    private val _message = MutableLiveData<String>()
+    val message: LiveData<String> get() = _message
+
+    init {
+        _cloudUrl.value = prefs.getString(KEY_CLOUD_URL, "") ?: ""
+    }
+
+    fun saveCloudUrl(url: String) {
+        if (url.isBlank() || !Patterns.WEB_URL.matcher(url).matches()) {
+            _message.value = "Please enter a valid URL"
+            return
+        }
+
+        val formattedUrl = if (!url.endsWith("/")) "$url/" else url
+
+        // Check health endpoint before saving permanently
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val response = api.registerDevice(DeviceRequest(deviceId, deviceName)).execute()
-                if (response.isSuccessful) {
-                    _registrationResult.postValue("Device registered: ${response.body()?.message}")
-                } else {
-                    _registrationResult.postValue("Device registration failed: ${response.code()}")
-                }
-            } catch (e: Exception) {
-                _registrationResult.postValue("Error: ${e.localizedMessage}")
+            val healthOk = checkHealth(formattedUrl)
+            if (healthOk) {
+                prefs.edit().putString(KEY_CLOUD_URL, formattedUrl).apply()
+                _cloudUrl.postValue(formattedUrl)
+                _message.postValue("Success! Cloud URL saved")
+                //// logout current user and navigate to login screen
+            } else {
+                _message.postValue("Looks like the server is unavailable. Please try saving the URL again later.")
             }
+        }
+    }
+
+    private suspend fun checkHealth(baseUrl: String): Boolean {
+        return try {
+            val api = RetrofitClient.getApiService(baseUrl)
+            val response: Response<Void> = api.checkHealth()
+            response.isSuccessful
+        } catch (e: Exception) {
+            false
         }
     }
 }

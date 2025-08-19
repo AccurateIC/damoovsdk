@@ -74,14 +74,15 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 val response = RetrofitClient.getApiService(context)
-                    .getTripsForDevice(deviceId, userId)
+                    .getTripsForDevice(userId)
 
                 if (response.isSuccessful) {
                     Log.d("tripcounts", response.body()?.data?.size.toString())
 
                     val trips = response.body()?.data
-                        ?.distinctBy { it.UNIQUE_ID } // ✅ remove duplicates if any
-                        ?.sortedByDescending { it.start_date }
+                        ?.filter { it.distance_km >= 1 }
+                        ?.distinctBy { it.unique_id }
+                        ?.sortedByDescending { it.start_date_ist }
                         ?: emptyList()
 
                     _uiState.value = FeedUiState.Success(trips)
@@ -90,7 +91,7 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                     val sharedPref = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
                     val tripCount = trips.size
-                    val totalDistanceKm = trips.sumOf { it.distance_km ?: 0.0 }
+                    val totalDistanceKm = trips.sumOf { it.distance_km }
 
                     sharedPref.edit {
                         putInt("trip_count", tripCount)
@@ -104,8 +105,8 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                     _uiState.value = FeedUiState.Error(error)
                 }
             } catch (e: Exception) {
-                Log.e("FeedViewModel", "Error fetching trips: ${e.message}")
-                _uiState.value = FeedUiState.Error(e.message ?: "Unknown network error")
+                Log.e("FeedViewModel", "Oops! We couldn’t connect to the server")
+                _uiState.value = FeedUiState.Error("Oops! We couldn’t connect to the server")
             }
         }
     }

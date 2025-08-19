@@ -16,14 +16,21 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkQuery
 import com.example.accuratedamoov.R
+import com.example.accuratedamoov.worker.TrackTableCheckWorker
+import com.example.accuratedamoov.worker.TrackingWorker
 import com.raxeltelematics.v2.sdk.Settings.Companion.stopTrackingTimeHigh
 import com.raxeltelematics.v2.sdk.TrackingApi
 
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class PermissionMonitorService : Service() {
 
@@ -95,7 +102,7 @@ class PermissionMonitorService : Service() {
                     true,
                     false
                 )
-                settings.stopTrackingTimeout(15)
+                settings.stopTrackingTimeout(10)
                 trackingApi.initialize(applicationContext, settings)
                 Log.d("PermissionMonitorService", "SDK initialized")
             }
@@ -186,4 +193,5 @@ class PermissionMonitorService : Service() {
             }
         }
     }
+
 }

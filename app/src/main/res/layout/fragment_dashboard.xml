@@ -1,159 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/navigation_dashboard"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
-    android:padding="16dp">
+    android:padding="15dp"
+    tools:context="com.example.accuratedamoov.ui.dashboard.DashboardFragment">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- Profile Card (Fixed at top) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/profileCard"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:divider="?android:attr/dividerHorizontal"
-        android:showDividers="middle"
-        android:dividerPadding="8dp">
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Profile Info Card -->
-        <androidx.cardview.widget.CardView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="@color/white">
+            android:orientation="vertical"
+            android:background="@drawable/edittext_bg"
+            android:padding="16dp">
 
+            <!-- Profile Row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/profileImage"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_profile_placeholder"
+                    android:scaleType="centerCrop"
+                    android:background="@drawable/circle_background" />
 
                 <TextView
+                    android:id="@+id/driverName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Profile Info"
+                    android:text="Omkar Prabhale"
+                    android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                    android:textColor="@color/black"
-                    android:layout_marginBottom="8dp" />
-
-                <TextView
-                    android:id="@+id/nameText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Name: John Doe"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:layout_marginBottom="4dp" />
-
-              <!--  <TextView
-                    android:id="@+id/devicemodelText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Device Name: Pixel 6"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:layout_marginBottom="4dp" />-->
-
-                <!--<TextView
-                    android:id="@+id/deviceidText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Device ID: 12345ABC"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:layout_marginBottom="4dp" />-->
-
-                <TextView
-                    android:id="@+id/mailText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Email: john@example.com"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
+                    android:layout_marginStart="12dp"/>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
 
-        <!-- Stats Card -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="@color/white">
-
-            <LinearLayout
+            <!-- Overall Safety Score -->
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:text="Overall Safety Score"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"/>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textStyle="bold"
-                    android:text="Stats"
-                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                    android:layout_marginBottom="8dp" />
+            <ProgressBar
+                android:id="@+id/safetyScoreBar"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:progress="70"
+                android:progressTint="@color/colorPrimary"/>
 
-                <TextView
-                    android:id="@+id/totalDistanceText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Total Distance: "
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:layout_marginBottom="4dp" />
+            <TextView
+                android:id="@+id/rankText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="#1"
+                android:textStyle="bold"
+                android:layout_gravity="end"
+                android:textColor="@color/black"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
-                <TextView
-                    android:id="@+id/totalRidesText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Total Rides: "
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
+    <!-- Scrollable Stats Section -->
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/profileCard"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Driving Score Card -->
-        <androidx.cardview.widget.CardView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="@color/white">
+            android:background="@drawable/edittext_bg"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_marginTop="8dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+            <include layout="@layout/stat_item" android:id="@+id/tripsItem"/>
+            <include layout="@layout/stat_item" android:id="@+id/driverTripsItem"/>
+            <include layout="@layout/stat_item" android:id="@+id/mileageItem"/>
+            <include layout="@layout/stat_item" android:id="@+id/timeDrivenItem"/>
+            <include layout="@layout/stat_item" android:id="@+id/avgSpeedItem"/>
+            <include layout="@layout/stat_item" android:id="@+id/maxSpeedItem"/>
+            <include layout="@layout/stat_item" android:id="@+id/phoneUsageItem"/>
+            <include layout="@layout/stat_item" android:id="@+id/speedingItem"/>
+            <include layout="@layout/stat_item" android:id="@+id/phoneUsageSpeedingItem"/>
+            <include layout="@layout/stat_item" android:id="@+id/uniqueTagsItem"/>
+        </LinearLayout>
+    </ScrollView>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textStyle="bold"
-                    android:text="Driving Score"
-                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                    android:layout_marginBottom="8dp" />
-
-                <ProgressBar
-                    android:id="@+id/scoreProgressBar"
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="16dp"
-                    android:max="100"
-                    android:progress="75"
-                    android:progressTint="@color/black"
-                    android:layout_marginBottom="8dp" />
-
-                <TextView
-                    android:id="@+id/scoreText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Score: 75"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
-                    android:textStyle="bold"
-                    android:textColor="@color/black" />
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-    </LinearLayout>
-</ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

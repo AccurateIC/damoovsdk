@@ -1,55 +1,74 @@
 package com.example.accuratedamoov.ui.dashboard
 
 import android.app.Application
-import android.util.Log
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.accuratedamoov.data.model.TripSummaryResponse
-import com.example.accuratedamoov.data.model.UserProfileResponse
+import com.example.accuratedamoov.data.model.SafetySummaryResponse
+import com.example.accuratedamoov.data.model.UserProfile
 import com.example.accuratedamoov.data.network.RetrofitClient
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class DashboardViewModel(
-    application: Application,
-) : AndroidViewModel(application) {
+class DashboardViewModel(application: Application) : AndroidViewModel(application) {
+    private val appContext = application.applicationContext
 
-    private val _userProfile = MutableStateFlow<UserProfileResponse?>(null)
-    val userProfile = _userProfile.asStateFlow()
-    private val apiService = RetrofitClient.getApiService(application.applicationContext)
-    private val _tripSummary = MutableStateFlow<TripSummaryResponse?>(null)
-    val tripSummary = _tripSummary.asStateFlow()
 
-    fun loadDashboardData(userId: Int, deviceId: String) {
+    private val _summary = MutableLiveData<SafetySummaryResponse>()
+    val summary: LiveData<SafetySummaryResponse> get() = _summary
+
+    private val _error = MutableLiveData<String>()
+    val error: LiveData<String> get() = _error
+
+    private val _userProfile = MutableLiveData<UserProfile?>()
+    val userProfile: LiveData<UserProfile?> = _userProfile
+    private val prefs = appContext.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+
+    private val _errorProfile = MutableLiveData<String?>()
+    val errorProfile: LiveData<String?> = _errorProfile
+
+    fun getUserProfile(userId: Int?) {
         viewModelScope.launch {
-            Log.d("DashboardViewModel", "Calling API for userId=$userId, deviceId=$deviceId")
-
             try {
-                val userResponse = apiService.getUserProfile(userId.toString())
-                if (userResponse.isSuccessful) {
-                    Log.d("DashboardViewModel", "User profile loaded successfully")
-
-                    _userProfile.value = userResponse.body()
-                }else{
-                    Log.e("DashboardViewModel", "Failed to load")
+                val api = RetrofitClient.getApiService(appContext)
+                val response = api.getUserProfile(userId)
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    if (body != null && body.success && body.data != null) {
+                        prefs.edit()
+                            .putString("user_name", response.body()?.data?.name)
+                            .putString("user_email", response.body()?.data?.email)
+                            .apply()
+                        _userProfile.postValue(body.data)
+                    } else {
+                        _errorProfile.postValue("no data found")
+                    }
+                } else {
+                    _errorProfile.postValue("Error: Oops! We couldn’t connect to the server")
                 }
-
-                /*val tripResponse = apiService.getTripSummary(deviceId, userId.toString())
-                if (tripResponse.isSuccessful) {
-                    Log.d("DashboardViewModel", "trips loaded successfully")
-                    Log.d("tripresponse", tripResponse.body().toString())
-                    _tripSummary.value = tripResponse.body()
-                }else
-                {
-                    Log.e("DashboardViewModel", "Failed to load trip summary: ${tripResponse.message()}")
-                }
-*/
             } catch (e: Exception) {
-                Log.e("DashboardViewModel", "Error loading dashboard data", e)
+                _errorProfile.postValue(e.message ?: "Unknown error")
+            }
+        }
+    }
+
+    fun fetchDashboardData(filter: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val api = RetrofitClient.getApiService(appContext)
+                val response = api.getSafetySummary(filter)
+
+                if (response.isSuccessful && response.body()?.success == true) {
+
+                    _summary.postValue(response.body())
+                } else {
+                    _error.postValue("Error: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                _error.postValue("Network error: ${"Oops! We couldn’t connect to the server"}")
             }
         }
     }
 }
-
