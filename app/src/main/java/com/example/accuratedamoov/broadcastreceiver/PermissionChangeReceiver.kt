@@ -13,8 +13,10 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.example.accuratedamoov.R
-import com.raxeltelematics.v2.sdk.Settings.Companion.stopTrackingTimeHigh
-import com.raxeltelematics.v2.sdk.TrackingApi
+import com.telematicssdk.tracking.Settings.Companion.stopTrackingTimeHigh
+import com.telematicssdk.tracking.TrackingApi
+import java.util.UUID
+
 
 class PermissionChangeReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
@@ -33,14 +35,19 @@ class PermissionChangeReceiver : BroadcastReceiver() {
                         )
                     } == PackageManager.PERMISSION_GRANTED) {
                     Log.d("PermissionChangeReceiver", "Location permission was granted!")
-                    val androidId = Settings.Secure.getString(
+                    val androidId = android.provider.Settings.Secure.getString(
                         context.contentResolver,
-                        Settings.Secure.ANDROID_ID
+                        android.provider.Settings.Secure.ANDROID_ID
                     )
+
+// Convert to UUID format
+                    val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
+
+                    trackingApi.setDeviceID(deviceId)
 
                     if (!trackingApi.isInitialized()) {
                         Log.d("PermissionMonitorService", "SDK not initialized")
-                        val settings = com.raxeltelematics.v2.sdk.Settings(
+                        val settings = com.telematicssdk.tracking.Settings(
                             stopTrackingTimeHigh,
                             150,
                             true,
@@ -50,12 +57,13 @@ class PermissionChangeReceiver : BroadcastReceiver() {
                         trackingApi.initialize(context, settings)
                         Log.d("PermissionMonitorService", "SDK initialized")
                         // for tracking 2.2.63
-                        trackingApi.setDeviceID(androidId)
+                        trackingApi.setDeviceID(deviceId)
                         // for tracking 3.0.0
                         /* trackingApi.setDeviceID(
                              UUID.nameUUIDFromBytes(androidId.toByteArray(Charsets.UTF_8)).toString()
                          )*/
                         trackingApi.setEnableSdk(true)
+                        trackingApi.setAutoStartEnabled(true,true)
                         Log.d("PermissionChangeReceiver", "tracking SDK enabled")
                     }
 

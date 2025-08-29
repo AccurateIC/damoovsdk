@@ -13,7 +13,7 @@ import androidx.core.database.sqlite.transaction
 
 class DatabaseHelper private constructor(context: Context) {
 
-    private val dbPath = "/data/data/com.example.accuratedamoov/databases/raxel_traker_db"
+    private val dbPath = "/data/data/com.example.accuratedamoov/databases/com.telematicssdk.tracking.database"
     private var database: SQLiteDatabase? = null
 
     companion object {

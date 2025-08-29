@@ -8,11 +8,23 @@
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
 
-    <color name="colorPrimary">#3A67A0</color>
-    <color name="colorPrimaryVariant">#204C7D</color>
+
     <color name="colorOnPrimary">#FFFFFF</color>
 
     <color name="colorSecondary">#B0BEC5</color>
     <color name="colorSecondaryVariant">#90A4AE</color>
     <color name="colorOnSecondary">#000000</color>
+
+
+
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryVariant">#5C6BC0</color>
+    <color name="accent">#FF4081</color>
+
+
+    <color name="textPrimary">#212121</color>        <!-- Main content text -->
+    <color name="textSecondary">#757575</color>      <!-- Subdued text like dates -->
+    <color name="textOnPrimary">#FFFFFF</color>      <!-- Text on buttons / primary bg -->
+    <color name="textOnSecondary">#000000</color>    <!-- Text on secondary bg -->
+    <color name="textAccent">#FF4081</color>
 </resources>

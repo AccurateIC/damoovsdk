@@ -1,11 +1,14 @@
 package com.example.accuratedamoov
 
 import android.Manifest
+import android.app.ActivityManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.Network
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -13,60 +16,69 @@ import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavOptions
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.accuratedamoov.databinding.ActivityMainBinding
 import com.example.accuratedamoov.service.NetworkMonitorService
-import com.raxeltelematics.v2.sdk.Settings
-import com.raxeltelematics.v2.sdk.TrackingApi
-import com.raxeltelematics.v2.sdk.utils.permissions.PermissionsWizardActivity
+import com.example.accuratedamoov.service.PermissionMonitorService
+
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.telematicssdk.tracking.TrackingApi
+import com.telematicssdk.tracking.utils.permissions.PermissionsWizardActivity
+import java.util.UUID
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private lateinit var networkReceiver: BroadcastReceiver
     private val trackingApi = TrackingApi.getInstance()
     private val TAG = "MainActivity"
+    private var isNavigationSetup = false
+
+    private lateinit var connectivityManager: ConnectivityManager
+    private lateinit var networkCallback: ConnectivityManager.NetworkCallback
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        registerNetworkReceiver()
-        val settings = Settings(
-            Settings.stopTrackingTimeHigh, 150,
-            autoStartOn = true,
-            hfOn = true,
-            elmOn = false
-        ).apply {
-            stopTrackingTimeout(10)
-        }
-        trackingApi.initialize(applicationContext, settings)
-        if (trackingApi.isInitialized() && trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
-            initializeTrackingSdkAndNavigation()
-        } else {
-            requestPermissions()
-        }
+        setupNetworkMonitoring()
+        startPermissionMonitorIfNeeded()
+        setupTrackingIfReady()
+        /*FirebaseCrashlytics.getInstance().log("Forcing a test crash")
+        throw RuntimeException("Test Crash")*/
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun registerNetworkReceiver() {
-        networkReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                val isConnected = intent?.getBooleanExtra("isConnected", true) ?: true
-                binding.networkOverlay.visibility = if (isConnected) View.GONE else View.VISIBLE
+    // ----------------------------
+    // Network Monitoring
+    // ----------------------------
+    private fun setupNetworkMonitoring() {
+        connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        networkCallback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                runOnUiThread { binding.networkOverlay.visibility = View.GONE }
+            }
+
+            override fun onLost(network: Network) {
+                runOnUiThread { binding.networkOverlay.visibility = View.VISIBLE }
             }
         }
-        registerReceiver(networkReceiver, IntentFilter("network_status_changed"), Context.RECEIVER_NOT_EXPORTED)
+        connectivityManager.registerDefaultNetworkCallback(networkCallback)
     }
 
-    private fun hasLocationPermission(): Boolean {
-        return ActivityCompat.checkSelfPermission(
-            this, Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
+
+    private fun startPermissionMonitorIfNeeded() {
+        if (!isServiceRunning(PermissionMonitorService::class.java)) {
+            val intent = Intent(this, PermissionMonitorService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ContextCompat.startForegroundService(this, intent)
+            } else {
+                startService(intent)
+            }
+        }
     }
 
     private fun requestPermissions() {
@@ -80,50 +92,43 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun initializeTrackingSdkAndNavigation() {
-        if (!trackingApi.isInitialized()) {
-            val settings = Settings(
-                Settings.stopTrackingTimeHigh, 150,
-                autoStartOn = true,
-                hfOn = true,
-                elmOn = false
-            ).apply {
-                stopTrackingTimeout(10)
-            }
-            trackingApi.initialize(applicationContext, settings)
+
+    private fun setupTrackingIfReady() {
+
+        if (trackingApi.isInitialized() && trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
+            enableTrackingAndNavigation()
+        } else {
+            requestPermissions()
         }
+    }
 
-        setupNavigation()
 
+    private fun enableTrackingAndNavigation() {
         if (!trackingApi.isSdkEnabled()) {
             val androidId = android.provider.Settings.Secure.getString(
                 contentResolver,
                 android.provider.Settings.Secure.ANDROID_ID
             )
-            trackingApi.setDeviceID(androidId)
+
+// Convert to UUID format
+            val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
+
+            trackingApi.setDeviceID(deviceId)
             trackingApi.setEnableSdk(true)
-        }
-
-        if (!trackingApi.isTracking()) {
-            trackingApi.startTracking()
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == PermissionsWizardActivity.WIZARD_PERMISSIONS_CODE) {
-            if (resultCode == PermissionsWizardActivity.WIZARD_RESULT_ALL_GRANTED) {
-                initializeTrackingSdkAndNavigation()
-            } else {
-                Snackbar.make(
-                    binding.root,
-                    "All permissions are required to proceed.",
-                    Snackbar.LENGTH_LONG
-                ).show()
-                finish()
+            trackingApi.setAutoStartEnabled(true,true)
+            if(!trackingApi.isTracking()) {
+                trackingApi.startTracking()
             }
+
+        }
+
+        if (!isNavigationSetup) {
+            setupNavigation()
+            isNavigationSetup = true
         }
     }
+
+
 
     private fun setupNavigation() {
         binding.root.post {
@@ -135,7 +140,6 @@ class MainActivity : AppCompatActivity() {
             }
 
             navController.navigate(R.id.navigation_home)
-
             binding.navView.setupWithNavController(navController)
 
             binding.navView.setOnItemSelectedListener { item ->
@@ -150,39 +154,56 @@ class MainActivity : AppCompatActivity() {
                     .build()
 
                 when (item.itemId) {
-                    R.id.navigation_dashboard -> navController.navigate(
-                        R.id.navigation_dashboard, null, navOptions
-                    )
-                    R.id.navigation_home -> navController.navigate(
-                        R.id.navigation_home, null, navOptions
-                    )
-                    R.id.navigation_feed -> navController.navigate(
-                        R.id.navigation_feed, null, navOptions
-                    )
-
-                    R.id.navigation_settings -> navController.navigate(
-                        R.id.navigation_settings, null, navOptions
-                    )
+                    R.id.navigation_dashboard -> navController.navigate(R.id.navigation_dashboard, null, navOptions)
+                    R.id.navigation_home -> navController.navigate(R.id.navigation_home, null, navOptions)
+                    R.id.navigation_feed -> navController.navigate(R.id.navigation_feed, null, navOptions)
+                    R.id.navigation_settings -> navController.navigate(R.id.navigation_settings, null, navOptions)
                 }
                 true
             }
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        unregisterReceiver(networkReceiver)
-    }
 
     override fun onResume() {
         super.onResume()
-        if(NetworkMonitorService.isConnected == false) {
-            binding.networkOverlay.visibility = View.VISIBLE
-        } else {
-            binding.networkOverlay.visibility = View.GONE
-        }
-
+        setupTrackingIfReady()
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        connectivityManager.unregisterNetworkCallback(networkCallback)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == PermissionsWizardActivity.WIZARD_PERMISSIONS_CODE) {
+            if (resultCode == PermissionsWizardActivity.WIZARD_RESULT_ALL_GRANTED) {
+                enableTrackingAndNavigation()
+            } else {
+                Snackbar.make(
+                    binding.root,
+                    "All permissions are required to proceed.",
+                    Snackbar.LENGTH_LONG
+                ).show()
+                finish()
+            }
+        }
+    }
+
+
+    @Suppress("DEPRECATION")
+    private fun isServiceRunning(serviceClass: Class<*>): Boolean {
+        val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        // getRunningServices is deprecated but still works for own app services
+        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                return true
+            }
+        }
+        return false
+    }
+
 }
 
 

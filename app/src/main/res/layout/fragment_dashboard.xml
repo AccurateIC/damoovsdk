@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="15dp"
-    tools:context="com.example.accuratedamoov.ui.dashboard.DashboardFragment">
+    android:padding="16dp"
+    android:background="@drawable/bg_login_gradient">
 
-    <!-- Profile Card (Fixed at top) -->
+    <!-- Profile Card (Always visible once summary is available) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/profileCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:cardCornerRadius="16dp"
-        app:cardElevation="4dp"
+        app:cardElevation="6dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -23,8 +21,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/edittext_bg"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:background="@drawable/edittext_bg">
 
             <!-- Profile Row -->
             <LinearLayout
@@ -35,20 +33,23 @@
 
                 <ImageView
                     android:id="@+id/profileImage"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
                     android:src="@drawable/ic_profile_placeholder"
                     android:scaleType="centerCrop"
-                    android:background="@drawable/circle_background" />
+                    android:background="@drawable/circle_white_bg"
+                    android:elevation="4dp" />
 
                 <TextView
                     android:id="@+id/driverName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Omkar Prabhale"
-                    android:textSize="18sp"
+                    android:textSize="20sp"
                     android:textStyle="bold"
-                    android:layout_marginStart="12dp"/>
+                    android:textColor="@color/black"
+                    android:layout_marginStart="16dp"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <!-- Overall Safety Score -->
@@ -57,32 +58,41 @@
                 android:layout_height="wrap_content"
                 android:text="Overall Safety Score"
                 android:textStyle="bold"
-                android:layout_marginTop="16dp"/>
+                android:textColor="@color/black"
+                android:layout_marginTop="16dp"
+                android:visibility="gone" />
 
             <ProgressBar
                 android:id="@+id/safetyScoreBar"
                 android:layout_width="match_parent"
-                android:layout_height="8dp"
+                android:layout_height="10dp"
                 style="?android:attr/progressBarStyleHorizontal"
-                android:progress="70"
-                android:progressTint="@color/colorPrimary"/>
+                android:progress="0"
+                android:progressTint="@color/accent"
+                android:indeterminate="false"
+                android:layout_marginTop="4dp"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/rankText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="#1"
+                android:text="#0"
                 android:textStyle="bold"
+                android:textColor="@color/accent"
                 android:layout_gravity="end"
-                android:textColor="@color/black"/>
+                android:layout_marginTop="4dp"
+                android:visibility="gone" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Scrollable Stats Section -->
-    <ScrollView
+    <!-- Shimmer placeholder while loading -->
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmerLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:fillViewport="true"
+        app:shimmer_auto_start="true"
+        app:shimmer_duration="1500"
         app:layout_constraintTop_toBottomOf="@id/profileCard"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -91,10 +101,35 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/edittext_bg"
             android:orientation="vertical"
-            android:padding="16dp"
-            android:layout_marginTop="8dp">
+            android:padding="16dp">
+
+            <include layout="@layout/stat_item_placeholder"/>
+            <include layout="@layout/stat_item_placeholder"/>
+            <include layout="@layout/stat_item_placeholder"/>
+            <include layout="@layout/stat_item_placeholder"/>
+            <include layout="@layout/stat_item_placeholder"/>
+        </LinearLayout>
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
+    <!-- Real content -->
+    <ScrollView
+        android:id="@+id/summaryScrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="30dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/profileCard"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/edittext_bg"
+            android:padding="16dp">
 
             <include layout="@layout/stat_item" android:id="@+id/tripsItem"/>
             <include layout="@layout/stat_item" android:id="@+id/driverTripsItem"/>
@@ -108,5 +143,4 @@
             <include layout="@layout/stat_item" android:id="@+id/uniqueTagsItem"/>
         </LinearLayout>
     </ScrollView>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

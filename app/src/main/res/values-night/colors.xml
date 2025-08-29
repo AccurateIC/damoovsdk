@@ -9,12 +9,23 @@
     <color name="white">#000000</color> <!-- invert -->
 
     <!-- Primary: used as a dark background bar or primary button -->
-    <color name="colorPrimary">#1A237E</color> <!-- Dark indigo -->
-    <color name="colorPrimaryVariant">#0B2156</color> <!-- Deeper shade -->
+
     <color name="colorOnPrimary">#FFFFFF</color> <!-- Text on primary -->
 
     <!-- Secondary: accent on dark -->
     <color name="colorSecondary">#37474F</color> <!-- Blue-gray dark -->
     <color name="colorSecondaryVariant">#263238</color>
     <color name="colorOnSecondary">#FFFFFF</color>
+
+    <color name="colorPrimary">#283593</color>
+    <color name="colorPrimaryVariant">#1A237E</color>
+    <color name="accent">#FF4081</color>
+
+
+
+    <color name="textPrimary">#FFFFFF</color>        <!-- Main content text (white on dark bg) -->
+    <color name="textSecondary">#B0BEC5</color>      <!-- Subdued text like dates (grey-blue tint) -->
+    <color name="textOnPrimary">#000000</color>      <!-- Text on primary-colored buttons -->
+    <color name="textOnSecondary">#FFFFFF</color>    <!-- Text on secondary-colored cards -->
+    <color name="textAccent">#FF80AB</color>
 </resources>

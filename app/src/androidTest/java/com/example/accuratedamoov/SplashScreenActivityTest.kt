@@ -14,9 +14,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.runner.AndroidJUnit4
 import com.example.accuratedamoov.service.NetworkMonitorService
 import com.example.accuratedamoov.service.PermissionMonitorService
-import com.raxeltelematics.v2.sdk.TrackingApi
-import com.raxeltelematics.v2.sdk.utils.ContextUtils.isServiceRunning
-import com.raxeltelematics.v2.sdk.utils.permissions.PermissionsWizardActivity
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockkObject

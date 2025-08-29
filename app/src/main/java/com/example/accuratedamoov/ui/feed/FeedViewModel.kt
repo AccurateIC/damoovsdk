@@ -16,7 +16,6 @@ import com.example.accuratedamoov.data.network.RetrofitClient
 import com.example.accuratedamoov.model.FeedUiState
 import com.example.accuratedamoov.model.TrackModel
 import com.example.accuratedamoov.service.NetworkMonitorService
-import com.raxeltelematics.v2.sdk.TrackingApi
 import kotlinx.coroutines.CoroutineScope
 
 
@@ -28,6 +27,7 @@ import kotlinx.coroutines.launch
 import retrofit2.Response
 import java.util.UUID
 import androidx.core.content.edit
+import com.telematicssdk.tracking.TrackingApi
 
 class FeedViewModel(application: Application) : AndroidViewModel(application) {
 

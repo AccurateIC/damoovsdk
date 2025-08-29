@@ -2,6 +2,8 @@ package com.example.accuratedamoov.ui.dashboard
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -57,17 +59,22 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     fun fetchDashboardData(filter: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val api = RetrofitClient.getApiService(appContext)
+                val api = RetrofitClient.getProfileApiService(appContext)
                 val response = api.getSafetySummary(filter)
+                Log.d("API_Response", "Response: $response")
 
-                if (response.isSuccessful && response.body()?.success == true) {
-
+                if (response.isSuccessful) {
+                    //Toast.makeText(appContext, response.body()?.data?.safety_score.toString(),Toast.LENGTH_LONG).show()
                     _summary.postValue(response.body())
                 } else {
                     _error.postValue("Error: ${response.errorBody()?.string()}")
+                    //Toast.makeText(appContext, response.errorBody()?.string(),Toast.LENGTH_LONG).show()
+
                 }
             } catch (e: Exception) {
                 _error.postValue("Network error: ${"Oops! We couldn’t connect to the server"}")
+                //Toast.makeText(appContext, e.message,Toast.LENGTH_LONG).show()
+
             }
         }
     }

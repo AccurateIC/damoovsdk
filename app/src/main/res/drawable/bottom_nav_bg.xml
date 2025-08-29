@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- Gradient background -->
+    <gradient
+        android:startColor="#397ECB"
+        android:endColor="#5AA8FF"
+        android:angle="270"/>
+
+    <!-- Rounded corners -->
+    <corners android:radius="16dp"/>
+
+    <!-- Optional shadow effect (for pre-Lollipop, use card elevation in layout instead) -->
+    <padding
+        android:left="0dp"
+        android:top="0dp"
+        android:right="0dp"
+        android:bottom="0dp"/>
+</shape>

@@ -24,6 +24,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.accuratedamoov.MainActivity
+import com.example.accuratedamoov.MainApplication.Companion.TRACK_TABLE_WORKER_TAG
 import com.example.accuratedamoov.R
 import com.example.accuratedamoov.data.network.RetrofitClient
 import com.example.accuratedamoov.databinding.ActivitySetttingsBinding
@@ -73,7 +74,7 @@ class SetttingsActivity : AppCompatActivity() {
     }
 
     private fun loadSettings() {
-        val baseUrl = sharedPreferences.getString("api_url", "http://192.168.1.119:5000/") ?: ""
+        val baseUrl = sharedPreferences.getString("api_url", "http://192.168.10.41:5556/") ?: ""
         binding.apiUrlEditText.setText(baseUrl)
     }
 
@@ -133,15 +134,16 @@ class SetttingsActivity : AppCompatActivity() {
             .setRequiresBatteryNotLow(true)
             .build()
 
-        val trackCheckWorkRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
+        val workRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
             .setConstraints(constraintsForDataSync)
-            .setInitialDelay(syncInterval, TimeUnit.SECONDS)
+            .setInitialDelay(60, TimeUnit.SECONDS)
+            .addTag(TRACK_TABLE_WORKER_TAG)
             .build()
 
         WorkManager.getInstance(this).enqueueUniqueWork(
             "TrackTableCheckWorker",
             ExistingWorkPolicy.REPLACE,
-            trackCheckWorkRequest
+            workRequest
         )
     }
 

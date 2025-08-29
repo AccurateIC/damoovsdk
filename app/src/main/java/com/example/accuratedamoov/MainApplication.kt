@@ -22,139 +22,166 @@ import com.example.accuratedamoov.service.NetworkMonitorService
 import com.example.accuratedamoov.service.PermissionMonitorService
 import com.example.accuratedamoov.worker.TrackTableCheckWorker
 import com.example.accuratedamoov.worker.TrackingWorker
-import com.raxeltelematics.v2.sdk.Settings
-import com.raxeltelematics.v2.sdk.Settings.Companion.stopTrackingTimeHigh
-import com.raxeltelematics.v2.sdk.TrackingApi
+import com.google.firebase.FirebaseApp
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.telematicssdk.tracking.Settings
+import com.telematicssdk.tracking.TrackingApi
+import java.util.UUID
+import com.example.accuratedamoov.BuildConfig
 import java.util.concurrent.TimeUnit
 
 
 class MainApplication : Application() {
- val trackingApi = TrackingApi.getInstance()
+
+    private val trackingApi: TrackingApi by lazy { TrackingApi.getInstance() }
+
     override fun onCreate() {
         super.onCreate()
+        FirebaseApp.initializeApp(this)
+        FirebaseCrashlytics.getInstance().setCustomKey("AppVersion",BuildConfig.APP_VERSION_NAME)
+        FirebaseCrashlytics.getInstance().setCustomKey("Device", Build.MODEL)
 
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-
-        startService(Intent(this, NetworkMonitorService::class.java))
-
-        val prefs = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val isLoggedIn = prefs.getBoolean("is_logged_in", false)
-
-        if (!isLoggedIn) {
-            Log.d("MainApplication", "User not logged in, skipping SDK init and workers.")
+        initializeTrackingSdk()
+        if (!isUserLoggedIn()) {
+            Log.d(TAG, "User not logged in, skipping SDK init and workers.")
             return
         }
 
-        startService(Intent(this, PermissionMonitorService::class.java))
+        enableTrackingIfPossible()
+
+        val syncInterval = getSyncInterval()
+        scheduleWorker(syncInterval)
+
+        logAllWorkerRequests()
+        observeAndCancelUnwantedWork()
+    }
+
+    private fun isUserLoggedIn(): Boolean {
+        val prefs = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        return prefs.getBoolean("is_logged_in", false)
+    }
+
+    private fun initializeTrackingSdk() {
+        if (trackingApi.isInitialized()) return
+        try {
+            val settings = Settings(
+                Settings.stopTrackingTimeHigh,
+                Settings.accuracyHigh,
+                true,
+                true,
+                false
+            ).apply {
+                stopTrackingTimeout(5)
+            }
+            trackingApi.initialize(applicationContext, settings)
+            Log.d(TAG, "Tracking SDK initialized")
+        } catch (e: Exception) {
+            Log.e(TAG, "SDK initialization failed: ${e.message}", e)
+        }
+    }
+
+
+    private fun enableTrackingIfPossible() {
+        if (!trackingApi.isInitialized() || !trackingApi.areAllRequiredPermissionsAndSensorsGranted()) return
 
         val androidId = android.provider.Settings.Secure.getString(
             contentResolver,
             android.provider.Settings.Secure.ANDROID_ID
         )
 
-        val trackingApi = TrackingApi.getInstance()
+// Convert to UUID format
+        val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
 
-        if (!trackingApi.isInitialized()) {
-            val settings = Settings(stopTrackingTimeHigh, 150, true, true, false)
-            settings.stopTrackingTimeout(10)
-            trackingApi.initialize(applicationContext, settings)
-            Log.d("MainApplication", "SDK initialized")
+        trackingApi.setDeviceID(deviceId)
+        trackingApi.setEnableSdk(true)
+        trackingApi.setAutoStartEnabled(true,true)
+        if(!trackingApi.isTracking()) {
+            trackingApi.startTracking()
         }
 
-        if (trackingApi.isInitialized() && trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
-            trackingApi.setDeviceID(androidId)
-            trackingApi.setEnableSdk(true)
-            Log.d("MainApplication", "Tracking SDK enabled")
-        }
+        Log.d(TAG, "Tracking SDK enabled with Device ID: $androidId")
+    }
 
+    private fun getSyncInterval(): Long {
         val sharedPreferences = getSharedPreferences("appSettings", Context.MODE_PRIVATE)
-        val syncInterval = sharedPreferences.getInt("sync_interval", 10).toLong()
-
-        scheduleWorker(syncInterval)
-        getAllWorkerRequests(applicationContext)
-        observeAndCancelWork()
+        return sharedPreferences.getInt("sync_interval", 10).toLong()
     }
 
+    private fun logAllWorkerRequests() {
+        val workQuery = WorkQuery.Builder.fromStates(WorkInfo.State.entries).build()
+        val workInfoList = WorkManager.getInstance(applicationContext).getWorkInfos(workQuery).get()
 
-    fun getAllWorkerRequests(context: Context) {
-        val workQuery = WorkQuery.Builder
-            .fromStates(WorkInfo.State.entries)
-            .build()
-
-        val workInfoList = WorkManager.getInstance(context).getWorkInfos(workQuery).get()
-
-        for (workInfo in workInfoList) {
-            Log.d("OmkarWorkmanager", "ID: ${workInfo.id}")
-            Log.d("OmkarWorkmanager", "State: ${workInfo.state}")
-            Log.d("OmkarWorkmanager", "Tags: ${workInfo.tags}")
+        workInfoList.forEach { workInfo ->
+            Log.d(TAG_WORK, "ID: ${workInfo.id}, State: ${workInfo.state}, Tags: ${workInfo.tags}")
         }
     }
 
-
-    private fun observeAndCancelWork() {
+    private fun observeAndCancelUnwantedWork() {
         val workManager = WorkManager.getInstance(applicationContext)
-
         val workQuery = WorkQuery.Builder
-            .fromStates(listOf(WorkInfo.State.ENQUEUED))
+            .fromStates(
+                listOf(
+                    WorkInfo.State.ENQUEUED,
+                    WorkInfo.State.RUNNING,
+                    WorkInfo.State.BLOCKED
+                )
+            )
             .build()
 
-        Handler(Looper.getMainLooper()).post {
-            workManager.getWorkInfosLiveData(workQuery).observeForever { workInfos ->
-                workInfos?.forEach { workInfo ->
-                    val tags = workInfo.tags
-                    val workId = workInfo.id
-
-                    Log.d("WorkManager", "ID: $workId")
-                    Log.d("WorkManager", "State: ${workInfo.state}")
-                    Log.d("WorkManager", "Tags: $tags")
-
-                    // Cancel work if it's NOT TrackTableCheckWorker
-                    if (!tags.contains("com.example.accuratedamoov.worker.TrackTableCheckWorker")) {
-                        Log.d("WorkManager", "Cancelling Work: $workId")
-                        workManager.cancelWorkById(workId)
-                    }
+        workManager.getWorkInfosLiveData(workQuery).observeForever { workInfos ->
+            workInfos?.forEach { workInfo ->
+                val tags = workInfo.tags
+                if (!tags.contains(TRACK_TABLE_WORKER_TAG)) {
+                    Log.d(TAG_WORK, "🛑 Cancelling unwanted Work: ${workInfo.id} with tags $tags")
+                    workManager.cancelWorkById(workInfo.id)
                 }
             }
         }
     }
 
-
     private fun scheduleWorker(syncInterval: Long) {
-            val constraints = Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .setRequiresBatteryNotLow(true)
-                .build()
-
-            val workRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
-                .setConstraints(constraints)
-                .setInitialDelay(syncInterval, TimeUnit.SECONDS)
-                .build()
-
-            WorkManager.getInstance(this).enqueueUniqueWork(
-                "TrackTableCheckWorker",
-                ExistingWorkPolicy.REPLACE,
-                workRequest
-            )
-
-
-    }
-
-
-    private fun scheduleTrackingWorker() {
         val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED) // Requires network
-            .setRequiresBatteryNotLow(true) // Avoids running on low battery
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .setRequiresBatteryNotLow(true)
             .build()
 
-        val workRequest = OneTimeWorkRequestBuilder<TrackingWorker>()
-            .setInitialDelay(60, TimeUnit.SECONDS) // Delay before execution
-            .setConstraints(constraints) // Apply constraints if needed
+        val workRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
+            .setConstraints(constraints)
+            .setInitialDelay(60, TimeUnit.SECONDS)
+            .addTag(TRACK_TABLE_WORKER_TAG)
             .build()
 
         WorkManager.getInstance(this).enqueueUniqueWork(
-            "TrackingWorker",
-            ExistingWorkPolicy.REPLACE, // Ensures the new work request replaces any existing one
+            TRACK_TABLE_WORKER_TAG,
+            ExistingWorkPolicy.REPLACE,
             workRequest
         )
     }
+
+    private fun scheduleTrackingWorker() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .setRequiresBatteryNotLow(true)
+            .build()
+
+        val workRequest = OneTimeWorkRequestBuilder<TrackingWorker>()
+            .setInitialDelay(60, TimeUnit.SECONDS)
+            .setConstraints(constraints)
+            .build()
+
+        WorkManager.getInstance(this).enqueueUniqueWork(
+            TRACKING_WORKER_TAG,
+            ExistingWorkPolicy.REPLACE,
+            workRequest
+        )
+    }
+
+    companion object {
+        private const val TAG = "MainApplication"
+        private const val TAG_WORK = "WorkManager"
+        const val TRACK_TABLE_WORKER_TAG = "TrackTableCheckWorker"
+        private const val TRACKING_WORKER_TAG = "TrackingWorker"
+    }
 }
+

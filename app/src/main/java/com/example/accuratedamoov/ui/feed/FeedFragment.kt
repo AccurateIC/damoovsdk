@@ -55,15 +55,12 @@ class FeedFragment : Fragment() {
             layoutManager = LinearLayoutManager(context)
         }
 
-        if (!feedViewModel.isSdkEnabled()) {
-            requestLocationPermission()
-            feedViewModel.enableSdk()
-        }
         trackAdapter = TrackAdapter(emptyList(), requireContext())
-
         binding.recycleView.adapter = trackAdapter
+
         val dividerItemDecoration = DividerItemDecoration(context, LinearLayoutManager.VERTICAL)
         binding.recycleView.addItemDecoration(dividerItemDecoration)
+
         feedViewModel.loadTripsIfNeeded()
         observeData()
 
@@ -75,7 +72,6 @@ class FeedFragment : Fragment() {
         val dateAdapter = DateAdapter { date ->
             selectedDate = date
             binding.tvDateLabel.text = date
-
             filterTripsByDate()
         }
         dateAdapter.clearSelection()
@@ -100,14 +96,10 @@ class FeedFragment : Fragment() {
 
             val lastPos = dateAdapter.itemCount - 1
             if (lastPos >= 0) {
-                binding.dateRecyclerView.smoothScrollToPosition(lastPos)  // ✅ scroll to last item
+                binding.dateRecyclerView.smoothScrollToPosition(lastPos)
             }
             filterTripsByDate()
         }
-
-
-
-
     }
 
     override fun onDestroyView() {
@@ -120,75 +112,44 @@ class FeedFragment : Fragment() {
             feedViewModel.uiState.collect { state ->
                 when (state) {
                     is FeedUiState.Loading -> {
-                        binding.progressBar.imageAssetsFolder = "images"
-                        binding.progressBar.playAnimation()
-                        showOnly(binding.progressBar)
-                        binding.progressBar.tag = System.currentTimeMillis() // mark start time
+                        binding.shimmerLayout.startShimmer()
+                        showOnly(binding.shimmerLayout)
                     }
 
                     is FeedUiState.Success -> {
-                        val elapsed = System.currentTimeMillis() - (binding.progressBar.tag as? Long ?: 0L)
-                        val minDuration = 600L // ms
-                        val delayTime = (minDuration - elapsed).coerceAtLeast(0)
-
-                        binding.progressBar.postDelayed({
-                            binding.progressBar.cancelAnimation()
-                            if (state.trips.isNotEmpty()) {
-                                allTrips = state.trips
-                                filterTripsByDate()
-                                showOnly(binding.recycleView)
-                            } else {
-                                showOnly(binding.tvZeroTrips)
-                            }
-                        }, delayTime)
+                        binding.shimmerLayout.stopShimmer()
+                        if (state.trips.isNotEmpty()) {
+                            allTrips = state.trips
+                            filterTripsByDate()
+                            showOnly(binding.recycleView)
+                        } else {
+                            showOnly(binding.tvZeroTrips)
+                        }
                     }
 
                     is FeedUiState.Error -> {
-                        val elapsed = System.currentTimeMillis() - (binding.progressBar.tag as? Long ?: 0L)
-                        val minDuration = 600L
-                        val delayTime = (minDuration - elapsed).coerceAtLeast(0)
-
-                        binding.progressBar.postDelayed({
-                            binding.progressBar.cancelAnimation()
-                            showOnly(binding.tvZeroTrips)
-                            Toast.makeText(
-                                requireContext(),
-                                "Error: ${state.message}",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }, delayTime)
+                        binding.shimmerLayout.stopShimmer()
+                        showOnly(binding.tvZeroTrips)
+                        Toast.makeText(
+                            requireContext(),
+                            "Error: ${state.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             }
         }
     }
 
-
-
-
-
-    private fun requestLocationPermission() {
-        context?.let {
-            if (ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                return
-            }
-        }
-    }
-
     @SuppressLint("NotifyDataSetChanged")
     private fun filterTripsByDate() {
-        // Show animation first
         _binding?.let { binding ->
-            binding.progressBar.imageAssetsFolder = "images"
-            binding.progressBar.playAnimation()
-            showOnly(binding.progressBar)
+            binding.shimmerLayout.startShimmer()
+            showOnly(binding.shimmerLayout)
         }
 
-        // Launch coroutine tied to view lifecycle
         viewLifecycleOwner.lifecycleScope.launch {
-            delay(1000) // 1 sec animation delay
+            delay(800) // short shimmer delay for smoothness
 
             val dateFormatInput = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
             val dateFormatOutput = SimpleDateFormat("dd MMM", Locale.getDefault())
@@ -219,20 +180,16 @@ class FeedFragment : Fragment() {
                     showOnly(binding.tvZeroTrips)
                 }
 
-                // stop animation
-                binding.progressBar.cancelAnimation()
+                // stop shimmer
+                binding.shimmerLayout.stopShimmer()
             }
         }
     }
 
-
-
-
     private fun showOnly(viewToShow: View) {
         binding.recycleView.visibility = if (viewToShow == binding.recycleView) View.VISIBLE else View.GONE
-        binding.progressBar.visibility = if (viewToShow == binding.progressBar) View.VISIBLE else View.GONE
+        binding.shimmerLayout.visibility = if (viewToShow == binding.shimmerLayout) View.VISIBLE else View.GONE
         binding.tvZeroTrips.visibility = if (viewToShow == binding.tvZeroTrips) View.VISIBLE else View.GONE
     }
-
-
 }
+

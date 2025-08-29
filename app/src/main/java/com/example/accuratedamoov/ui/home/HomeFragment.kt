@@ -24,7 +24,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.MapView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.Snackbar
-import com.raxeltelematics.v2.sdk.TrackingApi
+import com.telematicssdk.tracking.TrackingApi
 import okhttp3.internal.http2.Http2Reader
 import org.mapsforge.core.model.LatLong
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory

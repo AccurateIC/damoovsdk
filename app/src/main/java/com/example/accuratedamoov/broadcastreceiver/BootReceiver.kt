@@ -11,66 +11,55 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.accuratedamoov.MainApplication.Companion.TRACK_TABLE_WORKER_TAG
 import com.example.accuratedamoov.worker.TrackTableCheckWorker
-import com.raxeltelematics.v2.sdk.Settings
-import com.raxeltelematics.v2.sdk.Settings.Companion.stopTrackingTimeHigh
-import com.raxeltelematics.v2.sdk.TrackingApi
+import com.telematicssdk.tracking.TrackingApi
+import java.util.UUID
+
 import java.util.concurrent.TimeUnit
 
 class BootReceiver : BroadcastReceiver() {
 
-    val trackingApi = TrackingApi.getInstance()
-    lateinit var mContext: Context
-
     override fun onReceive(context: Context, intent: Intent) {
-        mContext = context
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
             Log.d("BootReceiver","phone restarted")
-            val androidId = android.provider.Settings.Secure.getString(
-                context.contentResolver,
-                android.provider.Settings.Secure.ANDROID_ID
-            )
-            if (!trackingApi.isInitialized()) {
-                Log.d("MainApplication", "SDK not initialized")
 
-                val settings = Settings(
-                    stopTrackingTimeHigh,
-                    150,
-                    true,
-                    true,
-                    false
-                )
-                settings.stopTrackingTimeout(10)
-                trackingApi.initialize(context, settings)
-                Log.d("MainApplication", "SDK initialized")
+            try {
+                val trackingApi = TrackingApi.getInstance()
 
-            }
+                // ✅ No need to re-initialize here if done in MainApplication
+                if (trackingApi.isInitialized() &&
+                    trackingApi.areAllRequiredPermissionsAndSensorsGranted()
+                ) {
+                    val androidId = android.provider.Settings.Secure.getString(
+                        context.contentResolver,
+                        android.provider.Settings.Secure.ANDROID_ID
+                    )
 
-            // Common setup after initialization
-            if (trackingApi.isInitialized() && trackingApi.areAllRequiredPermissionsAndSensorsGranted()) {
+// Convert to UUID format
+                    val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
 
-                // for tracking 2.2.63
-                trackingApi.setDeviceID(androidId)
+                    trackingApi.setDeviceID(deviceId)
+                    trackingApi.setEnableSdk(true)
+                    trackingApi.setAutoStartEnabled(true,true)
+                    if(!trackingApi.isTracking()) {
+                        trackingApi.startTracking()
+                    }
 
+                    Log.d("BootReceiver","tracking SDK enabled")
 
-                // for tracking 3.0.0
-                /* trackingApi.setDeviceID(
-                     UUID.nameUUIDFromBytes(androidId.toByteArray(Charsets.UTF_8)).toString()
-                 )*/
-                trackingApi.setEnableSdk(true)
-                Log.d("MainApplication","tracking SDK enabled")
-                // for tracking 3.0.0,not present in 2.2.263
-                //trackingApi.setAutoStartEnabled(true,true)
-                if(!trackingApi.isTracking()){
-                    trackingApi.startTracking()
-                    scheduleWorker(15)
+                    // schedule worker for syncing
+                    scheduleWorker(context, 60) // or configurable
+                } else {
+                    Log.w("BootReceiver", "SDK not initialized yet or missing permissions")
                 }
+            } catch (e: Exception) {
+                Log.e("BootReceiver", "Error during boot handling", e)
             }
-
         }
     }
 
-    private fun scheduleWorker(syncInterval: Long) {
+    private fun scheduleWorker(context: Context, syncInterval: Long) {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .setRequiresBatteryNotLow(true)
@@ -78,14 +67,14 @@ class BootReceiver : BroadcastReceiver() {
 
         val workRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
             .setConstraints(constraints)
-            .setInitialDelay(syncInterval, TimeUnit.SECONDS)
+            .setInitialDelay(60, TimeUnit.MINUTES)
+            .addTag(TRACK_TABLE_WORKER_TAG)
             .build()
 
-        WorkManager.getInstance(mContext).enqueueUniqueWork(
+        WorkManager.getInstance(context).enqueueUniqueWork(
             "TrackTableCheckWorker",
             ExistingWorkPolicy.REPLACE,
             workRequest
         )
     }
-
 }

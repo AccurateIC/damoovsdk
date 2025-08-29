@@ -1,10 +1,6 @@
 package com.example.accuratedamoov.data.model
 
 data class SafetySummaryResponse(
-    val success: Boolean,
-    val data: SafetySummary?
-)
-data class SafetySummary(
     val safety_score: Double,
     val trips: Int,
     val driver_trips: Int,

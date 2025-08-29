@@ -35,7 +35,7 @@ robolectric = "4.8"
 rxandroid = "3.0.2"
 rxjava = "3.1.8"
 swiperefreshlayout = "1.1.0"
-tracking = "2.2.263"
+tracking = "3.0.1"
 
 activity = "1.10.0"
 workRuntimeKtx = "2.10.0"

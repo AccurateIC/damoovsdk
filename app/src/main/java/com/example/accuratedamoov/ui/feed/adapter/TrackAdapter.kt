@@ -93,7 +93,6 @@ class TrackAdapter(
             } ?: "N/A"
 
             val clickListener = View.OnClickListener {
-                if (NetworkMonitorService.isConnected == true) {
                     val startAddr = departureAddressView.text.toString().removePrefix("Start :\n")
                     val endAddr = destinationAddressView.text.toString().removePrefix("End :\n")
                     val intent = Intent(mContext, TripDetailsActivity::class.java)
@@ -103,7 +102,7 @@ class TrackAdapter(
                     intent.putExtra("START_LOC", startAddr)
                     intent.putExtra("END_LOC", endAddr)
                     mContext.startActivity(intent)
-                }
+
             }
 
             root.setOnClickListener(clickListener)

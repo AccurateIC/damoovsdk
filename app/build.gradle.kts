@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.android.libraries.mapsplatform.secrets.gradle.plugin)
     id("org.jetbrains.kotlin.kapt")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -10,13 +12,15 @@ android {
     compileSdk = 35
 
     defaultConfig {
+
         applicationId = "com.example.accuratedamoov"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
-
+        versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "APP_VERSION_NAME", "\"1.0.0\"")
+
     }
 
     buildTypes {
@@ -36,6 +40,7 @@ android {
         jvmTarget = "11"
     }
     buildFeatures {
+        buildConfig = true
         viewBinding = true
     }
     packaging {
@@ -74,17 +79,17 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation (libs.tracking)
+    implementation(libs.tracking)
     implementation(libs.rxjava)
     implementation(libs.rxandroid)
-    implementation (libs.retrofit)
-    implementation (libs.converter.gson)
-    implementation (libs.logging.interceptor)
-    implementation (libs.androidx.lifecycle.viewmodel.ktx.v262)
-    implementation (libs.androidx.fragment.ktx)
-    androidTestImplementation (libs.androidx.junit.v115)
-    androidTestImplementation (libs.androidx.espresso.core.v351)
-    testImplementation (libs.mockito.core)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.logging.interceptor)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx.v262)
+    implementation(libs.androidx.fragment.ktx)
+    androidTestImplementation(libs.androidx.junit.v115)
+    androidTestImplementation(libs.androidx.espresso.core.v351)
+    testImplementation(libs.mockito.core)
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core.v5110)
 
@@ -97,32 +102,36 @@ dependencies {
     // JUnit (if you're not using it already)
     testImplementation(libs.junit)
 
-    testImplementation (libs.mockk.v1133)
+    testImplementation(libs.mockk.v1133)
 
 // For instrumentation tests (Android)
-    androidTestImplementation (libs.mockk.android)
-
+    androidTestImplementation(libs.mockk.android)
 
 
     ///maps
-    implementation (libs.mapsforge.core)
-    implementation (libs.mapsforge.map)
-    implementation (libs.mapsforge.map.reader)
-    implementation (libs.mapsforge.themes)
-    implementation (libs.mapsforge.core)
-    implementation (libs.mapsforge.poi)
-    implementation (libs.mapsforge.map.android)
-    implementation (libs.androidsvg)
+    implementation(libs.mapsforge.core)
+    implementation(libs.mapsforge.map)
+    implementation(libs.mapsforge.map.reader)
+    implementation(libs.mapsforge.themes)
+    implementation(libs.mapsforge.core)
+    implementation(libs.mapsforge.poi)
+    implementation(libs.mapsforge.map.android)
+    implementation(libs.androidsvg)
 
-    implementation (libs.osmdroid.android)
+    implementation(libs.osmdroid.android)
     implementation(libs.guava)
+    implementation("com.facebook.shimmer:shimmer:0.5.0")
+    implementation("com.airbnb.android:lottie:6.0.0")  // Use latest version
 
-        implementation ("com.airbnb.android:lottie:6.0.0")  // Use latest version
 
-
-    implementation (libs.androidx.swiperefreshlayout)
+    implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.room.runtime)
     kapt(libs.androidx.room.compiler) // if using annotation processing
+
+    implementation(platform("com.google.firebase:firebase-bom:34.1.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-crashlytics")
+
 
 }

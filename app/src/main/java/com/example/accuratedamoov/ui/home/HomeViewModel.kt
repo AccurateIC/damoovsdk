@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.raxeltelematics.v2.sdk.TrackingApi
+import com.telematicssdk.tracking.TrackingApi
 
 @SuppressLint("MissingPermission")
 class HomeViewModel : ViewModel() {
@@ -19,21 +19,21 @@ class HomeViewModel : ViewModel() {
 
     fun startTracking() {
 
-        if (!trackingApi.isSdkEnabled()) {
+        /*if (!trackingApi.isSdkEnabled()) {
             Log.d(TAG, "SDK not enabled")
             trackingApi.setEnableSdk(true)
-        }
-        if(!trackingApi.isTracking()) {
+        }*/
+        /*if(!trackingApi.isTracking()) {
             trackingApi.startTracking()
             Log.d(TAG, "Trip started")
-        }
+        }*/
     }
 
     fun stopTracking() {
-        if(trackingApi.isTracking()) {
+      /*  if(trackingApi.isTracking()) {
             trackingApi.stopTracking()
             Log.d(TAG, "Trip stopped")
-        }
+        }*/
 
     }
 }

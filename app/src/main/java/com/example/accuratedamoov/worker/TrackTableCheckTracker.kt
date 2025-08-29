@@ -5,10 +5,11 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.work.*
+import com.example.accuratedamoov.MainApplication
+import com.example.accuratedamoov.MainApplication.Companion.TRACK_TABLE_WORKER_TAG
 import com.example.accuratedamoov.data.network.RetrofitClient
 import com.example.accuratedamoov.data.network.SyncRequest
 import com.example.accuratedamoov.database.DatabaseHelper
-import com.raxeltelematics.v2.sdk.TrackingApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -24,7 +25,7 @@ class TrackTableCheckWorker(
         observeAndCancelWork()
         return try {
             val tableNames = listOf(
-                "LastKnownPointTable", "EventsStartPointTable", "EventsTable",
+                "LastKnownPointTable", "EventsStartPointTable",
                 "EventsStopPointTable",
                 "TrackTable", "SampleTable"
             )
@@ -115,7 +116,7 @@ class TrackTableCheckWorker(
                     }
 
                     if (isValidRecord) {
-                        map["user_id"] = userId  // ➕ Add user_id to the record
+                        map["user_id"] = userId
                         dataList.add(map)
 
                         if (item.has("id")) syncedIds.add(item.getInt("id"))
@@ -136,8 +137,8 @@ class TrackTableCheckWorker(
 
                     if (response.isSuccessful) {
                         Log.d("WorkManager", "✅ Synced $tableName chunk: $index–${end - 1}")
-                        dbHelper.markAsSynced(tableName, syncedIds)
-                        // ❌ Do not delete synced records
+                        deleteSyncedRecords(dbHelper, tableName)
+
                     } else {
                         Log.e(
                             "WorkManager",
@@ -160,21 +161,13 @@ class TrackTableCheckWorker(
     }
 
 
-    private fun deleteSyncedRecords(dbHelper: DatabaseHelper, tableName: String, ids: List<Int>) {
+    private fun deleteSyncedRecords(dbHelper: DatabaseHelper, tableName: String) {
         val db = dbHelper.openDatabase() ?: return
 
         db.beginTransaction()
         try {
-            if (tableName == "HeartbeatTable") {
-
-                db.execSQL("DELETE FROM HeartbeatTable")
-                Log.d("WorkManager", "🗑️ Deleted all records from HeartbeatTable")
-            } else {
-                if (ids.isEmpty()) return
-                val idList = ids.joinToString(",")
-                db.execSQL("DELETE FROM $tableName WHERE id IN ($idList)")
-                Log.d("WorkManager", "🗑️ Deleted synced records from $tableName")
-            }
+            db.execSQL("DELETE FROM $tableName")
+            Log.d("WorkManager", "🗑️ Deleted all records from $tableName after sync")
 
             db.setTransactionSuccessful()
         } catch (e: Exception) {
@@ -193,7 +186,8 @@ class TrackTableCheckWorker(
 
         val workRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
             .setConstraints(constraints)
-            .setInitialDelay(syncInterval, TimeUnit.SECONDS)
+            .setInitialDelay(60, TimeUnit.SECONDS)
+            .addTag(TRACK_TABLE_WORKER_TAG)
             .build()
 
         WorkManager.getInstance(applicationContext).enqueueUniqueWork(
@@ -221,9 +215,8 @@ class TrackTableCheckWorker(
                     Log.d("WorkManager", "Tags: $tags")
 
                     // Cancel work if it's NOT TrackTableCheckWorker
-                    if (!tags.contains("com.example.accuratedamoov.worker.TrackTableCheckWorker")) {
-                        Log.d("WorkManager", "Cancelling Work: $workId")
-                        workManager.cancelWorkById(workId)
+                    if (!workInfo.tags.contains(MainApplication.TRACK_TABLE_WORKER_TAG)) {
+                        workManager.cancelWorkById(workInfo.id)
                     }
                 }
             }

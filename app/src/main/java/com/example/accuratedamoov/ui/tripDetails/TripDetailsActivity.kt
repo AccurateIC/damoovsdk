@@ -82,7 +82,7 @@ class TripDetailsActivity : AppCompatActivity() {
         val uniqueId = intent.getStringExtra("ID")
 
 
-        if (uniqueId != null && NetworkMonitorService.isConnected == true) {
+        if (uniqueId != null) {
             showLoader(true)
             tripDetailsViewModel.fetchGeoPoints(uniqueId)
 
@@ -125,6 +125,10 @@ class TripDetailsActivity : AppCompatActivity() {
         //setupTripCardToggle()
         setupFloatingButton()
         setupFloatingButtonClick()
+
+        binding.btnBack.setOnClickListener {
+            this.onBackPressedDispatcher.onBackPressed()
+        }
     }
 
     private fun setupFloatingButton() {
