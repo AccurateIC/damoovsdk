@@ -193,5 +193,28 @@ class DatabaseHelper private constructor(context: Context) {
         }
     }
 
+    fun hasMultipleTripsWithReasons(): Boolean {
+        if (!databaseExists()) return false
+        val db = openDatabase() ?: return false
+
+        val query = """
+        SELECT COUNT(*) 
+        FROM TrackTable 
+        WHERE start_reason IN (
+            'GeofenceDetected',
+            'RestartAfterTrackCutting',
+            'ManualStart',
+            'MotionDetected'
+        )
+    """.trimIndent()
+
+        db.rawQuery(query, null).use { cursor ->
+            if (cursor.moveToFirst()) {
+                val count = cursor.getInt(0)
+                return count > 1   // ✅ More than 1 entry with given reasons
+            }
+        }
+        return false
+    }
 
 }

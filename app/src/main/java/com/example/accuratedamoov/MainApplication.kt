@@ -28,6 +28,8 @@ import com.telematicssdk.tracking.Settings
 import com.telematicssdk.tracking.TrackingApi
 import java.util.UUID
 import com.example.accuratedamoov.BuildConfig
+import com.example.accuratedamoov.worker.SystemEventScheduler
+import com.example.accuratedamoov.worker.SystemEventScheduler.EVENTSYNC_TAG
 import java.util.concurrent.TimeUnit
 
 
@@ -47,14 +49,14 @@ class MainApplication : Application() {
             Log.d(TAG, "User not logged in, skipping SDK init and workers.")
             return
         }
+        SystemEventScheduler.scheduleSystemEvent(this)
 
         enableTrackingIfPossible()
 
         val syncInterval = getSyncInterval()
-        scheduleWorker(syncInterval)
-
+        SystemEventScheduler.scheduleTrackTableCheck(applicationContext)
         logAllWorkerRequests()
-        observeAndCancelUnwantedWork()
+        SystemEventScheduler.observeAndCancelOtherWork(applicationContext)
     }
 
     private fun isUserLoggedIn(): Boolean {
@@ -104,7 +106,7 @@ class MainApplication : Application() {
     }
 
     private fun getSyncInterval(): Long {
-        val sharedPreferences = getSharedPreferences("appSettings", Context.MODE_PRIVATE)
+        val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         return sharedPreferences.getInt("sync_interval", 10).toLong()
     }
 
@@ -117,47 +119,7 @@ class MainApplication : Application() {
         }
     }
 
-    private fun observeAndCancelUnwantedWork() {
-        val workManager = WorkManager.getInstance(applicationContext)
-        val workQuery = WorkQuery.Builder
-            .fromStates(
-                listOf(
-                    WorkInfo.State.ENQUEUED,
-                    WorkInfo.State.RUNNING,
-                    WorkInfo.State.BLOCKED
-                )
-            )
-            .build()
 
-        workManager.getWorkInfosLiveData(workQuery).observeForever { workInfos ->
-            workInfos?.forEach { workInfo ->
-                val tags = workInfo.tags
-                if (!tags.contains(TRACK_TABLE_WORKER_TAG)) {
-                    Log.d(TAG_WORK, "🛑 Cancelling unwanted Work: ${workInfo.id} with tags $tags")
-                    workManager.cancelWorkById(workInfo.id)
-                }
-            }
-        }
-    }
-
-    private fun scheduleWorker(syncInterval: Long) {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .setRequiresBatteryNotLow(true)
-            .build()
-
-        val workRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
-            .setConstraints(constraints)
-            .setInitialDelay(60, TimeUnit.SECONDS)
-            .addTag(TRACK_TABLE_WORKER_TAG)
-            .build()
-
-        WorkManager.getInstance(this).enqueueUniqueWork(
-            TRACK_TABLE_WORKER_TAG,
-            ExistingWorkPolicy.REPLACE,
-            workRequest
-        )
-    }
 
     private fun scheduleTrackingWorker() {
         val constraints = Constraints.Builder()

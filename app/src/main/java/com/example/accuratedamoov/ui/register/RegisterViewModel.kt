@@ -9,6 +9,8 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.example.accuratedamoov.data.model.RegisterModel
 import com.example.accuratedamoov.data.model.RegisterResponse
 import com.example.accuratedamoov.data.network.RetrofitClient
@@ -36,6 +38,18 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
             device_id = deviceId,
             device_name = deviceName
         )
+// ✅ Initialize EncryptedSharedPreferences
+        val masterKey = MasterKey.Builder(mContext)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+
+        val enprefs = EncryptedSharedPreferences.create(
+            mContext,
+            "user_creds",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
 
         Log.d("RegisterViewModel", "Registering user with model: ${model.toString()}")
         apiService.registerUserWithDevice(model).enqueue(object : Callback<RegisterResponse> {
@@ -43,6 +57,11 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
                 val res = response.body()
                 if (res != null && res.success) {
                     registerResult.postValue(Result.success(res))
+                    enprefs.edit().apply {
+                        putString("user_email", email)
+                        putString("user_password", password)
+                        apply()
+                    }
                 } else {
                     registerResult.postValue(Result.failure(Throwable(res?.error ?: "Unknown error")))
                 }

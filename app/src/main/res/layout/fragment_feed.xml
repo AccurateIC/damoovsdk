@@ -5,6 +5,7 @@
     android:layout_height="match_parent"
     tools:context=".ui.feed.FeedFragment">
 
+    <!-- Date Label -->
     <TextView
         android:id="@+id/tvDateLabel"
         android:layout_width="match_parent"
@@ -31,7 +32,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Scrollable past dates -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/dateRecyclerView"
             android:layout_width="0dp"
@@ -47,17 +47,15 @@
             android:id="@+id/tvToday"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:maxHeight="80dp"
             android:gravity="center"
             android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp"
             android:layout_marginHorizontal="4dp"
             android:layout_marginVertical="6dp"
-            android:paddingVertical="8dp"
             android:text="Today"
             android:background="@drawable/rounded_white"
             android:textColor="@color/black"
             android:textStyle="bold" />
-
     </LinearLayout>
 
     <!-- Zero trips text -->
@@ -74,7 +72,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 
-    <!-- Swipe refresh -->
+    <!-- Swipe refresh + real RecyclerView -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="0dp"
@@ -92,12 +90,12 @@
             tools:listitem="@layout/list_item_trip" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <!-- Shimmer loading effect -->
+    <!-- Shimmer effect overlay -->
     <com.facebook.shimmer.ShimmerFrameLayout
         android:id="@+id/shimmerLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:elevation="8dp"
         app:layout_constraintTop_toBottomOf="@id/dateContainer"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -105,29 +103,11 @@
         app:shimmer_auto_start="true"
         app:shimmer_duration="1500">
 
-        <!-- Placeholder for shimmer effect -->
-        <LinearLayout
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/shimmerRecyclerView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="20dp"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/shimmer_bg" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="20dp"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/shimmer_bg" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="20dp"
-                android:background="@drawable/shimmer_bg" />
-        </LinearLayout>
+            android:layout_height="match_parent"
+            tools:listitem="@layout/item_shimmer_trip" />
     </com.facebook.shimmer.ShimmerFrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

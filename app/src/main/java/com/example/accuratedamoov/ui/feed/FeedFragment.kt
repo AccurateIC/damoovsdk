@@ -20,6 +20,7 @@ import com.example.accuratedamoov.databinding.FragmentDashboardBinding
 import com.example.accuratedamoov.databinding.FragmentFeedBinding
 import com.example.accuratedamoov.model.FeedUiState
 import com.example.accuratedamoov.ui.feed.adapter.DateAdapter
+import com.example.accuratedamoov.ui.feed.adapter.ShimmerAdapter
 import com.example.accuratedamoov.ui.feed.adapter.TrackAdapter
 import kotlinx.coroutines.delay
 
@@ -37,7 +38,7 @@ class FeedFragment : Fragment() {
     private var allTrips: List<TripData> = emptyList()
     private var selectedDate: String? = null
     private lateinit var trackAdapter: TrackAdapter
-
+    private lateinit var shimmerAdapter: ShimmerAdapter
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -57,7 +58,12 @@ class FeedFragment : Fragment() {
 
         trackAdapter = TrackAdapter(emptyList(), requireContext())
         binding.recycleView.adapter = trackAdapter
+        shimmerAdapter = ShimmerAdapter(6)
+        binding.shimmerRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        binding.shimmerRecyclerView.adapter = shimmerAdapter
 
+        binding.shimmerLayout.startShimmer()
+        binding.shimmerLayout.visibility = View.VISIBLE
         val dividerItemDecoration = DividerItemDecoration(context, LinearLayoutManager.VERTICAL)
         binding.recycleView.addItemDecoration(dividerItemDecoration)
 
@@ -68,7 +74,6 @@ class FeedFragment : Fragment() {
             feedViewModel.fetchTrips()
             binding.swipeRefreshLayout.isRefreshing = false
         }
-
         val dateAdapter = DateAdapter { date ->
             selectedDate = date
             binding.tvDateLabel.text = date

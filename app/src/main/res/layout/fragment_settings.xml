@@ -8,6 +8,7 @@
     android:padding="24dp"
     android:background="@drawable/bg_login_gradient"
     tools:context=".ui.settings.SettingsFragment">
+
     <ImageView
         android:id="@+id/logo"
         android:layout_width="140dp"
@@ -22,6 +23,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintVertical_chainStyle="packed"
         android:layout_marginBottom="40dp"/>
+
     <!-- API URL Input Field -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/apiUrlTextInputLayout"
@@ -37,11 +39,39 @@
         app:hintTextColor="@color/black"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/scoreUrlTextInputLayout"
+        android:layout_marginBottom="16dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/apiUrlEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textUri"
+            android:textColor="@color/white"
+            android:textCursorDrawable="@null"
+            android:textSize="16sp"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Score URL Input Field -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/scoreUrlTextInputLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="@string/enter_score_url"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="@color/black"
+        app:hintTextColor="@color/black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/saveButton"
         android:layout_marginBottom="20dp">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/apiUrlEditText"
+            android:id="@+id/scoreUrlEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textUri"

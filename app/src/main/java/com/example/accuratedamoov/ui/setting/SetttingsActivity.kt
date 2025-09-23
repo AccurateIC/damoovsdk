@@ -18,6 +18,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
+import androidx.security.crypto.MasterKeys
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
@@ -37,6 +40,7 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import androidx.core.content.edit
 
 class SetttingsActivity : AppCompatActivity() {
 
@@ -52,7 +56,7 @@ class SetttingsActivity : AppCompatActivity() {
         binding = ActivitySetttingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        sharedPreferences = getSharedPreferences("appSettings", Context.MODE_PRIVATE)
+        sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
         setupSpinner()
         loadSettings()
@@ -94,30 +98,36 @@ class SetttingsActivity : AppCompatActivity() {
             try {
                 val response = apiService.checkHealth()
                 if (response.isSuccessful) {
-                    with(sharedPreferences.edit()) {
-                        putString("api_url", apiUrl)
-                        putInt("sync_interval", intervalMinutes)
-                        apply()
-                    }
-
-                    scheduleWorker(intervalMinutes.toLong())
-                    hideKeyboard(binding.apiUrlEditText)
-
-                    // Navigate based on registration & login status
+                    // Clear + Save fresh settings in normal prefs
                     val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
-                    val isLoggedIn = prefs.getBoolean("is_logged_in", false)
+                    prefs.edit().clear().apply()
+                    prefs.edit()
+                        .putString("api_url", apiUrl)
+                        .putInt("sync_interval", intervalMinutes)
+                        .apply()
 
-                    val nextIntent = when {
-                        !isLoggedIn -> Intent(
-                            this@SetttingsActivity,
-                            LoginActivity::class.java
-                        )
-                        else -> Intent(this@SetttingsActivity, MainActivity::class.java)
-                    }
+                    // Clear encrypted prefs
+                    val masterKey = MasterKey.Builder(this@SetttingsActivity)
+                        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                        .build()
 
+                    val enprefs = EncryptedSharedPreferences.create(
+                        this@SetttingsActivity,
+                        "user_creds",
+                        masterKey,
+                        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                    )
+                    enprefs.edit { clear() }
+
+                    // Schedule worker
+                    scheduleWorker(intervalMinutes.toLong())
+
+                    // Hide keyboard + redirect
+                    hideKeyboard(binding.apiUrlEditText)
+                    val nextIntent = Intent(this@SetttingsActivity, LoginActivity::class.java)
                     startActivity(nextIntent)
                     finish()
-
                 } else {
                     Snackbar.make(binding.root, "Server error: ${response.code()}", Snackbar.LENGTH_SHORT).show()
                 }
@@ -125,6 +135,7 @@ class SetttingsActivity : AppCompatActivity() {
                 Snackbar.make(binding.root, "Unable to reach server: ${e.localizedMessage}", Snackbar.LENGTH_LONG).show()
             }
         }
+
     }
 
 

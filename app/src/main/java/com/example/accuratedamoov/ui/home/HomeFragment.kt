@@ -84,24 +84,27 @@ class HomeFragment : Fragment() {
         }
 
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            val b = _binding ?: return@addOnSuccessListener // safe check
+
             if (location != null) {
                 val currentPoint = GeoPoint(location.latitude, location.longitude)
-                val mapController = binding.mapView.controller as MapController
+                val mapController = b.mapView.controller as MapController
                 mapController.setZoom(15.0)
                 mapController.setCenter(currentPoint)
 
-                val marker = Marker(binding.mapView).apply {
+                val marker = Marker(b.mapView).apply {
                     position = currentPoint
                     icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_start_location)
                     setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                     title = "You are here"
                 }
-                binding.mapView.overlays.add(marker)
-                binding.mapView.invalidate()
+                b.mapView.overlays.add(marker)
+                b.mapView.invalidate()
             } else {
                 Toast.makeText(context, "Unable to get current location", Toast.LENGTH_SHORT).show()
             }
         }
+
 
         homeViewModel.errMsg.observe(viewLifecycleOwner, Observer { errMsg ->
             if (errMsg.isNotEmpty()) {

@@ -3,7 +3,6 @@ package com.example.accuratedamoov.ui.dashboard
 import android.app.Application
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -56,11 +55,11 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    fun fetchDashboardData(filter: String) {
+    fun fetchDashboardData(user_Id: Int?) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val api = RetrofitClient.getProfileApiService(appContext)
-                val response = api.getSafetySummary(filter)
+                val response = api.getSafetySummary(user_Id)
                 Log.d("API_Response", "Response: $response")
 
                 if (response.isSuccessful) {

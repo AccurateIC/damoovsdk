@@ -36,7 +36,7 @@
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:src="@drawable/ic_profile_placeholder"
-                    android:scaleType="centerCrop"
+                    android:scaleType="center"
                     android:background="@drawable/circle_white_bg"
                     android:elevation="4dp" />
 
@@ -131,16 +131,29 @@
             android:background="@drawable/edittext_bg"
             android:padding="16dp">
 
+            <include layout="@layout/stat_item" android:id="@+id/safetyScoreItem"/>
             <include layout="@layout/stat_item" android:id="@+id/tripsItem"/>
-            <include layout="@layout/stat_item" android:id="@+id/driverTripsItem"/>
             <include layout="@layout/stat_item" android:id="@+id/mileageItem"/>
             <include layout="@layout/stat_item" android:id="@+id/timeDrivenItem"/>
             <include layout="@layout/stat_item" android:id="@+id/avgSpeedItem"/>
             <include layout="@layout/stat_item" android:id="@+id/maxSpeedItem"/>
             <include layout="@layout/stat_item" android:id="@+id/phoneUsageItem"/>
-            <include layout="@layout/stat_item" android:id="@+id/speedingItem"/>
-            <include layout="@layout/stat_item" android:id="@+id/phoneUsageSpeedingItem"/>
-            <include layout="@layout/stat_item" android:id="@+id/uniqueTagsItem"/>
+
         </LinearLayout>
+
     </ScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/debugFab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_info"
+        android:contentDescription="Debug Panel"
+        android:backgroundTint="@color/white"
+        app:tint="@color/black"
+        app:rippleColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="16dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

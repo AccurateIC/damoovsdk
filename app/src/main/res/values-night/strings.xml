@@ -23,4 +23,5 @@
     <string name="emailid">email</string>
     <string name="title_profile">Profile</string>
     <string name="login">Login</string>
+    <string name="enter_score_url">Profile Score URL</string>
 </resources>

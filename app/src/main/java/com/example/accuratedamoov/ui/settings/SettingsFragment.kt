@@ -40,6 +40,7 @@ class SettingsFragment : Fragment() {
     private val viewModel: SettingsViewModel by viewModels()
 
     private lateinit var apiUrlEditText: TextInputEditText
+    private lateinit var scoreUrlEditText: TextInputEditText
     private lateinit var saveButton: View
 
     override fun onCreateView(
@@ -49,6 +50,7 @@ class SettingsFragment : Fragment() {
         val root = inflater.inflate(R.layout.fragment_settings, container, false)
 
         apiUrlEditText = root.findViewById(R.id.apiUrlEditText)
+        scoreUrlEditText = root.findViewById(R.id.scoreUrlEditText) // new
         saveButton = root.findViewById(R.id.saveButton)
 
         return root
@@ -57,9 +59,13 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Populate initial value
+        // Populate initial values
         viewModel.cloudUrl.observe(viewLifecycleOwner, Observer { url ->
             apiUrlEditText.setText(url)
+        })
+
+        viewModel.scoreUrl.observe(viewLifecycleOwner, Observer { url ->
+            scoreUrlEditText.setText(url)
         })
 
         // Show messages
@@ -70,13 +76,17 @@ class SettingsFragment : Fragment() {
 
             if (msg.contains("saved", ignoreCase = true)) { // success condition
                 (requireActivity().findViewById<BottomNavigationView>(R.id.nav_view))
-                    .selectedItemId = R.id.navigation_home            }
+                    .selectedItemId = R.id.navigation_home
+            }
         })
 
         // Handle save button click
         saveButton.setOnClickListener {
-            val url = apiUrlEditText.text?.toString()?.trim() ?: ""
-            viewModel.saveCloudUrl(url)
+            val apiUrl = apiUrlEditText.text?.toString()?.trim() ?: ""
+            val scoreUrl = scoreUrlEditText.text?.toString()?.trim() ?: ""
+
+            viewModel.saveCloudUrl(apiUrl)
+            viewModel.saveScoreUrl(scoreUrl) // new
         }
     }
 }

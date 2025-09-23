@@ -7,12 +7,17 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.Network
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.PowerManager
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -20,9 +25,12 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavOptions
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
+import com.example.accuratedamoov.broadcastreceiver.SystemChangeReceiver
+import com.example.accuratedamoov.database.DatabaseHelper
 import com.example.accuratedamoov.databinding.ActivityMainBinding
 import com.example.accuratedamoov.service.NetworkMonitorService
 import com.example.accuratedamoov.service.PermissionMonitorService
+import com.example.accuratedamoov.worker.SystemEventScheduler
 
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -39,17 +47,35 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var connectivityManager: ConnectivityManager
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
+    private lateinit var systemChangeReceiver: SystemChangeReceiver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    1001
+                )
+            }
+        }
+
         setupNetworkMonitoring()
-        startPermissionMonitorIfNeeded()
+        //startPermissionMonitorIfNeeded()
         setupTrackingIfReady()
         /*FirebaseCrashlytics.getInstance().log("Forcing a test crash")
         throw RuntimeException("Test Crash")*/
+        systemChangeReceiver = SystemChangeReceiver()
+
     }
 
     // ----------------------------
@@ -120,6 +146,20 @@ class MainActivity : AppCompatActivity() {
                 trackingApi.startTracking()
             }
 
+
+        }
+        if (trackingApi.isSdkEnabled()) {
+            if (!::systemChangeReceiver.isInitialized) {
+                systemChangeReceiver = SystemChangeReceiver()
+                val filter = IntentFilter().apply {
+                    addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
+                    addAction(Intent.ACTION_PACKAGE_REPLACED)
+                    addAction(LocationManager.MODE_CHANGED_ACTION)
+                }
+                registerReceiver(systemChangeReceiver, filter)
+                SystemEventScheduler.scheduleSystemEvent(this)
+
+            }
         }
 
         if (!isNavigationSetup) {
@@ -168,6 +208,21 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         setupTrackingIfReady()
+        checkTracks()
+    }
+
+    private fun checkTracks() {
+        val dbHelper = DatabaseHelper.getInstance(applicationContext)
+
+        if (dbHelper.hasMultipleTripsWithReasons()) {
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(applicationContext, "Trips are recorded, waiting for sync", Toast.LENGTH_LONG).show()
+            }
+        }else{
+            Toast.makeText(applicationContext, "No trips with reasons found in the database", Toast.LENGTH_LONG).show()
+
+            Log.d(TAG, "")
+        }
     }
 
     override fun onDestroy() {
@@ -202,6 +257,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return false
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        finishAffinity()
     }
 
 }

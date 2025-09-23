@@ -95,7 +95,7 @@
             android:id="@+id/saveButton"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:layout_marginBottom="30dp"
+            android:layout_marginBottom="60dp"
             android:background="@drawable/btn_login_bg"
             android:contentDescription="@string/save_apply"
             android:text="@string/save_apply"

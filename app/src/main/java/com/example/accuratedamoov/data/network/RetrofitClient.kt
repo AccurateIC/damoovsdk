@@ -13,7 +13,7 @@ object RetrofitClient {
     private var currentProfileBaseUrl: String? = null
 
     fun getApiService(context: Context): ApiService {
-        val sharedPreferences = context.getSharedPreferences("appSettings", Context.MODE_PRIVATE)
+        val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         val baseUrl = sharedPreferences.getString(
             "api_url",
             "http://192.168.10.41:5556/"
@@ -36,9 +36,9 @@ object RetrofitClient {
     fun getProfileApiService(context: Context): ApiService {
         val sharedPreferences = context.getSharedPreferences("appSettings", Context.MODE_PRIVATE)
         val profileBaseUrl = sharedPreferences.getString(
-            "profile_url",
-            "http://192.168.10.183:5000/"
-        ) ?: "http://192.168.10.183:5000/"
+            "score_url",
+            "http://192.168.10.41:5000/"
+        ) ?: "http://192.168.10.41:5000/"
 
         if (profileRetrofit == null || currentProfileBaseUrl != profileBaseUrl) {
             profileRetrofit = Retrofit.Builder()

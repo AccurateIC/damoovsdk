@@ -10,9 +10,11 @@ import com.example.accuratedamoov.MainApplication.Companion.TRACK_TABLE_WORKER_T
 import com.example.accuratedamoov.data.network.RetrofitClient
 import com.example.accuratedamoov.data.network.SyncRequest
 import com.example.accuratedamoov.database.DatabaseHelper
+import com.example.accuratedamoov.worker.SystemEventScheduler.EVENTSYNC_TAG
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class TrackTableCheckWorker(
@@ -22,7 +24,8 @@ class TrackTableCheckWorker(
 
     override suspend fun doWork(): Result {
         val dbHelper = DatabaseHelper.getInstance(applicationContext)
-        observeAndCancelWork()
+        SystemEventScheduler.observeAndCancelOtherWork(applicationContext)
+
         return try {
             val tableNames = listOf(
                 "LastKnownPointTable", "EventsStartPointTable",
@@ -41,6 +44,25 @@ class TrackTableCheckWorker(
 
             for (table in tableNames) {
                 val tableData = dbHelper.getUnsyncedTableData(table)
+
+                // Loop through each row and convert lat/lng to full precision strings
+                for (i in 0 until tableData.length()) {
+                    val row = tableData.getJSONObject(i)
+
+                    if (row.has("latitude") && !row.isNull("latitude")) {
+                        val lat = row.getString("latitude")
+                        row.put("latitude", lat) // keep raw double
+                        Log.d("newomkar_latitude", lat.toString())
+                    }
+
+                    if (row.has("longitude") && !row.isNull("longitude")) {
+                        val lng = row.getString("longitude")
+                        row.put("longitude", lng)
+                        Log.d("newomkar_longitude", lng.toString())
+                    }
+
+                }
+
                 if (tableData.length() > 0) {
                     jsonData.put(table, tableData)
                     hasDataToSync = true
@@ -51,9 +73,10 @@ class TrackTableCheckWorker(
                 applicationContext.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
             val syncInterval = sharedPreferences.getInt("sync_interval", 10).toLong()
             val user_id = sharedPreferences.getInt("user_id", 0)
+
             if (!hasDataToSync) {
                 Log.d("WorkManager", "✅ No new data, rescheduling worker.")
-                scheduleWorker(syncInterval)
+                SystemEventScheduler.scheduleTrackTableCheck(applicationContext)
                 return Result.success()
             }
 
@@ -63,20 +86,21 @@ class TrackTableCheckWorker(
 
             if (success) {
                 Log.d("WorkManager", "✅ Data sync successful.")
-                scheduleWorker(syncInterval)
+                SystemEventScheduler.scheduleTrackTableCheck(applicationContext)
                 Result.success()
             } else {
                 Log.e("WorkManager", "❌ Data sync failed, retrying.")
-                scheduleWorker(syncInterval)
+                SystemEventScheduler.scheduleTrackTableCheck(applicationContext)
                 Result.retry()
             }
 
         } catch (e: Exception) {
             Log.e("WorkManager", "❌ Error in Worker", e)
-            dbHelper.closeDatabase() // ✅ Ensures DB is closed on error
+            dbHelper.closeDatabase()
             Result.failure()
         }
     }
+
 
     private suspend fun syncData(dbHelper: DatabaseHelper, jsonData: JSONObject): Boolean {
         val apiService = RetrofitClient.getApiService(applicationContext)
@@ -177,49 +201,4 @@ class TrackTableCheckWorker(
         }
     }
 
-
-    private fun scheduleWorker(syncInterval: Long) {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .setRequiresBatteryNotLow(true)
-            .build()
-
-        val workRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
-            .setConstraints(constraints)
-            .setInitialDelay(60, TimeUnit.SECONDS)
-            .addTag(TRACK_TABLE_WORKER_TAG)
-            .build()
-
-        WorkManager.getInstance(applicationContext).enqueueUniqueWork(
-            "TrackTableCheckWorker",
-            ExistingWorkPolicy.REPLACE,
-            workRequest
-        )
-    }
-
-    private fun observeAndCancelWork() {
-        val workManager = WorkManager.getInstance(applicationContext)
-
-        val workQuery = WorkQuery.Builder
-            .fromStates(listOf(WorkInfo.State.ENQUEUED))
-            .build()
-
-        Handler(Looper.getMainLooper()).post {
-            workManager.getWorkInfosLiveData(workQuery).observeForever { workInfos ->
-                workInfos?.forEach { workInfo ->
-                    val tags = workInfo.tags
-                    val workId = workInfo.id
-
-                    Log.d("WorkManager", "ID: $workId")
-                    Log.d("WorkManager", "State: ${workInfo.state}")
-                    Log.d("WorkManager", "Tags: $tags")
-
-                    // Cancel work if it's NOT TrackTableCheckWorker
-                    if (!workInfo.tags.contains(MainApplication.TRACK_TABLE_WORKER_TAG)) {
-                        workManager.cancelWorkById(workInfo.id)
-                    }
-                }
-            }
-        }
-    }
 }

@@ -229,7 +229,8 @@ class TripDetailsActivity : AppCompatActivity() {
                 }
                 return@launch
             }
-
+            Log.d("TripDetails", "First GeoPoint: ${geoPointList.first()}")
+            Log.d("TripDetails", "Last GeoPoint: ${geoPointList.last()}")
             val animatedPolyline = Polyline().apply {
                 outlinePaint.color = Color.BLUE
                 outlinePaint.strokeWidth = 6f

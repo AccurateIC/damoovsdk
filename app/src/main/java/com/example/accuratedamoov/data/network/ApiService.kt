@@ -7,6 +7,8 @@ import com.example.accuratedamoov.data.model.LoginResponse
 import com.example.accuratedamoov.data.model.RegisterModel
 import com.example.accuratedamoov.data.model.RegisterResponse
 import com.example.accuratedamoov.data.model.SafetySummaryResponse
+import com.example.accuratedamoov.data.model.SystemEventRequest
+import com.example.accuratedamoov.data.model.SystemEventResponse
 import com.example.accuratedamoov.data.model.TripApiResponse
 import com.example.accuratedamoov.data.model.TripSummaryResponse
 import com.example.accuratedamoov.data.model.UserProfileResponse
@@ -91,8 +93,13 @@ interface ApiService {
     ): Response<TripSummaryResponse>
 
 
-    @GET("safety_dashboard_summary")
+    @GET("user_safety_dashboard_summary")
     suspend fun getSafetySummary(
-        @Query("filter") filter: String
+        @Query("user_id") user_id: Int?
     ): Response<SafetySummaryResponse>
+
+    @POST("systemevents")
+    suspend fun logSystemEvent(
+        @Body request: SystemEventRequest
+    ): Response<SystemEventResponse>
 }

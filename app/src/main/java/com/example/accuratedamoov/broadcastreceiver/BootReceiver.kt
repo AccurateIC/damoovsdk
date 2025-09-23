@@ -12,7 +12,9 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.accuratedamoov.MainApplication.Companion.TRACK_TABLE_WORKER_TAG
+import com.example.accuratedamoov.worker.SystemEventScheduler
 import com.example.accuratedamoov.worker.TrackTableCheckWorker
+import com.google.ar.core.dependencies.c
 import com.telematicssdk.tracking.TrackingApi
 import java.util.UUID
 
@@ -49,7 +51,7 @@ class BootReceiver : BroadcastReceiver() {
                     Log.d("BootReceiver","tracking SDK enabled")
 
                     // schedule worker for syncing
-                    scheduleWorker(context, 60) // or configurable
+                    SystemEventScheduler.scheduleTrackTableCheck(context)
                 } else {
                     Log.w("BootReceiver", "SDK not initialized yet or missing permissions")
                 }
@@ -59,22 +61,4 @@ class BootReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun scheduleWorker(context: Context, syncInterval: Long) {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .setRequiresBatteryNotLow(true)
-            .build()
-
-        val workRequest = OneTimeWorkRequestBuilder<TrackTableCheckWorker>()
-            .setConstraints(constraints)
-            .setInitialDelay(60, TimeUnit.MINUTES)
-            .addTag(TRACK_TABLE_WORKER_TAG)
-            .build()
-
-        WorkManager.getInstance(context).enqueueUniqueWork(
-            "TrackTableCheckWorker",
-            ExistingWorkPolicy.REPLACE,
-            workRequest
-        )
-    }
 }
