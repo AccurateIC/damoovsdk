@@ -10,6 +10,8 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -48,6 +50,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var connectivityManager: ConnectivityManager
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
     private lateinit var systemChangeReceiver: SystemChangeReceiver
+    private var networkSnackbar: Snackbar? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,14 +88,39 @@ class MainActivity : AppCompatActivity() {
         connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         networkCallback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
-                runOnUiThread { binding.networkOverlay.visibility = View.GONE }
+                runOnUiThread {
+                   dismissNetworkSnackbar()
+                }
             }
 
             override fun onLost(network: Network) {
-                runOnUiThread { binding.networkOverlay.visibility = View.VISIBLE }
+                runOnUiThread {
+                    showNetworkSnackbar()
+                }
+            }
+
+        }
+        // Register network callback safely
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            connectivityManager.registerDefaultNetworkCallback(networkCallback)
+        } else {
+            val request = NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .build()
+            connectivityManager.registerNetworkCallback(request, networkCallback)
+        }
+
+        // Show Snackbar immediately if no network at startup
+        if (!isNetworkAvailable()) {
+            binding.root.post {
+                networkSnackbar = Snackbar.make(
+                    binding.root,
+                    "No internet connection. Waiting to reconnect...",
+                    Snackbar.LENGTH_INDEFINITE
+                )
+                networkSnackbar?.show()
             }
         }
-        connectivityManager.registerDefaultNetworkCallback(networkCallback)
     }
 
 
@@ -141,8 +169,8 @@ class MainActivity : AppCompatActivity() {
 
             trackingApi.setDeviceID(deviceId)
             trackingApi.setEnableSdk(true)
-            trackingApi.setAutoStartEnabled(true,true)
-            if(!trackingApi.isTracking()) {
+            trackingApi.setAutoStartEnabled(true, true)
+            if (!trackingApi.isTracking()) {
                 trackingApi.startTracking()
             }
 
@@ -169,7 +197,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
     private fun setupNavigation() {
         binding.root.post {
             val navController = try {
@@ -194,10 +221,29 @@ class MainActivity : AppCompatActivity() {
                     .build()
 
                 when (item.itemId) {
-                    R.id.navigation_dashboard -> navController.navigate(R.id.navigation_dashboard, null, navOptions)
-                    R.id.navigation_home -> navController.navigate(R.id.navigation_home, null, navOptions)
-                    R.id.navigation_feed -> navController.navigate(R.id.navigation_feed, null, navOptions)
-                    R.id.navigation_settings -> navController.navigate(R.id.navigation_settings, null, navOptions)
+                    R.id.navigation_dashboard -> navController.navigate(
+                        R.id.navigation_dashboard,
+                        null,
+                        navOptions
+                    )
+
+                    R.id.navigation_home -> navController.navigate(
+                        R.id.navigation_home,
+                        null,
+                        navOptions
+                    )
+
+                    R.id.navigation_feed -> navController.navigate(
+                        R.id.navigation_feed,
+                        null,
+                        navOptions
+                    )
+
+                    R.id.navigation_settings -> navController.navigate(
+                        R.id.navigation_settings,
+                        null,
+                        navOptions
+                    )
                 }
                 true
             }
@@ -216,10 +262,18 @@ class MainActivity : AppCompatActivity() {
 
         if (dbHelper.hasMultipleTripsWithReasons()) {
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(applicationContext, "Trips are recorded, waiting for sync", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    applicationContext,
+                    "Trips are recorded, waiting for sync",
+                    Toast.LENGTH_LONG
+                ).show()
             }
-        }else{
-            Toast.makeText(applicationContext, "No trips with reasons found in the database", Toast.LENGTH_LONG).show()
+        } else {
+            Toast.makeText(
+                applicationContext,
+                "No trips with reasons found in the database",
+                Toast.LENGTH_LONG
+            ).show()
 
             Log.d(TAG, "")
         }
@@ -263,6 +317,39 @@ class MainActivity : AppCompatActivity() {
         super.onBackPressed()
         finishAffinity()
     }
+
+    private fun ensureApiConfigured(): Boolean {
+        val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        val apiUrl = prefs.getString("api_url", null)
+        return !apiUrl.isNullOrEmpty()
+    }
+
+    private fun isNetworkAvailable(): Boolean {
+        val network = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+
+
+    private fun showNetworkSnackbar() {
+        if (networkSnackbar == null) {
+            networkSnackbar = Snackbar.make(
+                binding.root,
+                "No internet connection. Waiting to reconnect...",
+                Snackbar.LENGTH_INDEFINITE
+            )
+
+            // Anchor above bottom nav so it's visible
+            networkSnackbar?.anchorView = binding.navView
+            networkSnackbar?.show()
+        }
+    }
+
+    private fun dismissNetworkSnackbar() {
+        networkSnackbar?.dismiss()
+        networkSnackbar = null
+    }
+
 
 }
 

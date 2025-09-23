@@ -40,6 +40,7 @@ class SplashScreenActivity : AppCompatActivity() {
     private lateinit var prefs: SharedPreferences
     private lateinit var progressBar: ProgressBar
     private var networkSnackbar: Snackbar? = null
+    private var loginAttempted = false // Prevent multiple auto-login attempts
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,12 +48,10 @@ class SplashScreenActivity : AppCompatActivity() {
 
         progressBar = findViewById(R.id.progressBar)
 
-        // Normal SharedPreferences
         prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
         isLoggedIn = prefs.getBoolean("is_logged_in", false)
         api_url = prefs.getString("api_url", "") ?: ""
 
-        // EncryptedSharedPreferences
         val masterKey = MasterKey.Builder(this)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
@@ -65,12 +64,11 @@ class SplashScreenActivity : AppCompatActivity() {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
 
-        // Load credentials
         email = enprefs.getString("user_email", null)
         password = enprefs.getString("user_password", null)
 
-        // Observe network changes
         observeNetwork()
+
         if (!isNetworkAvailable()) {
             networkSnackbar = Snackbar.make(
                 findViewById(android.R.id.content),
@@ -80,7 +78,6 @@ class SplashScreenActivity : AppCompatActivity() {
             networkSnackbar?.show()
         }
 
-        // Initial attempt
         attemptAutoLogin()
     }
 
@@ -113,7 +110,8 @@ class SplashScreenActivity : AppCompatActivity() {
     }
 
     private fun attemptAutoLogin() {
-        if (!isNetworkAvailable()) return
+        if (!isNetworkAvailable() || loginAttempted) return
+        loginAttempted = true
 
         if (isLoggedIn && !email.isNullOrEmpty() && !password.isNullOrEmpty()) {
             callLoginApi(email!!, password!!)
@@ -122,24 +120,26 @@ class SplashScreenActivity : AppCompatActivity() {
                 Intent(this, SetttingsActivity::class.java)
             } else {
                 Intent(this, LoginActivity::class.java)
+            }.apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             }
+            progressBar.visibility = View.GONE
             startActivity(nextIntent)
-            finish()
         }
     }
 
     private fun callLoginApi(email: String, password: String) {
-        val loginRequest = LoginRequest(email, password)
         progressBar.visibility = View.VISIBLE
+        val loginRequest = LoginRequest(email, password)
 
         lifecycleScope.launch {
             try {
                 val response = RetrofitClient.getApiService(api_url).loginUser(loginRequest)
+                progressBar.visibility = View.GONE
 
                 if (response.isSuccessful && response.body()?.success == true) {
                     val loginResponse = response.body()!!
 
-                    // Save login state + token
                     prefs.edit().apply {
                         putBoolean("is_logged_in", true)
                         putString("auth_token", loginResponse.token)
@@ -147,38 +147,36 @@ class SplashScreenActivity : AppCompatActivity() {
                         apply()
                     }
 
-                    // Save credentials securely
                     enprefs.edit().apply {
                         putString("user_email", email)
                         putString("user_password", password)
                         apply()
                     }
 
-                    progressBar.visibility = View.GONE
-                    startActivity(Intent(this@SplashScreenActivity, MainActivity::class.java))
-                    finish()
+                    startActivity(Intent(this@SplashScreenActivity, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    })
                 } else {
-                    progressBar.visibility = View.GONE
-                    Snackbar.make(
-                        findViewById(android.R.id.content),
-                        "Login failed. Please try again.",
-                        Snackbar.LENGTH_LONG
-                    ).show()
-                    startActivity(Intent(this@SplashScreenActivity, LoginActivity::class.java))
-                    finish()
+                    showLoginFallback()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 progressBar.visibility = View.GONE
-                Snackbar.make(
-                    findViewById(android.R.id.content),
-                    "Unable to connect. Please try again.",
-                    Snackbar.LENGTH_LONG
-                ).show()
-                startActivity(Intent(this@SplashScreenActivity, LoginActivity::class.java))
-                finish()
+                showLoginFallback()
             }
         }
+    }
+
+    private fun showLoginFallback() {
+        Snackbar.make(
+            findViewById(android.R.id.content),
+            "Login failed or unable to connect. Please login manually.",
+            Snackbar.LENGTH_LONG
+        ).show()
+
+        startActivity(Intent(this@SplashScreenActivity, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        })
     }
 
     private fun isNetworkAvailable(): Boolean {

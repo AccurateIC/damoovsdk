@@ -125,7 +125,10 @@ class SetttingsActivity : AppCompatActivity() {
 
                     // Hide keyboard + redirect
                     hideKeyboard(binding.apiUrlEditText)
-                    val nextIntent = Intent(this@SetttingsActivity, LoginActivity::class.java)
+                    val nextIntent = Intent(this@SetttingsActivity, LoginActivity::class.java).apply{
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+                    }
                     startActivity(nextIntent)
                     finish()
                 } else {
