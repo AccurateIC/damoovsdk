@@ -17,6 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.Visibility
+import com.example.accuratedamoov.MainActivity
 
 import com.example.accuratedamoov.R
 import com.example.accuratedamoov.data.local.systemevents.SystemEventDatabase
@@ -113,9 +114,12 @@ class DashboardFragment : Fragment() {
         val sharedPrefs = context?.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         val userId = sharedPrefs?.getInt("user_id", 0)
         val userName = sharedPrefs?.getString("user_name", "Unknown User") ?: "Unknown User"
-        viewModel.fetchDashboardData(userId)
+        val mainActivity = activity as? MainActivity
+        if (mainActivity != null && mainActivity.isNetworkAvailable()) {
+            viewModel.fetchDashboardData(userId)
+        }
 
-        if (userName == "Unknown User") {
+        if (userName == "Unknown User" && mainActivity != null && mainActivity.isNetworkAvailable()) {
             viewModel.getUserProfile(userId)
         } else {
             driverName.text = userName

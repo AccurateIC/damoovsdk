@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.work.*
+import com.example.accuratedamoov.MainActivity
 import com.example.accuratedamoov.data.network.ApiService
 import com.example.accuratedamoov.data.network.RetrofitClient
 import com.example.accuratedamoov.databinding.FragmentSettingsBinding
@@ -85,7 +86,11 @@ class SettingsFragment : Fragment() {
             val apiUrl = apiUrlEditText.text?.toString()?.trim() ?: ""
             val scoreUrl = scoreUrlEditText.text?.toString()?.trim() ?: ""
 
-            viewModel.saveCloudUrl(apiUrl)
+            val mainActivity = activity as? MainActivity
+            if (mainActivity != null && mainActivity.isNetworkAvailable()) {
+                viewModel.saveCloudUrl(apiUrl)
+
+            }
             viewModel.saveScoreUrl(scoreUrl) // new
         }
     }

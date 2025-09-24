@@ -2,7 +2,10 @@ package com.example.accuratedamoov.ui.feed
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,6 +18,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.accuratedamoov.MainActivity
 import com.example.accuratedamoov.data.model.TripData
 import com.example.accuratedamoov.databinding.FragmentDashboardBinding
 import com.example.accuratedamoov.databinding.FragmentFeedBinding
@@ -66,12 +70,16 @@ class FeedFragment : Fragment() {
         binding.shimmerLayout.visibility = View.VISIBLE
         val dividerItemDecoration = DividerItemDecoration(context, LinearLayoutManager.VERTICAL)
         binding.recycleView.addItemDecoration(dividerItemDecoration)
-
-        feedViewModel.loadTripsIfNeeded()
+        val mainActivity = activity as? MainActivity
+        if(mainActivity!= null && mainActivity.isNetworkAvailable()) {
+            feedViewModel.loadTripsIfNeeded()
+        }
         observeData()
 
         binding.swipeRefreshLayout.setOnRefreshListener {
-            feedViewModel.fetchTrips()
+            if(mainActivity!= null && mainActivity.isNetworkAvailable()) {
+                feedViewModel.fetchTrips()
+            }
             binding.swipeRefreshLayout.isRefreshing = false
         }
         val dateAdapter = DateAdapter { date ->

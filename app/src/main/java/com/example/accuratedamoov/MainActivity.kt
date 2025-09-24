@@ -324,7 +324,7 @@ class MainActivity : AppCompatActivity() {
         return !apiUrl.isNullOrEmpty()
     }
 
-    private fun isNetworkAvailable(): Boolean {
+     fun isNetworkAvailable(): Boolean {
         val network = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
@@ -332,14 +332,12 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun showNetworkSnackbar() {
-        if (networkSnackbar == null) {
+        binding.root.post {
             networkSnackbar = Snackbar.make(
                 binding.root,
                 "No internet connection. Waiting to reconnect...",
                 Snackbar.LENGTH_INDEFINITE
             )
-
-            // Anchor above bottom nav so it's visible
             networkSnackbar?.anchorView = binding.navView
             networkSnackbar?.show()
         }
