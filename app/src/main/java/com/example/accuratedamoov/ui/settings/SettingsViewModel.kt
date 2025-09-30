@@ -11,6 +11,7 @@ import com.example.accuratedamoov.data.network.RetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Response
+import androidx.core.content.edit
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -32,8 +33,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val message: LiveData<String> get() = _message
 
     init {
-        _cloudUrl.value = prefs.getString(KEY_CLOUD_URL, "") ?: ""
-        _scoreUrl.value = prefs.getString(KEY_SCORE_URL, "") ?: ""
+        _cloudUrl.postValue(prefs.getString(KEY_CLOUD_URL, "") ?: "")
+        _scoreUrl.postValue ( prefs.getString(KEY_SCORE_URL, "") ?: "")
     }
 
     fun saveCloudUrl(url: String) {
@@ -47,7 +48,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch(Dispatchers.IO) {
             val healthOk = checkHealth(formattedUrl)
             if (healthOk) {
-                prefs.edit().putString(KEY_CLOUD_URL, formattedUrl).apply()
+                prefs.edit { putString(KEY_CLOUD_URL, formattedUrl) }
                 _cloudUrl.postValue(formattedUrl)
                 _message.postValue("Success! Cloud URL saved")
             } else {
@@ -64,7 +65,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
         val formattedUrl = if (!url.endsWith("/")) "$url/" else url
 
-        prefs.edit().putString(KEY_SCORE_URL, formattedUrl).apply()
+        prefs.edit { putString(KEY_SCORE_URL, formattedUrl) }
         _scoreUrl.value = formattedUrl
         _message.value = "Success! Score URL saved"
     }

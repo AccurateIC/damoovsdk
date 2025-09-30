@@ -61,13 +61,15 @@ class SettingsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Populate initial values
-        viewModel.cloudUrl.observe(viewLifecycleOwner, Observer { url ->
-            apiUrlEditText.setText(url)
-        })
+        apiUrlEditText.setText(viewModel.cloudUrl.value ?: "")
+        scoreUrlEditText.setText(viewModel.scoreUrl.value ?: "")
 
-        viewModel.scoreUrl.observe(viewLifecycleOwner, Observer { url ->
+        viewModel.cloudUrl.observe(viewLifecycleOwner) { url ->
+            apiUrlEditText.setText(url)
+        }
+        viewModel.scoreUrl.observe(viewLifecycleOwner) { url ->
             scoreUrlEditText.setText(url)
-        })
+        }
 
         // Show messages
         viewModel.message.observe(viewLifecycleOwner, Observer { msg ->
