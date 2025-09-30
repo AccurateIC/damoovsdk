@@ -33,7 +33,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     init {
         _cloudUrl.value = prefs.getString(KEY_CLOUD_URL, "") ?: ""
-        _scoreUrl.value = prefs.getString(KEY_SCORE_URL, "") ?: "" // new
+        _scoreUrl.value = prefs.getString(KEY_SCORE_URL, "") ?: ""
     }
 
     fun saveCloudUrl(url: String) {

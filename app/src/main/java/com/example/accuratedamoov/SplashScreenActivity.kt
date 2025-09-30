@@ -114,8 +114,10 @@ class SplashScreenActivity : AppCompatActivity() {
         loginAttempted = true
 
         if (isLoggedIn && !email.isNullOrEmpty() && !password.isNullOrEmpty()) {
+            Log.d("SplashScreenActivity", "Attempting auto-login for $email")
             callLoginApi(email!!, password!!)
         } else {
+            Log.d("SplashScreenActivity", "No valid session or credentials, redirecting...")
             val nextIntent = if (api_url.isEmpty()) {
                 Intent(this, SetttingsActivity::class.java)
             } else {
@@ -163,6 +165,9 @@ class SplashScreenActivity : AppCompatActivity() {
                 e.printStackTrace()
                 progressBar.visibility = View.GONE
                 showLoginFallback()
+                startActivity(Intent(this@SplashScreenActivity, SetttingsActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                })
             }
         }
     }
@@ -170,13 +175,9 @@ class SplashScreenActivity : AppCompatActivity() {
     private fun showLoginFallback() {
         Snackbar.make(
             findViewById(android.R.id.content),
-            "Login failed or unable to connect. Please login manually.",
+            "Login failed or unable to connect. Please login again.",
             Snackbar.LENGTH_LONG
         ).show()
-
-        startActivity(Intent(this@SplashScreenActivity, LoginActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        })
     }
 
     private fun isNetworkAvailable(): Boolean {

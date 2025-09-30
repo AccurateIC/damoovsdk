@@ -49,12 +49,12 @@ class MainApplication : Application() {
             Log.d(TAG, "User not logged in, skipping SDK init and workers.")
             return
         }
-        SystemEventScheduler.scheduleSystemEvent(this)
 
         enableTrackingIfPossible()
 
         val syncInterval = getSyncInterval()
         SystemEventScheduler.scheduleTrackTableCheck(applicationContext)
+        SystemEventScheduler.scheduleSystemEvent(applicationContext)
         logAllWorkerRequests()
         SystemEventScheduler.observeAndCancelOtherWork(applicationContext)
     }

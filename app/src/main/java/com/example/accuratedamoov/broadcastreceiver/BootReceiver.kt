@@ -52,6 +52,7 @@ class BootReceiver : BroadcastReceiver() {
 
                     // schedule worker for syncing
                     SystemEventScheduler.scheduleTrackTableCheck(context)
+                    SystemEventScheduler.scheduleSystemEvent(context)
                 } else {
                     Log.w("BootReceiver", "SDK not initialized yet or missing permissions")
                 }

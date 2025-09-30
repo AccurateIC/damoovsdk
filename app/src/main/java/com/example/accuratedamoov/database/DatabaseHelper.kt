@@ -108,11 +108,22 @@ class DatabaseHelper private constructor(context: Context) {
                 do {
                     val jsonObject = JSONObject()
                     for (i in 0 until cursor.columnCount) {
-                        jsonObject.put(cursor.getColumnName(i), cursor.getString(i))
+                        val columnName = cursor.getColumnName(i)
+
+                        // Check if column is latitude or longitude
+                        if (columnName.equals("latitude", true) || columnName.equals("longitude", true)) {
+                            // Read REAL as Double and convert to full precision string
+                            val value = cursor.getDouble(i)
+                            jsonObject.put(columnName, value.toBigDecimal().stripTrailingZeros().toPlainString())
+                        } else {
+                            // Other columns as string
+                            jsonObject.put(columnName, cursor.getString(i))
+                        }
                     }
                     jsonArray.put(jsonObject)
                 } while (cursor.moveToNext())
             }
+
         }
         return jsonArray
     }

@@ -34,7 +34,7 @@ object RetrofitClient {
 
     // ✅ New API service for Profile Summary (from SharedPreferences)
     fun getProfileApiService(context: Context): ApiService {
-        val sharedPreferences = context.getSharedPreferences("appSettings", Context.MODE_PRIVATE)
+        val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         val profileBaseUrl = sharedPreferences.getString(
             "score_url",
             "http://192.168.10.41:5000/"

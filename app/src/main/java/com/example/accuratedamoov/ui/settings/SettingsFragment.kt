@@ -51,7 +51,7 @@ class SettingsFragment : Fragment() {
         val root = inflater.inflate(R.layout.fragment_settings, container, false)
 
         apiUrlEditText = root.findViewById(R.id.apiUrlEditText)
-        scoreUrlEditText = root.findViewById(R.id.scoreUrlEditText) // new
+        scoreUrlEditText = root.findViewById(R.id.scoreUrlEditText)
         saveButton = root.findViewById(R.id.saveButton)
 
         return root
@@ -91,7 +91,7 @@ class SettingsFragment : Fragment() {
                 viewModel.saveCloudUrl(apiUrl)
 
             }
-            viewModel.saveScoreUrl(scoreUrl) // new
+            viewModel.saveScoreUrl(scoreUrl)
         }
     }
 }

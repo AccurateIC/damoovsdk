@@ -50,15 +50,19 @@ class TrackTableCheckWorker(
                     val row = tableData.getJSONObject(i)
 
                     if (row.has("latitude") && !row.isNull("latitude")) {
-                        val lat = row.getString("latitude")
-                        row.put("latitude", lat) // keep raw double
-                        Log.d("newomkar_latitude", lat.toString())
+                        val lat = row.getDouble("latitude")
+                        row.put("latitude", "%.9f".format(lat))
+                        if (table == "SampleTable") {
+                            Log.d("newomkar_latitude", "%.9f".format(lat))
+                        }
                     }
 
                     if (row.has("longitude") && !row.isNull("longitude")) {
-                        val lng = row.getString("longitude")
-                        row.put("longitude", lng)
-                        Log.d("newomkar_longitude", lng.toString())
+                        val lng = row.getDouble("longitude")
+                        row.put("longitude", "%.9f".format(lng))
+                        if (table == "SampleTable") {
+                            Log.d("newomkar_longitude", "%.9f".format(lng))
+                        }
                     }
 
                 }
