@@ -1,26 +1,44 @@
+import org.ajoberstar.grgit.Grgit
+import org.gradle.kotlin.dsl.implementation
+
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.android.libraries.mapsplatform.secrets.gradle.plugin)
+    id("org.ajoberstar.grgit") version "5.1.0"
+
     id("org.jetbrains.kotlin.kapt")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
 }
 
+
 android {
     namespace = "com.example.accuratedamoov"
     compileSdk = 35
-
+    val git: Grgit? = try {
+        Grgit.open(mapOf("currentDir" to rootDir))
+    } catch (e: Exception) {
+        null
+    }
+    val gitBranch = git?.branch?.current()?.name ?: "N/A"
+    val gitCommit = git?.head()?.abbreviatedId ?: "N/A"
+    val gitDirty = if (git?.status()?.isClean == false) "-dirty" else ""
+    val gitVersionString = "$gitBranch/$gitCommit$gitDirty"
     defaultConfig {
-
         applicationId = "com.example.accuratedamoov"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0.0"
+        // versionName: manually set here, can be automated to increment with each commit/push using CI or Grgit
+        versionName = "1.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "APP_VERSION_NAME", "\"1.0.0\"")
-
+        buildConfigField("String", "APP_VERSION_NAME", "\"$versionName\"")
+        buildConfigField("String", "GIT_VERSION", "\"$gitVersionString\"")
+        buildConfigField("String", "GIT_BRANCH", "\"$gitBranch\"")
+        buildConfigField("String", "GIT_COMMIT", "\"$gitCommit\"")
+        buildConfigField("Boolean", "GIT_DIRTY", "${gitDirty.isNotEmpty()}")
     }
 
     buildTypes {
@@ -32,17 +50,21 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
+
     buildFeatures {
         buildConfig = true
         viewBinding = true
     }
+
     packaging {
         resources {
             excludes += setOf(
@@ -92,46 +114,31 @@ dependencies {
     testImplementation(libs.mockito.core)
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core.v5110)
-
-    // For Kotlin-friendly API
     testImplementation(libs.mockito.kotlin)
-
-    // Instrumented tests (if needed)
     androidTestImplementation(libs.mockito.android)
-
-    // JUnit (if you're not using it already)
-    testImplementation(libs.junit)
-
     testImplementation(libs.mockk.v1133)
-
-// For instrumentation tests (Android)
     androidTestImplementation(libs.mockk.android)
 
-
-    ///maps
+    // Maps and UI
     implementation(libs.mapsforge.core)
     implementation(libs.mapsforge.map)
     implementation(libs.mapsforge.map.reader)
     implementation(libs.mapsforge.themes)
-    implementation(libs.mapsforge.core)
     implementation(libs.mapsforge.poi)
     implementation(libs.mapsforge.map.android)
     implementation(libs.androidsvg)
-
     implementation(libs.osmdroid.android)
     implementation(libs.guava)
     implementation("com.facebook.shimmer:shimmer:0.5.0")
-    implementation("com.airbnb.android:lottie:6.0.0")  // Use latest version
-
+    implementation("com.airbnb.android:lottie:6.0.0")
 
     implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.room.runtime)
-    kapt(libs.androidx.room.compiler) // if using annotation processing
+    kapt(libs.androidx.room.compiler)
 
     implementation(platform("com.google.firebase:firebase-bom:34.1.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("androidx.security:security-crypto:1.1.0-alpha04")
-
 }

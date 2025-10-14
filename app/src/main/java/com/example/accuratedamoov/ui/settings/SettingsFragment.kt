@@ -6,6 +6,7 @@ import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -14,6 +15,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
@@ -23,6 +25,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.work.*
+import com.example.accuratedamoov.BuildConfig
 import com.example.accuratedamoov.MainActivity
 import com.example.accuratedamoov.data.network.ApiService
 import com.example.accuratedamoov.data.network.RetrofitClient
@@ -35,6 +38,7 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 import com.example.accuratedamoov.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import java.util.Properties
 
 class SettingsFragment : Fragment() {
 
@@ -43,6 +47,12 @@ class SettingsFragment : Fragment() {
     private lateinit var apiUrlEditText: TextInputEditText
     private lateinit var scoreUrlEditText: TextInputEditText
     private lateinit var saveButton: View
+
+    // Git info TextViews
+    private lateinit var primaryVersionTextView: TextView
+    private lateinit var branchTextView: TextView
+    private lateinit var commitTextView: TextView
+    private lateinit var localChangesTextView: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -53,6 +63,10 @@ class SettingsFragment : Fragment() {
         apiUrlEditText = root.findViewById(R.id.apiUrlEditText)
         scoreUrlEditText = root.findViewById(R.id.scoreUrlEditText)
         saveButton = root.findViewById(R.id.saveButton)
+        primaryVersionTextView = root.findViewById(R.id.primaryVersionTextView)
+        branchTextView = root.findViewById(R.id.branchTextView)
+        commitTextView = root.findViewById(R.id.commitTextView)
+        localChangesTextView = root.findViewById(R.id.localChangesTextView)
 
         return root
     }
@@ -91,9 +105,25 @@ class SettingsFragment : Fragment() {
             val mainActivity = activity as? MainActivity
             if (mainActivity != null && mainActivity.isNetworkAvailable()) {
                 viewModel.saveCloudUrl(apiUrl)
-
             }
             viewModel.saveScoreUrl(scoreUrl)
         }
+
+        // Load Git info
+        loadGitInfo()
     }
+
+    private fun loadGitInfo() {
+        val branch = BuildConfig.GIT_BRANCH
+        val commit = BuildConfig.GIT_COMMIT
+        val dirty = BuildConfig.GIT_DIRTY
+        primaryVersionTextView.text = "Version: ${BuildConfig.APP_VERSION_NAME}"
+
+        branchTextView.text = "Branch: $branch"
+        commitTextView.text = "Last commit: $commit"
+        localChangesTextView.text = "Local changes: ${if (dirty) "Yes" else "No"}"
+    }
+
+
+
 }
