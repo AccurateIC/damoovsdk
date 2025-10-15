@@ -133,5 +133,5 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("androidx.security:security-crypto:1.1.0-alpha04")
-
+    implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
 }

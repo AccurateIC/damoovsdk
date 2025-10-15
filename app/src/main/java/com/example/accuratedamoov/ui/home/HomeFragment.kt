@@ -65,10 +65,7 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize MapView
-        binding.mapView.setTileSource(TileSourceFactory.MAPNIK)
-        binding.mapView.setBuiltInZoomControls(true)
-        binding.mapView.setMultiTouchControls(true)
+
 
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
@@ -83,90 +80,14 @@ class HomeFragment : Fragment() {
             return
         }
 
-        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            val b = _binding ?: return@addOnSuccessListener // safe check
-
-            if (location != null) {
-                val currentPoint = GeoPoint(location.latitude, location.longitude)
-                val mapController = b.mapView.controller as MapController
-                mapController.setZoom(15.0)
-                mapController.setCenter(currentPoint)
-
-                val marker = Marker(b.mapView).apply {
-                    position = currentPoint
-                    icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_start_location)
-                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                    title = "You are here"
-                }
-                b.mapView.overlays.add(marker)
-                b.mapView.invalidate()
-            } else {
-                Toast.makeText(context, "Unable to get current location", Toast.LENGTH_SHORT).show()
-            }
-        }
 
 
-        homeViewModel.errMsg.observe(viewLifecycleOwner, Observer { errMsg ->
-            if (errMsg.isNotEmpty()) {
-                Snackbar.make(binding.root, errMsg, Snackbar.LENGTH_LONG).show()
-            }
-        })
 
-        updateTrackingUI()
-
-        binding.startTripManually.setOnClickListener {
-            if (!trackingApi.isTracking()) {
-                homeViewModel.startTracking()
-                Snackbar.make(binding.root, "Tracking started", Snackbar.LENGTH_SHORT).show()
-            } else {
-                Snackbar.make(binding.root, "Tracking is already in progress", Snackbar.LENGTH_SHORT).show()
-            }
-            Handler(Looper.getMainLooper()).postDelayed({
-                updateTrackingUI()
-            }, 1000)
-
-        }
-
-        binding.stopTripManually.setOnClickListener {
-            homeViewModel.stopTracking()
-            Snackbar.make(binding.root, "Tracking stopped", Snackbar.LENGTH_SHORT).show()
-            Handler(Looper.getMainLooper()).postDelayed({
-                updateTrackingUI()
-            }, 1000)
-        }
-
-        setupBottomSheet(view)
     }
 
-    private fun updateTrackingUI() {
-        val isTracking = try {
-            trackingApi.isTracking()
-        } catch (e: UninitializedPropertyAccessException) {
-            false
-        } catch (e: Exception) {
-            false
-        }
-        _binding?.let { binding ->
-            binding.startTripManually.visibility = if (isTracking) View.GONE else View.VISIBLE
-            binding.stopTripManually.visibility = if (isTracking) View.VISIBLE else View.GONE
-        }
-    }
 
-    private fun setupBottomSheet(view: View) {
-        val bottomSheet = view.findViewById<NestedScrollView>(R.id.bottom_sheet)
-        val handle = view.findViewById<View>(R.id.bottom_sheet_handle)
 
-        val behavior = BottomSheetBehavior.from(bottomSheet)
-        behavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
-            override fun onSlide(bottomSheet: View, slideOffset: Float) {}
-            override fun onStateChanged(bottomSheet: View, newState: Int) {}
-        })
 
-        handle.setOnClickListener {
-            behavior.state = if (behavior.state == BottomSheetBehavior.STATE_COLLAPSED)
-                BottomSheetBehavior.STATE_EXPANDED else BottomSheetBehavior.STATE_COLLAPSED
-        }
-    }
 
     private fun checkLocationPermission(): Boolean {
         return ActivityCompat.checkSelfPermission(
@@ -180,13 +101,11 @@ class HomeFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding?.mapView?.onDetach()
-        _binding = null
+
     }
 
     override fun onResume() {
         super.onResume()
-        updateTrackingUI()
     }
 
     companion object {

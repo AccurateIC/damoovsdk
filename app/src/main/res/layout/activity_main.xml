@@ -5,7 +5,7 @@
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_login_gradient">
+    android:background="#F1F1F1">
 
     <!-- Fragment container -->
     <androidx.fragment.app.FragmentContainerView
@@ -25,12 +25,19 @@
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/nav_view"
         android:layout_width="0dp"
+        android:maxHeight="94dp"
         android:layout_height="wrap_content"
-        android:background="@drawable/bottom_nav_bg"
+        android:background="#FFFFFF"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:padding="20dp"
         app:menu="@menu/bottom_nav_menu"
+        app:itemIconSize="24dp"
         app:itemIconTint="@color/bottomnavcolor"
         app:itemTextColor="@color/bottomnavcolor"
         app:labelVisibilityMode="labeled"
+        app:itemTextAppearanceActive="@style/BottomNavTextActive"
+        app:itemTextAppearanceInactive="@style/BottomNavTextInactive"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

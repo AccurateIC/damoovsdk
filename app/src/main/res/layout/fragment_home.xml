@@ -4,68 +4,66 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="20dp"
     tools:context=".ui.home.HomeFragment">
-
-    <!-- Map in the background -->
-    <org.osmdroid.views.MapView
-        android:id="@+id/mapView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-    <!-- Floating control buttons -->
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|end"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="10dp"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="16dp">
-
-        <ImageView
-            android:id="@+id/startTripManually"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:src="@drawable/btn_start_trip" />
-
-        <ImageView
-            android:id="@+id/stopTripManually"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/btn_stop_trip" />
-    </LinearLayout>
-
-    <!-- Draggable Bottom Sheet -->
-
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/bottom_sheet"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/white"
-        android:fillViewport="true"
-        app:behavior_peekHeight="24dp"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+       >
 
+        <!-- Left section -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:visibility="gone"
+            android:layout_weight="1"
             android:orientation="vertical">
 
-            <View
-                android:id="@+id/bottom_sheet_handle"
-                android:layout_width="40dp"
-                android:layout_height="6dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="25dp"
-                android:background="@drawable/rectangle" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="0.3"
+                android:text="Good Morning,"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
 
-            <include layout="@layout/floating_bottom_sheet" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="0.7"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Omkar"
+                    android:textSize="32sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black" />
+
+                <pl.droidsonroids.gif.GifImageView
+                    android:id="@+id/gifImageView"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="5dp"
+                    android:src="@drawable/hand_wave" />
+            </LinearLayout>
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+
+        <!-- Right section: bell icon -->
+        <ImageView
+            android:id="@+id/bellIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_bell_notification"
+            android:layout_gravity="end|center_vertical"
+            android:fontFamily="@font/poppinssemibold"
+            />
+
+    </LinearLayout>
+
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
