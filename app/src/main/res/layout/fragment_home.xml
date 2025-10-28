@@ -4,66 +4,318 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="20dp"
+    android:orientation="vertical"
     tools:context=".ui.home.HomeFragment">
-    <LinearLayout
+
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-       >
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
-        <!-- Left section -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="0.3"
-                android:text="Good Morning,"
-                android:textColor="@color/black"
-                android:textSize="14sp" />
+            android:orientation="vertical"
+            android:padding="20dp">
 
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="0.7"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:id="@+id/welcomecardll"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- Left section -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_weight="0.3"
+                        android:text="Good Morning,"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_weight="0.7"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Omkar"
+                            android:textColor="@color/black"
+                            android:textSize="32sp"
+                            android:textStyle="bold" />
+
+                        <pl.droidsonroids.gif.GifImageView
+                            android:id="@+id/gifImageView"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="5dp"
+                            android:src="@drawable/hand_wave" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Right section: bell icon -->
+                <ImageView
+                    android:id="@+id/bellIcon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end|center_vertical"
+                    android:fontFamily="@font/poppinssemibold"
+                    android:src="@drawable/ic_bell_notification" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/weekcardll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:minHeight="230dp"
+                android:visibility="visible"
+                android:orientation="vertical">
 
                 <TextView
                     android:layout_width="wrap_content"
+                    android:layout_height="20dp"
+                    android:text="@string/mystreak"
+                    android:textColor="#121212"
+                    android:textSize="14sp" />
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Omkar"
-                    android:textSize="32sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/black" />
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/week_bgcar"
+                    android:orientation="vertical">
 
-                <pl.droidsonroids.gif.GifImageView
-                    android:id="@+id/gifImageView"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_marginStart="5dp"
-                    android:src="@drawable/hand_wave" />
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:id="@+id/weektv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingStart="15dp"
+                            android:text="@string/week"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+                        <pl.droidsonroids.gif.GifImageView
+                            android:id="@+id/weekGif"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            app:layout_constraintStart_toEndOf="@id/weektv"
+                            app:layout_constraintTop_toTopOf="@id/weektv"
+                            app:layout_constraintBottom_toBottomOf="@id/weektv"
+                            android:src="@drawable/fire" />
+
+                        <TextView
+                            android:id="@+id/tvdate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:paddingEnd="15dp"
+                            android:text="@string/todaysdate"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <FrameLayout
+                        android:id="@+id/weekContainerWrapper"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp">
+
+                        <LinearLayout
+                            android:id="@+id/weekContainer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:padding="10dp">
+
+                            <TextView
+                                android:id="@+id/day1"
+                                style="@style/WeekDayCircle"
+                                android:text="@string/mo" />
+
+                            <TextView
+                                android:id="@+id/day2"
+                                style="@style/WeekDayCircle"
+                                android:text="@string/tu" />
+
+                            <TextView
+                                android:id="@+id/day3"
+                                style="@style/WeekDayCircle"
+                                android:text="@string/we" />
+
+                            <TextView
+                                android:id="@+id/day4"
+                                style="@style/WeekDayCircle"
+                                android:text="@string/th" />
+
+                            <TextView
+                                android:id="@+id/day5"
+                                style="@style/WeekDayCircle"
+                                android:text="@string/fr" />
+
+                            <TextView
+                                android:id="@+id/day6"
+                                style="@style/WeekDayCircle"
+                                android:text="@string/sa" />
+
+                            <TextView
+                                android:id="@+id/day7"
+                                style="@style/WeekDayCircle"
+                                android:text="@string/su" />
+                        </LinearLayout>
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:id="@+id/underlineWrapper"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:paddingVertical="4dp">
+
+                        <View
+                            android:id="@+id/underline"
+                            android:layout_width="wrap_content"
+                            android:layout_height="4dp"
+                            android:layout_gravity="center_vertical"
+                            android:background="@drawable/ab_line" />
+
+                        <ImageView
+                            android:id="@+id/underlineIcon"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_gravity="end|center_vertical"
+                            android:layout_marginEnd="8dp"
+                            android:src="@drawable/ic_smalltruck" />
+                    </FrameLayout>
+                    <TextView
+                        android:id="@+id/driverranktv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingStart="15dp"
+                        android:text="@string/rankfordriver"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </LinearLayout>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical">
+
+                    <!-- Left aligned: Recent trip -->
+                    <TextView
+                        android:id="@+id/tvRecentTrip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/recent_trip"
+                        android:textSize="14sp"
+                        android:textColor="#121212"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true" />
+
+                    <!-- Right aligned: Next icon -->
+                    <ImageView
+                        android:id="@+id/ivNext"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_next"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                         />
+
+                    <!-- Right aligned: All trips text (left of icon) -->
+                    <TextView
+                        android:id="@+id/tvAllTrips"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="All trips"
+                        android:textSize="14sp"
+                        android:textColor="#898989"
+                        android:layout_toStartOf="@id/ivNext"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="4dp" />
+
+                </RelativeLayout>
+                <include
+                    layout="@layout/trip_info_card"
+                    android:id="@+id/tripCardInclude"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp" />
+
             </LinearLayout>
+        <LinearLayout
+            android:id="@+id/firstTimell"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:orientation="vertical"
+            >
+
+            <ImageView
+                android:id="@+id/firstTimeImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="230dp"
+                android:src="@drawable/firsttime_banner"
+                android:layout_marginTop="16dp" />
+
+            <ImageView
+                android:id="@+id/notrip"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:src="@drawable/notrips"
+                android:layout_marginTop="100dp" />
+
+            <TextView
+                android:id="@+id/firstTimeTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/oops_no_trips_found"
+                android:textColor="#121212"
+                android:textStyle="bold"
+                android:layout_gravity="center_horizontal"
+                android:textSize="24sp"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:id="@+id/firstTimeSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/start_riding_to_initiate_the_insights"
+                android:textColor="#898989"
+                android:textSize="14sp"
+                android:layout_gravity="center_horizontal"
+               />
+
         </LinearLayout>
-
-        <!-- Right section: bell icon -->
-        <ImageView
-            android:id="@+id/bellIcon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_bell_notification"
-            android:layout_gravity="end|center_vertical"
-            android:fontFamily="@font/poppinssemibold"
-            />
-
-    </LinearLayout>
-
-
-
+        </LinearLayout>
+    </ScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

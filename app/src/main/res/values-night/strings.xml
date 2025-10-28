@@ -27,4 +27,19 @@
     <string name="trips">Trips</string>
     <string name="title_trips">Trips</string>
     <string name="title_stats">Stats</string>
+    <string name="mystreak">My Streak</string>
+    <string name="week">Week</string>
+    <string name="todaysdate">Todays Date</string>
+    <string name="su">Su</string>
+    <string name="sa">Sa</string>
+    <string name="fr">Fr</string>
+    <string name="th">Th</string>
+    <string name="we">We</string>
+    <string name="tu">Tu</string>
+    <string name="mo">Mo</string>
+    <string name="rankfordriver">You are amongst our Top 10 drivers this week</string>
+    <string name="oops_no_trips_found">Oops! No trips found</string>
+    <string name="start_riding_to_initiate_the_insights">Start riding to initiate the insights</string>
+    <string name="recent_trip">Recent Trip</string>
+    <string name="subtext_for_your_trips">You can preview your route and data from each trip, just select a trip.</string>
 </resources>

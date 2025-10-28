@@ -27,13 +27,20 @@ import kotlinx.coroutines.launch
 import retrofit2.Response
 import java.util.UUID
 import androidx.core.content.edit
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.telematicssdk.tracking.TrackingApi
+import kotlinx.coroutines.withContext
 
 class FeedViewModel(application: Application) : AndroidViewModel(application) {
 
     private val trackingApi = TrackingApi.getInstance()
     private val _uiState = MutableStateFlow<FeedUiState>(FeedUiState.Loading)
     val uiState: StateFlow<FeedUiState> = _uiState.asStateFlow()
+
+
+    private val _lastTrip = MutableLiveData<TripData>()
+    val lastTrip: LiveData<TripData> = _lastTrip
 
     @SuppressLint("StaticFieldLeak")
     private val context = application.applicationContext
@@ -86,9 +93,14 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                         ?: emptyList()
 
                     _uiState.value = FeedUiState.Success(trips)
+                    withContext(Dispatchers.Main) {
+                        if (trips.isNotEmpty()) {
+                            _lastTrip.value = trips.first()
+                        }
+                    }
 
-
-                    val sharedPref = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                    val sharedPref =
+                        context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
                     val tripCount = trips.size
                     val totalDistanceKm = trips.sumOf { it.distance_km }
@@ -98,7 +110,10 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                             .putInt("total_distance", totalDistanceKm.toInt())
                     }
 
-                    Log.d("SharedPref", "Saved Trip Count: $tripCount, Distance: $totalDistanceKm km")
+                    Log.d(
+                        "SharedPref",
+                        "Saved Trip Count: $tripCount, Distance: $totalDistanceKm km"
+                    )
 
                 } else {
                     val error = response.errorBody()?.string() ?: "Unknown error"
@@ -110,4 +125,28 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
+    fun getLastTrip(): TripData? {
+        val currentState = _uiState.value
+        Log.d("LastTrip", "Current UI State: $currentState")
+        return if (currentState is FeedUiState.Success && currentState.trips.isNotEmpty()) {
+            currentState.trips.first()
+        } else null
+    }
+
+
+    fun refreshLastTrip() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val latestTrip = getLastTrip()
+            withContext(Dispatchers.Main) {
+                if (latestTrip != null) {
+                    _lastTrip.value = latestTrip
+                } else {
+                    Log.w("FeedViewModel", "No last trip found when refreshing")
+                }
+            }
+        }
+    }
 }
+
+

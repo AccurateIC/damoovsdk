@@ -34,15 +34,16 @@ import java.util.Calendar
 import java.util.Locale
 
 
+
 class FeedFragment : Fragment() {
 
     private var _binding: FragmentFeedBinding? = null
     private val binding get() = _binding!!
     private val feedViewModel: FeedViewModel by viewModels()
     private var allTrips: List<TripData> = emptyList()
-    private var selectedDate: String? = null
     private lateinit var trackAdapter: TrackAdapter
     private lateinit var shimmerAdapter: ShimmerAdapter
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -55,6 +56,7 @@ class FeedFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // RecyclerView setup
         binding.recycleView.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
@@ -62,56 +64,28 @@ class FeedFragment : Fragment() {
 
         trackAdapter = TrackAdapter(emptyList(), requireContext())
         binding.recycleView.adapter = trackAdapter
-        shimmerAdapter = ShimmerAdapter(6)
-        binding.shimmerRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-        binding.shimmerRecyclerView.adapter = shimmerAdapter
 
-        binding.shimmerLayout.startShimmer()
-        binding.shimmerLayout.visibility = View.VISIBLE
+        // Shimmer setup
+        shimmerAdapter = ShimmerAdapter(6)
+
+
+       /* // Divider between trip cards
         val dividerItemDecoration = DividerItemDecoration(context, LinearLayoutManager.VERTICAL)
-        binding.recycleView.addItemDecoration(dividerItemDecoration)
+        binding.recycleView.addItemDecoration(dividerItemDecoration)*/
+
         val mainActivity = activity as? MainActivity
-        if(mainActivity!= null && mainActivity.isNetworkAvailable()) {
+        if (mainActivity != null && mainActivity.isNetworkAvailable()) {
             feedViewModel.loadTripsIfNeeded()
         }
+
         observeData()
 
+        // Swipe-to-refresh
         binding.swipeRefreshLayout.setOnRefreshListener {
-            if(mainActivity!= null && mainActivity.isNetworkAvailable()) {
+            if (mainActivity != null && mainActivity.isNetworkAvailable()) {
                 feedViewModel.fetchTrips()
             }
             binding.swipeRefreshLayout.isRefreshing = false
-        }
-        val dateAdapter = DateAdapter { date ->
-            selectedDate = date
-            binding.tvDateLabel.text = date
-            filterTripsByDate()
-        }
-        dateAdapter.clearSelection()
-
-        binding.dateRecyclerView.layoutManager =
-            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        binding.dateRecyclerView.adapter = dateAdapter
-
-        // ✅ Always select Today at launch
-        selectedDate = "Today"
-        binding.tvDateLabel.text = "Today"
-        filterTripsByDate()
-
-        binding.dateRecyclerView.post {
-            binding.dateRecyclerView.scrollToPosition(dateAdapter.itemCount - 1)
-        }
-
-        binding.tvToday.setOnClickListener {
-            selectedDate = "Today"
-            binding.tvDateLabel.text = "Today"
-            dateAdapter.clearSelection()
-
-            val lastPos = dateAdapter.itemCount - 1
-            if (lastPos >= 0) {
-                binding.dateRecyclerView.smoothScrollToPosition(lastPos)
-            }
-            filterTripsByDate()
         }
     }
 
@@ -125,15 +99,13 @@ class FeedFragment : Fragment() {
             feedViewModel.uiState.collect { state ->
                 when (state) {
                     is FeedUiState.Loading -> {
-                        binding.shimmerLayout.startShimmer()
-                        showOnly(binding.shimmerLayout)
+
                     }
 
                     is FeedUiState.Success -> {
-                        binding.shimmerLayout.stopShimmer()
                         if (state.trips.isNotEmpty()) {
                             allTrips = state.trips
-                            filterTripsByDate()
+                            updateTripList(allTrips)
                             showOnly(binding.recycleView)
                         } else {
                             showOnly(binding.tvZeroTrips)
@@ -141,7 +113,6 @@ class FeedFragment : Fragment() {
                     }
 
                     is FeedUiState.Error -> {
-                        binding.shimmerLayout.stopShimmer()
                         showOnly(binding.tvZeroTrips)
                         Toast.makeText(
                             requireContext(),
@@ -155,54 +126,28 @@ class FeedFragment : Fragment() {
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    private fun filterTripsByDate() {
-        _binding?.let { binding ->
-            binding.shimmerLayout.startShimmer()
-            showOnly(binding.shimmerLayout)
-        }
-
+    private fun updateTripList(trips: List<TripData>) {
         viewLifecycleOwner.lifecycleScope.launch {
-            delay(800) // short shimmer delay for smoothness
+            // short shimmer delay for smooth UI
+            delay(500)
+            trackAdapter.updateData(trips)
 
-            val dateFormatInput = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-            val dateFormatOutput = SimpleDateFormat("dd MMM", Locale.getDefault())
-            val todayString = dateFormatOutput.format(Calendar.getInstance().time)
-
-            val targetDate = if (selectedDate == "Today") todayString else selectedDate
-
-            val filteredTrips = if (targetDate.isNullOrEmpty()) {
-                allTrips
+            if (trips.isNotEmpty()) {
+                showOnly(binding.recycleView)
             } else {
-                allTrips.filter { trip ->
-                    try {
-                        val parsedDate = dateFormatInput.parse(trip.start_date_ist)
-                        val formattedDate = dateFormatOutput.format(parsedDate!!)
-                        formattedDate == targetDate
-                    } catch (e: Exception) {
-                        false
-                    }
-                }
+                showOnly(binding.tvZeroTrips)
             }
 
-            _binding?.let { binding ->
-                trackAdapter.updateData(filteredTrips)
-
-                if (filteredTrips.isNotEmpty()) {
-                    showOnly(binding.recycleView)
-                } else {
-                    showOnly(binding.tvZeroTrips)
-                }
-
-                // stop shimmer
-                binding.shimmerLayout.stopShimmer()
-            }
         }
     }
 
     private fun showOnly(viewToShow: View) {
-        binding.recycleView.visibility = if (viewToShow == binding.recycleView) View.VISIBLE else View.GONE
-        binding.shimmerLayout.visibility = if (viewToShow == binding.shimmerLayout) View.VISIBLE else View.GONE
-        binding.tvZeroTrips.visibility = if (viewToShow == binding.tvZeroTrips) View.VISIBLE else View.GONE
+        binding.recycleView.visibility =
+            if (viewToShow == binding.recycleView) View.VISIBLE else View.GONE
+
+        binding.tvZeroTrips.visibility =
+            if (viewToShow == binding.tvZeroTrips) View.VISIBLE else View.GONE
     }
 }
+
 
