@@ -80,7 +80,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:minHeight="230dp"
                 android:visibility="visible"
                 android:orientation="vertical">
 
@@ -94,7 +93,7 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="200dp"
                     android:layout_marginTop="20dp"
                     android:background="@drawable/week_bgcar"
                     android:orientation="vertical">
@@ -266,7 +265,7 @@
                     layout="@layout/trip_info_card"
                     android:id="@+id/tripCardInclude"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="200dp"
                     android:layout_marginTop="12dp" />
 
             </LinearLayout>

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".ui.feed.FeedFragment">
 
-    <!-- Header Text + Animated Icon -->
+    <!-- Header -->
     <LinearLayout
         android:id="@+id/headerContainer"
         android:layout_width="0dp"
@@ -35,6 +35,8 @@
             android:contentDescription="@string/app_name"
             android:src="@drawable/ic_rocket" />
     </LinearLayout>
+
+    <!-- Subheader -->
     <TextView
         android:id="@+id/subHeaderText"
         android:layout_width="0dp"
@@ -49,6 +51,69 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Filter Section -->
+    <LinearLayout
+        android:id="@+id/filterContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:maxHeight="40dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="horizontal"
+        android:weightSum="1"
+        app:layout_constraintTop_toBottomOf="@id/subHeaderText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Date Picker Filter -->
+        <TextView
+            android:id="@+id/filterDate"
+            android:layout_width="0dp"
+            android:layout_weight=".33"
+            android:layout_height="match_parent"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:layout_marginLeft="16dp"
+            android:text="date"
+            android:textColor="#000000"
+            android:background="@drawable/filter_bg"
+            android:textSize="12sp"
+            android:drawableStart="@drawable/ic_calender"
+            android:drawablePadding="6dp" />
+
+        <!-- Distance Filter -->
+        <TextView
+            android:id="@+id/filterDistance"
+            android:layout_width="0dp"
+            android:layout_weight=".33"
+            android:layout_height="match_parent"
+            android:layout_marginStart="8dp"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:text="Distance"
+            android:textColor="#000000"
+            android:textSize="12sp"
+            android:background="@drawable/filter_bg"
+            android:drawableEnd="@drawable/ic_down_arrow"
+            android:drawablePadding="6dp" />
+
+        <!-- Time Travelled Filter -->
+        <TextView
+            android:id="@+id/filterTime"
+            android:layout_width="0dp"
+            android:layout_weight=".33"
+            android:layout_height="match_parent"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="16dp"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:text="Time"
+            android:textColor="#000000"
+            android:background="@drawable/filter_bg"
+            android:textSize="12sp"
+            android:drawableEnd="@drawable/ic_down_arrow"
+            android:drawablePadding="6dp" />
+    </LinearLayout>
 
     <!-- Zero trips text -->
     <TextView
@@ -62,24 +127,23 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/subHeaderText" />
+        app:layout_constraintTop_toBottomOf="@id/filterContainer" />
 
-    <!-- Swipe refresh + RecyclerView -->
+    <!-- RecyclerView -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         android:layout_margin="16dp"
+        app:layout_constraintTop_toBottomOf="@id/filterContainer"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/subHeaderText">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycleView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="gone"
             tools:listitem="@layout/trip_info_card" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

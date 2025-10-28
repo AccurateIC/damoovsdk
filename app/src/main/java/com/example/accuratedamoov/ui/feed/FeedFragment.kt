@@ -2,6 +2,7 @@ package com.example.accuratedamoov.ui.feed
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.DatePickerDialog
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
@@ -26,14 +27,14 @@ import com.example.accuratedamoov.model.FeedUiState
 import com.example.accuratedamoov.ui.feed.adapter.DateAdapter
 import com.example.accuratedamoov.ui.feed.adapter.ShimmerAdapter
 import com.example.accuratedamoov.ui.feed.adapter.TrackAdapter
+import com.google.android.material.datepicker.CalendarConstraints
+import com.google.android.material.datepicker.MaterialDatePicker
 import kotlinx.coroutines.delay
-
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.Calendar
+import java.util.Date
 import java.util.Locale
-
-
+import com.example.accuratedamoov.R
 
 class FeedFragment : Fragment() {
 
@@ -56,7 +57,6 @@ class FeedFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // RecyclerView setup
         binding.recycleView.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
@@ -65,13 +65,7 @@ class FeedFragment : Fragment() {
         trackAdapter = TrackAdapter(emptyList(), requireContext())
         binding.recycleView.adapter = trackAdapter
 
-        // Shimmer setup
         shimmerAdapter = ShimmerAdapter(6)
-
-
-       /* // Divider between trip cards
-        val dividerItemDecoration = DividerItemDecoration(context, LinearLayoutManager.VERTICAL)
-        binding.recycleView.addItemDecoration(dividerItemDecoration)*/
 
         val mainActivity = activity as? MainActivity
         if (mainActivity != null && mainActivity.isNetworkAvailable()) {
@@ -80,12 +74,21 @@ class FeedFragment : Fragment() {
 
         observeData()
 
-        // Swipe-to-refresh
         binding.swipeRefreshLayout.setOnRefreshListener {
             if (mainActivity != null && mainActivity.isNetworkAvailable()) {
                 feedViewModel.fetchTrips()
             }
             binding.swipeRefreshLayout.isRefreshing = false
+        }
+
+        // ✅ Custom Material DatePicker
+        binding.filterDate.setOnClickListener {
+            context?.let { it1 ->
+                CustomDatePickerDialog(it1) { selectedDate ->
+                    val sdf = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+                    //filterDate.text = sdf.format(selectedDate.time)
+                }
+            }?.show()
         }
     }
 
@@ -98,27 +101,19 @@ class FeedFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             feedViewModel.uiState.collect { state ->
                 when (state) {
-                    is FeedUiState.Loading -> {
-
-                    }
+                    is FeedUiState.Loading -> {}
 
                     is FeedUiState.Success -> {
                         if (state.trips.isNotEmpty()) {
                             allTrips = state.trips
                             updateTripList(allTrips)
                             showOnly(binding.recycleView)
-                        } else {
-                            showOnly(binding.tvZeroTrips)
-                        }
+                        } else showOnly(binding.tvZeroTrips)
                     }
 
                     is FeedUiState.Error -> {
                         showOnly(binding.tvZeroTrips)
-                        Toast.makeText(
-                            requireContext(),
-                            "Error: ${state.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(requireContext(), "Error: ${state.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -128,26 +123,20 @@ class FeedFragment : Fragment() {
     @SuppressLint("NotifyDataSetChanged")
     private fun updateTripList(trips: List<TripData>) {
         viewLifecycleOwner.lifecycleScope.launch {
-            // short shimmer delay for smooth UI
             delay(500)
             trackAdapter.updateData(trips)
-
-            if (trips.isNotEmpty()) {
-                showOnly(binding.recycleView)
-            } else {
-                showOnly(binding.tvZeroTrips)
-            }
-
+            if (trips.isNotEmpty()) showOnly(binding.recycleView)
+            else showOnly(binding.tvZeroTrips)
         }
     }
 
     private fun showOnly(viewToShow: View) {
-        binding.recycleView.visibility =
-            if (viewToShow == binding.recycleView) View.VISIBLE else View.GONE
-
-        binding.tvZeroTrips.visibility =
-            if (viewToShow == binding.tvZeroTrips) View.VISIBLE else View.GONE
+        binding.recycleView.visibility = if (viewToShow == binding.recycleView) View.VISIBLE else View.GONE
+        binding.tvZeroTrips.visibility = if (viewToShow == binding.tvZeroTrips) View.VISIBLE else View.GONE
     }
+
+
+
 }
 
 
