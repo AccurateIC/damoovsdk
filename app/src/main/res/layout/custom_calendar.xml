@@ -1,43 +1,62 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/custom_calendar_bg"
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- Header -->
-    <LinearLayout
+    <!-- Header (unchanged) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="start"
-        android:orientation="horizontal"
         android:layout_marginBottom="20dp"
         android:padding="8dp">
-
 
         <TextView
             android:id="@+id/monthTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="October 2025"
+            android:text="October"
             android:textSize="24sp"
             android:textColor="#121212"
-             />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginEnd="16dp" />
 
         <ImageView
             android:id="@+id/prevMonth"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:contentDescription="Previous Month"
-            android:src="@drawable/ic_left_arrow" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_left_arrow"
+            app:layout_constraintStart_toEndOf="@id/monthTitle"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/nextMonth"
+             />
 
         <ImageView
             android:id="@+id/nextMonth"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:contentDescription="Next Month"
-            android:src="@drawable/ic_right_arrow" />
-    </LinearLayout>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_right_arrow"
+            app:layout_constraintStart_toEndOf="@id/prevMonth"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/closeIv"
+             />
+
+        <ImageView
+            android:id="@+id/closeIv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_cross"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 
     <!-- Weekday labels -->
     <LinearLayout
@@ -48,78 +67,26 @@
         android:gravity="center"
         android:orientation="horizontal">
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="MON"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="TUE"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="WED"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="THU"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="FRI"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="SAT"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="SUN"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+        <TextView android:text="Mon" style="@style/WeekdayStyle"/>
+        <TextView android:text="Tue" style="@style/WeekdayStyle"/>
+        <TextView android:text="Wed" style="@style/WeekdayStyle"/>
+        <TextView android:text="Thu" style="@style/WeekdayStyle"/>
+        <TextView android:text="Fri" style="@style/WeekdayStyle"/>
+        <TextView android:text="Sat" style="@style/WeekdayStyle"/>
+        <TextView android:text="Sun" style="@style/WeekdayStyle"/>
     </LinearLayout>
 
-    <!-- Calendar grid -->
-    <GridView
+    <!-- Fixed calendar grid -->
+    <GridLayout
         android:id="@+id/calendarGrid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:horizontalSpacing="6dp"
-        android:numColumns="7"
-        android:verticalSpacing="6dp" />
+        android:columnCount="7"
+        android:rowCount="6"
+        android:alignmentMode="alignMargins"
+        android:useDefaultMargins="true"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp" />
 
     <!-- Confirm button aligned to right -->
     <LinearLayout
@@ -138,5 +105,4 @@
             android:textAllCaps="false"
             android:textColor="@color/white" />
     </LinearLayout>
-
 </LinearLayout>

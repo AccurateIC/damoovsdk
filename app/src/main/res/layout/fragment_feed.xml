@@ -56,7 +56,7 @@
         android:id="@+id/filterContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:maxHeight="40dp"
+        android:minHeight="45dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
         android:orientation="horizontal"
@@ -71,15 +71,16 @@
             android:layout_width="0dp"
             android:layout_weight=".33"
             android:layout_height="match_parent"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="6dp"
+            android:padding="12dp"
+            android:textSize="10sp"
             android:layout_marginLeft="16dp"
-            android:text="date"
+            android:text="Select Date"
             android:textColor="#000000"
+            android:gravity="center_vertical"
+            android:maxLines="1"
             android:background="@drawable/filter_bg"
-            android:textSize="12sp"
             android:drawableStart="@drawable/ic_calender"
-            android:drawablePadding="6dp" />
+            android:drawablePadding="16dp" />
 
         <!-- Distance Filter -->
         <TextView
@@ -88,14 +89,16 @@
             android:layout_weight=".33"
             android:layout_height="match_parent"
             android:layout_marginStart="8dp"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="6dp"
+            android:padding="12dp"
+            android:textSize="10sp"
             android:text="Distance"
+            android:gravity="center"
             android:textColor="#000000"
-            android:textSize="12sp"
             android:background="@drawable/filter_bg"
+            android:drawablePadding="16dp"
+            android:maxLines="1"
             android:drawableEnd="@drawable/ic_down_arrow"
-            android:drawablePadding="6dp" />
+             />
 
         <!-- Time Travelled Filter -->
         <TextView
@@ -106,13 +109,17 @@
             android:layout_marginStart="8dp"
             android:layout_marginEnd="16dp"
             android:paddingHorizontal="12dp"
-            android:paddingVertical="6dp"
-            android:text="Time"
+            android:paddingVertical="12dp"
+            android:text="Time Travelled"
             android:textColor="#000000"
+            android:padding="12dp"
+            android:maxLines="1"
+            android:textSize="10sp"
+            android:gravity="center"
             android:background="@drawable/filter_bg"
-            android:textSize="12sp"
+            android:drawablePadding="16dp"
             android:drawableEnd="@drawable/ic_down_arrow"
-            android:drawablePadding="6dp" />
+           />
     </LinearLayout>
 
     <!-- Zero trips text -->
@@ -143,7 +150,7 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycleView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             tools:listitem="@layout/trip_info_card" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/tripCardRoot"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="200dp"
     android:orientation="vertical"
     android:padding="16dp"
     android:layout_marginBottom="12dp"
@@ -36,7 +36,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/tripInfoLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_marginTop="8dp">
 
         <!-- Source Info -->
@@ -82,6 +82,7 @@
                 android:textSize="16sp"
                 android:textColor="#121212"
                 android:textStyle="bold"
+                android:maxLines="1"
                 android:layout_marginTop="8dp" />
 
             <TextView
@@ -89,7 +90,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Maharashtra, India"
-                android:maxLines="1"
+                android:maxLines="2"
                 android:ellipsize="end"
                 android:textSize="12sp"
                 android:textColor="#898989" />
@@ -101,11 +102,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:gravity="center"
+            android:layout_margin="10dp"
+            android:gravity="center_horizontal"
             app:layout_constraintStart_toEndOf="@id/sourceInfo"
             app:layout_constraintEnd_toStartOf="@id/destInfo"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
+            >
 
             <ImageView
                 android:id="@+id/carIcon"
@@ -178,7 +180,7 @@
                 android:maxLines="1"
                 android:ellipsize="end"
                 android:layout_marginTop="8dp"
-                android:gravity="end" />
+                android:gravity="start" />
 
             <TextView
                 android:id="@+id/destLocationSub"
@@ -186,10 +188,10 @@
                 android:layout_height="wrap_content"
                 android:text="Maharashtra, India"
                 android:textSize="12sp"
-                android:maxLines="1"
+                android:maxLines="2"
                 android:ellipsize="end"
                 android:textColor="#898989"
-                android:gravity="end" />
+                android:gravity="start" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
