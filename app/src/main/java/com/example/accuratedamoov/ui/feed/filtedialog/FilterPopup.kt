@@ -50,7 +50,7 @@ class FilterPopup(
             elevation = 8f
             isOutsideTouchable = true
             isFocusable = true
-            setBackgroundDrawable(context.getDrawable(android.R.color.transparent))
+
         }
 
         // Handle item click

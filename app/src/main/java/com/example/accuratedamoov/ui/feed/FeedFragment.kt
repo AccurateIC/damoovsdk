@@ -5,20 +5,26 @@ import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.accuratedamoov.MainActivity
 import com.example.accuratedamoov.data.model.TripData
 import com.example.accuratedamoov.databinding.FragmentDashboardBinding
@@ -39,6 +45,8 @@ import com.example.accuratedamoov.ui.feed.filtedialog.CustomDatePickerDialog
 import com.example.accuratedamoov.ui.feed.filtedialog.FilterPopup
 import java.util.Calendar
 import kotlin.let
+import kotlin.math.ceil
+import androidx.core.view.isVisible
 
 
 class FeedFragment : Fragment() {
@@ -51,15 +59,21 @@ class FeedFragment : Fragment() {
     private lateinit var shimmerAdapter: ShimmerAdapter
 
     private var allTrips: List<TripData> = emptyList()
+    private var filteredTrips: List<TripData> = emptyList()
 
     private val dateParser = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
     private val displayDateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
 
-    // Filter selections
+    // Filters
     private var selectedStartDate: Date? = null
     private var selectedEndDate: Date? = null
     private var selectedDistanceRange: Pair<Float, Float>? = null
     private var selectedTimeRange: Pair<Int, Int>? = null
+
+    // Pagination
+    private var currentPage = 1
+    private val pageSize = 5
+    private var totalPages = 1
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -72,9 +86,13 @@ class FeedFragment : Fragment() {
         setupRecyclerView()
         setupDefaults()
         setupFilters()
+        setupPaginationControls()
         observeData()
     }
 
+    // -----------------------------
+    // RecyclerView Setup
+    // -----------------------------
     private fun setupRecyclerView() {
         binding.recycleView.apply {
             setHasFixedSize(true)
@@ -83,8 +101,44 @@ class FeedFragment : Fragment() {
         trackAdapter = TrackAdapter(emptyList(), requireContext())
         shimmerAdapter = ShimmerAdapter(6)
         binding.recycleView.adapter = trackAdapter
+
+        binding.recycleView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val layoutManager = recyclerView.layoutManager as? LinearLayoutManager ?: return
+                val firstVisible = layoutManager.findFirstVisibleItemPosition()
+                val lastVisible = layoutManager.findLastVisibleItemPosition()
+                val totalScrolled = lastVisible + 1 // number of items scrolled past
+
+                // Show after scrolling past 5 items
+                if (totalScrolled >= 5 && binding.pageControls.visibility != View.VISIBLE) {
+                    binding.pageControls.animate()
+                        .alpha(1f)
+                        .setDuration(250)
+                        .withStartAction {
+                            binding.pageControls.visibility = View.VISIBLE
+                        }
+                        .start()
+                }
+                // Hide if user scrolls back up near top
+                else if (totalScrolled <= 5 && binding.pageControls.isVisible) {
+                    binding.pageControls.animate()
+                        .alpha(0f)
+                        .setDuration(250)
+                        .withEndAction {
+                            binding.pageControls.visibility = View.GONE
+                        }
+                        .start()
+                }
+            }
+        })
+
     }
 
+    // -----------------------------
+    // Defaults
+    // -----------------------------
     private fun setupDefaults() {
         val mainActivity = activity as? MainActivity
         if (mainActivity?.isNetworkAvailable() == true) {
@@ -103,7 +157,7 @@ class FeedFragment : Fragment() {
     }
 
     // -----------------------------
-    // FILTER SETUP
+    // Filters
     // -----------------------------
     private fun setupFilters() {
         setupDateFilter()
@@ -117,22 +171,28 @@ class FeedFragment : Fragment() {
                 selectedStartDate = start.time
                 selectedEndDate = end.time
                 binding.filterDate.apply {
-                    text = "${displayDateFormat.format(start.time)} → ${displayDateFormat.format(end.time)}"
+                    text =
+                        "${displayDateFormat.format(start.time)} → ${displayDateFormat.format(end.time)}"
                     setBackgroundResource(R.drawable.bg_filter_selected)
                 }
-                applyAllFilters()
+                filterTrips()
             }.apply {
-                // Disallow future dates
                 setMaxDate(Calendar.getInstance().timeInMillis)
             }.show()
         }
     }
 
     private fun setupDistanceFilter() {
-        val distanceOptions = listOf("0–5 km", "5–10 km", "10–20 km", "20–50 km", "50–100 km", "100+ km")
+        val distanceOptions =
+            listOf("0–5 km", "5–10 km", "10–20 km", "20–50 km", "50–100 km", "100+ km")
 
         binding.filterDistance.setOnClickListener {
-            FilterPopup(requireContext(), binding.filterDistance, "Select Distance", distanceOptions) { selected ->
+            FilterPopup(
+                requireContext(),
+                binding.filterDistance,
+                "Select Distance",
+                distanceOptions
+            ) { selected ->
                 selectedDistanceRange = when (selected) {
                     "0–5 km" -> 0f to 5f
                     "5–10 km" -> 5f to 10f
@@ -146,7 +206,7 @@ class FeedFragment : Fragment() {
                     text = selected
                     setBackgroundResource(R.drawable.bg_filter_selected)
                 }
-                applyAllFilters()
+                filterTrips()
             }.show()
         }
     }
@@ -155,7 +215,12 @@ class FeedFragment : Fragment() {
         val timeOptions = listOf("0–30 min", "30–60 min", "1–2 hrs", "2–3 hrs", "3–5 hrs", "5+ hrs")
 
         binding.filterTime.setOnClickListener {
-            FilterPopup(requireContext(), binding.filterTime, "Select Time Travelled", timeOptions) { selected ->
+            FilterPopup(
+                requireContext(),
+                binding.filterTime,
+                "Select Time Travelled",
+                timeOptions
+            ) { selected ->
                 selectedTimeRange = when (selected) {
                     "0–30 min" -> 0 to 30
                     "30–60 min" -> 30 to 60
@@ -169,39 +234,13 @@ class FeedFragment : Fragment() {
                     text = selected
                     setBackgroundResource(R.drawable.bg_filter_selected)
                 }
-                applyAllFilters()
+                filterTrips()
             }.show()
         }
     }
 
     // -----------------------------
-    // FILTER LOGIC
-    // -----------------------------
-    private fun applyAllFilters() {
-        val filtered = allTrips.filter { trip ->
-            try {
-                val tripDate = dateParser.parse(trip.start_date_ist.toString())
-                val distanceKm = trip.distance_km
-                val durationMinutes = parseDurationToMinutes(trip.duration_hh_mm)
-
-                val matchesDate = tripDate != null &&
-                        (selectedStartDate == null || !tripDate.before(selectedStartDate)) &&
-                        (selectedEndDate == null || !tripDate.after(selectedEndDate))
-
-                val matchesDistance = selectedDistanceRange?.let { distanceKm in it.first..it.second } ?: true
-                val matchesTime = selectedTimeRange?.let { durationMinutes in it.first..it.second } ?: true
-
-                matchesDate && matchesDistance && matchesTime
-            } catch (e: Exception) {
-                false
-            }
-        }
-
-        updateTripList(filtered)
-    }
-
-    // -----------------------------
-    // DATA OBSERVATION
+    // Data Observation
     // -----------------------------
     private fun observeData() {
         viewLifecycleOwner.lifecycleScope.launch {
@@ -210,9 +249,10 @@ class FeedFragment : Fragment() {
                     is FeedUiState.Loading -> {}
                     is FeedUiState.Success -> {
                         allTrips = state.trips
-                        applyAllFilters() // Retain filters on reload
+                        filterTrips()
                         restoreFilterTexts()
                     }
+
                     is FeedUiState.Error -> {
                         showOnly(binding.tvZeroTrips)
                         Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
@@ -222,10 +262,151 @@ class FeedFragment : Fragment() {
         }
     }
 
+    // -----------------------------
+    // Filtering & Pagination Logic
+    // -----------------------------
+    private fun filterTrips() {
+        filteredTrips = allTrips.filter { trip ->
+            try {
+                val tripDate = dateParser.parse(trip.start_date_ist.toString())
+                val distanceKm = trip.distance_km
+                val durationMinutes = parseDurationToMinutes(trip.duration_hh_mm)
+
+                val matchesDate = tripDate != null &&
+                        (selectedStartDate == null || !tripDate.before(selectedStartDate)) &&
+                        (selectedEndDate == null || !tripDate.after(selectedEndDate))
+
+                val matchesDistance =
+                    selectedDistanceRange?.let { distanceKm in it.first..it.second } ?: true
+                val matchesTime =
+                    selectedTimeRange?.let { durationMinutes in it.first..it.second } ?: true
+
+                matchesDate && matchesDistance && matchesTime
+            } catch (e: Exception) {
+                false
+            }
+        }
+
+        totalPages = ceil(filteredTrips.size / pageSize.toDouble()).toInt().coerceAtLeast(1)
+        currentPage = 1
+        showPage(currentPage)
+    }
+
+    private fun setupPaginationControls() {
+
+        binding.prevPageBtn.setOnClickListener {
+            if (currentPage > 1) {
+                currentPage--
+                showPage(currentPage)
+            }
+        }
+
+        binding.nextPageBtn.setOnClickListener {
+            if (currentPage < totalPages) {
+                currentPage++
+                showPage(currentPage)
+            }
+        }
+    }
+
+    private fun showPage(page: Int) {
+        val fromIndex = (page - 1) * pageSize
+        val toIndex = minOf(fromIndex + pageSize, filteredTrips.size)
+        val pageItems = if (fromIndex < filteredTrips.size) filteredTrips.subList(
+            fromIndex,
+            toIndex
+        ) else emptyList()
+
+        trackAdapter.updateData(pageItems)
+        showOnly(if (pageItems.isNotEmpty()) binding.recycleView else binding.tvZeroTrips)
+
+        updatePageNumbers()
+    }
+
+    // -----------------------------
+// Page Number UI Updater
+// -----------------------------
+    private fun updatePageNumbers() {
+        val container = binding.pageNumbersContainer
+        container.removeAllViews()
+
+        if (totalPages <= 1) return
+
+        val displayMetrics = resources.displayMetrics
+        val size = (40 * displayMetrics.density).toInt() // ~40dp square
+
+// Calculate which 3 numbers to show around currentPage
+        val startPage = maxOf(1, currentPage - 1)
+        val endPage = minOf(totalPages, startPage + 2)
+
+        for (page in startPage..endPage) {
+            val textView = TextView(requireContext()).apply {
+                text = page.toString()
+                textSize = 14f
+                gravity = Gravity.CENTER
+                setTextColor(
+                    if (page == currentPage) Color.WHITE
+                    else Color.BLACK
+                )
+                background = ContextCompat.getDrawable(
+                    requireContext(),
+                    if (page == currentPage)
+                        R.drawable.bg_filter_selected // highlight current
+                    else
+                        R.drawable.filter_bg // normal style
+                )
+                setOnClickListener {
+                    currentPage = page
+                    showPage(currentPage)
+                }
+            }
+
+            val params = LinearLayout.LayoutParams(size, size)
+            val margin = (5 * displayMetrics.density).toInt()
+            params.setMargins(margin, margin, margin, margin)
+            textView.layoutParams = params
+
+            container.addView(textView)
+        }
+
+
+        // Update arrow states (enable/disable)
+        binding.prevPageBtn.alpha = if (currentPage > 1) 1f else 0.3f
+        binding.nextPageBtn.alpha = if (currentPage < totalPages) 1f else 0.3f
+    }
+
+
+    // -----------------------------
+    // Helpers
+    // -----------------------------
+    private fun parseDurationToMinutes(duration: Any?): Int {
+        return when (duration) {
+            is Int -> duration
+            is String -> {
+                val parts = duration.split(":")
+                if (parts.size == 2) {
+                    val hours = parts[0].toIntOrNull() ?: 0
+                    val minutes = parts[1].toIntOrNull() ?: 0
+                    hours * 60 + minutes
+                } else duration.toIntOrNull() ?: 0
+            }
+
+            else -> 0
+        }
+    }
+
+    private fun showOnly(viewToShow: View) {
+        binding.recycleView.visibility =
+            if (viewToShow == binding.recycleView) View.VISIBLE else View.GONE
+        binding.tvZeroTrips.visibility =
+            if (viewToShow == binding.tvZeroTrips) View.VISIBLE else View.GONE
+    }
+
     private fun restoreFilterTexts() {
         selectedStartDate?.let { start ->
             selectedEndDate?.let { end ->
-                binding.filterDate.text = "${displayDateFormat.format(start)} → ${displayDateFormat.format(end)}"
+                binding.filterDate.text =
+                    "${displayDateFormat.format(start)} → ${displayDateFormat.format(end)}"
             }
         }
         selectedDistanceRange?.let {
@@ -236,50 +417,10 @@ class FeedFragment : Fragment() {
         }
     }
 
-    // -----------------------------
-    // UI HELPERS
-    // -----------------------------
-    @SuppressLint("NotifyDataSetChanged")
-    private fun updateTripList(trips: List<TripData>) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            delay(250)
-            trackAdapter.updateData(trips)
-            showOnly(if (trips.isNotEmpty()) binding.recycleView else binding.tvZeroTrips)
-        }
-    }
-
-    private fun showOnly(viewToShow: View) {
-        binding.recycleView.visibility = if (viewToShow == binding.recycleView) View.VISIBLE else View.GONE
-        binding.tvZeroTrips.visibility = if (viewToShow == binding.tvZeroTrips) View.VISIBLE else View.GONE
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
-
-
-    private fun parseDurationToMinutes(duration: Any?): Int {
-        return when (duration) {
-            is Int -> duration // already in minutes
-            is String -> {
-                try {
-                    // Example format: "01:35" (1 hour 35 mins)
-                    val parts = duration.split(":")
-                    if (parts.size == 2) {
-                        val hours = parts[0].toIntOrNull() ?: 0
-                        val minutes = parts[1].toIntOrNull() ?: 0
-                        hours * 60 + minutes
-                    } else duration.toIntOrNull() ?: 0
-                } catch (e: Exception) {
-                    0
-                }
-            }
-            else -> 0
-        }
-    }
-
-
 }
 
 

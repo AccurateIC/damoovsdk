@@ -41,85 +41,83 @@
         android:id="@+id/subHeaderText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/subtext_for_your_trips"
-        android:textSize="14sp"
-        android:textColor="#666666"
         android:gravity="start"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        app:layout_constraintTop_toBottomOf="@id/headerContainer"
+        android:text="@string/subtext_for_your_trips"
+        android:textColor="#666666"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/headerContainer" />
 
     <!-- Filter Section -->
     <LinearLayout
         android:id="@+id/filterContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minHeight="45dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
+        android:minHeight="45dp"
         android:orientation="horizontal"
         android:weightSum="1"
-        app:layout_constraintTop_toBottomOf="@id/subHeaderText"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/subHeaderText">
 
         <!-- Date Picker Filter -->
         <TextView
             android:id="@+id/filterDate"
             android:layout_width="0dp"
-            android:layout_weight=".33"
             android:layout_height="match_parent"
-            android:padding="12dp"
-            android:textSize="10sp"
             android:layout_marginLeft="16dp"
-            android:text="Select Date"
-            android:textColor="#000000"
-            android:gravity="center_vertical"
-            android:maxLines="1"
+            android:layout_weight=".33"
             android:background="@drawable/filter_bg"
             android:drawableStart="@drawable/ic_calender"
-            android:drawablePadding="16dp" />
+            android:drawablePadding="16dp"
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            android:padding="12dp"
+            android:text="Select Date"
+            android:textColor="#000000"
+            android:textSize="10sp" />
 
         <!-- Distance Filter -->
         <TextView
             android:id="@+id/filterDistance"
             android:layout_width="0dp"
-            android:layout_weight=".33"
             android:layout_height="match_parent"
             android:layout_marginStart="8dp"
-            android:padding="12dp"
-            android:textSize="10sp"
-            android:text="Distance"
-            android:gravity="center"
-            android:textColor="#000000"
+            android:layout_weight=".33"
             android:background="@drawable/filter_bg"
-            android:drawablePadding="16dp"
-            android:maxLines="1"
             android:drawableEnd="@drawable/ic_down_arrow"
-             />
+            android:drawablePadding="16dp"
+            android:gravity="center"
+            android:maxLines="1"
+            android:padding="12dp"
+            android:text="Distance"
+            android:textColor="#000000"
+            android:textSize="10sp" />
 
         <!-- Time Travelled Filter -->
         <TextView
             android:id="@+id/filterTime"
             android:layout_width="0dp"
-            android:layout_weight=".33"
             android:layout_height="match_parent"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="16dp"
+            android:layout_weight=".33"
+            android:background="@drawable/filter_bg"
+            android:drawableEnd="@drawable/ic_down_arrow"
+            android:drawablePadding="16dp"
+            android:gravity="center"
+            android:maxLines="1"
+            android:padding="12dp"
             android:paddingHorizontal="12dp"
             android:paddingVertical="12dp"
             android:text="Time Travelled"
             android:textColor="#000000"
-            android:padding="12dp"
-            android:maxLines="1"
-            android:textSize="10sp"
-            android:gravity="center"
-            android:background="@drawable/filter_bg"
-            android:drawablePadding="16dp"
-            android:drawableEnd="@drawable/ic_down_arrow"
-           />
+            android:textSize="10sp" />
     </LinearLayout>
 
     <!-- Zero trips text -->
@@ -143,7 +141,7 @@
         android:layout_height="0dp"
         android:layout_margin="16dp"
         app:layout_constraintTop_toBottomOf="@id/filterContainer"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/pageControls"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -152,6 +150,59 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             tools:listitem="@layout/trip_info_card" />
+
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/pageControls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="8dp"
+        android:layout_marginHorizontal="20dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Back arrow (left) -->
+        <ImageView
+            android:id="@+id/prevPageBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_left_arrow"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Page numbers (center) -->
+        <LinearLayout
+            android:id="@+id/pageNumbersContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            app:layout_constraintStart_toEndOf="@id/prevPageBtn"
+            app:layout_constraintEnd_toStartOf="@id/nextPageBtn"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="0.5" />
+
+        <!-- Next arrow (right) -->
+        <ImageView
+            android:id="@+id/nextPageBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_right_arrow"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

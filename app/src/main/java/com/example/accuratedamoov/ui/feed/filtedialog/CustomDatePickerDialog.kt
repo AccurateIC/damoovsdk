@@ -10,13 +10,14 @@ import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.GridLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import com.example.accuratedamoov.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-
+import androidx.core.graphics.drawable.toDrawable
 
 
 class CustomDatePickerDialog(
@@ -34,10 +35,15 @@ class CustomDatePickerDialog(
     private var maxDate: Calendar? = null
     private var minDate: Calendar? = null
 
+
+    init{
+        setCancelable(true)
+        setCanceledOnTouchOutside(true)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.custom_calendar)
-        window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
 
         val displayMetrics = context.resources.displayMetrics
         val width = (displayMetrics.widthPixels * 0.9).toInt()
@@ -53,12 +59,13 @@ class CustomDatePickerDialog(
         val prevBtn = findViewById<ImageView>(R.id.prevMonth)
         val nextBtn = findViewById<ImageView>(R.id.nextMonth)
         val closeBtn = findViewById<ImageView>(R.id.closeIv)
-
+        val dlgCalendarll = findViewById<LinearLayout>(R.id.dlgCalendarll)
         prevBtn.setOnClickListener {
             calendar.add(Calendar.MONTH, -1)
             updateCalendar()
         }
 
+        //dlgCalendarll.setOnClickListener { dismiss() }
         nextBtn.setOnClickListener {
             val max = maxDate ?: Calendar.getInstance()
             // Prevent navigation beyond maxDate’s month

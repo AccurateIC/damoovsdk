@@ -1,9 +1,9 @@
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/itemText"
     android:layout_width="match_parent"
-    android:layout_height="48dp"
-    android:gravity="center_vertical"
-    android:paddingStart="16dp"
+    android:layout_height="wrap_content"
+    android:gravity="center"
     android:textColor="#000"
-    android:textSize="13sp"
+    android:padding="10dp"
+    android:textSize="14sp"
     android:background="?android:attr/selectableItemBackground" />

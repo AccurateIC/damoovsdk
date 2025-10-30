@@ -105,9 +105,9 @@ class TrackAdapter(
         val (endTime, endAmPm) = formatTime(item.end_date_ist)
 
         binding.sourceTime.text = startTime
-        binding.sourceAmPm.text = startAmPm
+        binding.sourceAmPm.text = startAmPm.uppercase()
         binding.destTime.text = endTime
-        binding.destAmPm.text = endAmPm
+        binding.destAmPm.text = endAmPm.uppercase()
 
         coroutineScope.launch {
             val startAddress = item.start_coordinates?.let { getOrFetchAddress(it) } ?: "Unknown"
