@@ -128,8 +128,14 @@ class TrackAdapter(
                 putExtra("ID", item.unique_id.toString())
                 putExtra("START_TIME", item.start_date_ist)
                 putExtra("END_TIME", item.end_date_ist)
-                putExtra("START_LOC", binding.sourceLocationMain.text)
-                putExtra("END_LOC", binding.destLocationMain.text)
+                putExtra(
+                    "START_LOC",
+                    "${binding.sourceLocationMain.text}, ${binding.sourceLocationSub.text}"
+                )
+                putExtra(
+                    "END_LOC",
+                    "${binding.destLocationMain.text}, ${binding.destLocationSub.text}"
+                )
             }
             mContext.startActivity(intent)
         }

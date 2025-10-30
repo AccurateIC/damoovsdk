@@ -21,6 +21,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.accuratedamoov.R
@@ -34,6 +35,7 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.example.accuratedamoov.databinding.ActivityTripDetailsBinding
 import com.example.accuratedamoov.model.GeoPointModel
 import com.example.accuratedamoov.service.NetworkMonitorService
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -52,16 +54,13 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
+
+
 class TripDetailsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityTripDetailsBinding
     private lateinit var mapView: MapView
     private val tripDetailsViewModel: TripDetailsViewModel by viewModels()
-    private var dX = 0f
-    private var dY = 0f
-    private var isExpanded = false
-    private var expandedHeight = 0
-    private val collapsedHeight = 80
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,7 +80,6 @@ class TripDetailsActivity : AppCompatActivity() {
 
         val uniqueId = intent.getStringExtra("ID")
 
-
         if (uniqueId != null) {
             showLoader(true)
             tripDetailsViewModel.fetchGeoPoints(uniqueId)
@@ -98,37 +96,51 @@ class TripDetailsActivity : AppCompatActivity() {
         } else {
             Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show()
             finish()
+            return
         }
 
-
-
-        /*binding.tripInfoCard.setOnTouchListener { v, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    dX = v.x - event.rawX
-                    dY = v.y - event.rawY
-                    true
-                }
-
-                MotionEvent.ACTION_MOVE -> {
-                    v.animate()
-                        .x(event.rawX + dX)
-                        .y(event.rawY + dY)
-                        .setDuration(0)
-                        .start()
-                    true
-                }
-
-                else -> false
-            }
-        }*/
-        //setupTripCardToggle()
         setupFloatingButton()
         setupFloatingButtonClick()
 
         binding.btnBack.setOnClickListener {
-            this.onBackPressedDispatcher.onBackPressed()
+            onBackPressedDispatcher.onBackPressed()
         }
+
+        // BOTTOM SHEET setup using binding (bottomSheet must be direct child of CoordinatorLayout)
+        // Use dynamic sizes so it works across screen densities
+        val bottomSheet = binding.bottomSheet
+        val behavior = BottomSheetBehavior.from(bottomSheet)
+
+        // Important: allow half-expanded state
+        behavior.isFitToContents = false
+        behavior.halfExpandedRatio = 0.5f
+
+        // Set a reasonable peek height (show small handle)
+        val displayMetrics = resources.displayMetrics
+        val peekDp = 80
+        val peekPx = (peekDp * displayMetrics.density).toInt()
+        behavior.peekHeight = peekPx
+
+        // Start collapsed (user must drag)
+        behavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        behavior.skipCollapsed = false
+        // Prevent it from snapping to full expanded — force half-expanded if expanded
+        behavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+            override fun onStateChanged(bottomSheetView: View, newState: Int) {
+                if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+                    behavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+
+
+                }
+            }
+
+            override fun onSlide(bottomSheetView: View, slideOffset: Float) {
+                showTripDetailsBottomSheet()
+            }
+        })
+
+
+
     }
 
     private fun setupFloatingButton() {
@@ -141,7 +153,7 @@ class TripDetailsActivity : AppCompatActivity() {
 
         binding.btnShowTripInfo.setOnTouchListener { view, event ->
             when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
+                android.view.MotionEvent.ACTION_DOWN -> {
                     dX = view.x - event.rawX
                     dY = view.y - event.rawY
                     startX = event.rawX
@@ -149,9 +161,10 @@ class TripDetailsActivity : AppCompatActivity() {
                     isDragging = false
                     true
                 }
-                MotionEvent.ACTION_MOVE -> {
-                    val deltaX = Math.abs(event.rawX - startX)
-                    val deltaY = Math.abs(event.rawY - startY)
+
+                android.view.MotionEvent.ACTION_MOVE -> {
+                    val deltaX = kotlin.math.abs(event.rawX - startX)
+                    val deltaY = kotlin.math.abs(event.rawY - startY)
                     if (deltaX > dragThreshold || deltaY > dragThreshold) {
                         isDragging = true
                         view.animate()
@@ -162,12 +175,14 @@ class TripDetailsActivity : AppCompatActivity() {
                     }
                     true
                 }
-                MotionEvent.ACTION_UP -> {
+
+                android.view.MotionEvent.ACTION_UP -> {
                     if (!isDragging) {
                         view.performClick()
                     }
                     true
                 }
+
                 else -> false
             }
         }
@@ -179,35 +194,27 @@ class TripDetailsActivity : AppCompatActivity() {
         }
     }
 
+    // Fill bottom sheet fields from intent extras (safe fallback if ViewModel not providing trip object)
     private fun showTripDetailsBottomSheet() {
-        val bottomSheetDialog = com.google.android.material.bottomsheet.BottomSheetDialog(this, R.style.TripBottomSheetStyle)
-        val view = layoutInflater.inflate(R.layout.trip_details_bottom_sheet, null)
+        // Attempt to read trip details passed via Intent first
+        val tripId = intent.getStringExtra("ID") ?: "N/A"
+        val startTime = intent.getStringExtra("START_TIME") ?: ""
+        val endTime = intent.getStringExtra("END_TIME") ?: ""
+        val startLoc = intent.getStringExtra("START_LOC") ?: ""
+        val endLoc = intent.getStringExtra("END_LOC") ?: ""
+        val tripDate = if (startTime.isNotEmpty()) formatDate(startTime) else ""
 
-        val startTime = intent.getStringExtra("START_TIME") ?: "Unknown"
-        val endTime = intent.getStringExtra("END_TIME") ?: "Unknown"
-        val startLoc = intent.getStringExtra("START_LOC") ?: "Unknown"
-        val endLoc = intent.getStringExtra("END_LOC") ?: "Unknown"
+        binding.tvTripId.text = "Trip ID: $tripId"
+        binding.tvTripDate.text = tripDate
+        binding.tvFromTime.text = formatTime(startTime)
+        binding.tvFromLocation.text = startLoc
+        binding.tvToTime.text = formatTime(endTime)
+        binding.tvToLocation.text = endLoc
 
-        view.apply {
-            findViewById<TextView>(R.id.startLocation).text = "📍 Start Location: $startLoc"
-            findViewById<TextView>(R.id.startTime).text = "⏱ Start Time: $startTime"
-            findViewById<TextView>(R.id.endLocation).text = "🏁 End Location: $endLoc"
-            findViewById<TextView>(R.id.endTime).text = "⏱ End Time: $endTime"
-
-            // Optional close button if you add one in layout
-            findViewById<ImageView?>(R.id.closeButton)?.setOnClickListener {
-                bottomSheetDialog.dismiss()
-            }
-        }
-
-        bottomSheetDialog.setContentView(view)
-
-        // expand fully by default
-        bottomSheetDialog.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
-
-        bottomSheetDialog.show()
+        // Expand to half-expanded state when user taps the info FAB (optional)
+        val behavior = BottomSheetBehavior.from(binding.bottomSheet)
+        behavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
     }
-
 
     private fun showLoader(show: Boolean) {
         binding.progressBar.visibility = if (show) View.VISIBLE else View.GONE
@@ -229,13 +236,12 @@ class TripDetailsActivity : AppCompatActivity() {
                 }
                 return@launch
             }
-            Log.d("TripDetails", "First GeoPoint: ${geoPointList.first()}")
-            Log.d("TripDetails", "Last GeoPoint: ${geoPointList.last()}")
+
             val animatedPolyline = Polyline().apply {
-                outlinePaint.color = Color.BLUE
                 outlinePaint.strokeWidth = 6f
                 outlinePaint.isAntiAlias = true
-                outlinePaint.style = Paint.Style.STROKE
+                outlinePaint.style = android.graphics.Paint.Style.STROKE
+                outlinePaint.color = ContextCompat.getColor(this@TripDetailsActivity, R.color.primary_light)
             }
 
             val vehicleMarker = Marker(mapView).apply {
@@ -255,14 +261,12 @@ class TripDetailsActivity : AppCompatActivity() {
                 val boundingBox = BoundingBox.fromGeoPointsSafe(geoPointList)
                 mapView.zoomToBoundingBox(boundingBox, true)
 
-                // Store listener instance so we can remove it
                 val layoutListener = object : ViewTreeObserver.OnGlobalLayoutListener {
                     override fun onGlobalLayout() {
                         mapView.viewTreeObserver.removeOnGlobalLayoutListener(this)
                         lifecycleScope.launch(Dispatchers.Main) {
-                            delay(1000) // allow zoom animation to settle
+                            delay(1000)
                             mapView.controller.animateTo(boundingBox.centerWithDateLine)
-
                             startRouteAnimation(animatedPolyline, vehicleMarker, geoPointList)
                         }
                     }
@@ -306,11 +310,7 @@ class TripDetailsActivity : AppCompatActivity() {
         }
 
         withContext(Dispatchers.Main) {
-            val startTime = intent.getStringExtra("START_TIME")
-            val endTime = intent.getStringExtra("END_TIME")
-            val startLoc = intent.getStringExtra("START_LOC")
-            val endLoc = intent.getStringExtra("END_LOC")
-
+            // reveal FAB smoothly after route anim
             binding.btnShowTripInfo.apply {
                 visibility = View.INVISIBLE
                 isClickable = false
@@ -326,11 +326,8 @@ class TripDetailsActivity : AppCompatActivity() {
                         .start()
                 }
             }
-
         }
-
     }
-
 
     private fun addCustomMarker(position: GeoPoint, drawableResId: Int, title: String) {
         val marker = Marker(mapView).apply {
@@ -347,7 +344,7 @@ class TripDetailsActivity : AppCompatActivity() {
         var lastLat = 0.0
         var lastLon = 0.0
 
-        for (i in rawPoints.indices step 2) { // skip every second point
+        for (i in rawPoints.indices step 2) {
             val point = rawPoints[i]
             val lat = point.latitude
             val lon = point.longitude
@@ -368,7 +365,6 @@ class TripDetailsActivity : AppCompatActivity() {
         return results[0]
     }
 
-
     private fun calculateBearing(start: GeoPoint, end: GeoPoint): Float {
         val lat1 = Math.toRadians(start.latitude)
         val lon1 = Math.toRadians(start.longitude)
@@ -379,6 +375,30 @@ class TripDetailsActivity : AppCompatActivity() {
         val y = sin(dLon) * cos(lat2)
         val x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon)
 
-        return (Math.toDegrees(atan2(y, x)).toFloat() + 360) % 360
+        return ((Math.toDegrees(atan2(y, x))).toFloat() + 360) % 360
+    }
+
+    // helpers to format time/date safely (returns empty string on parse failure)
+    private fun formatTime(dateTime: String?): String {
+        if (dateTime.isNullOrEmpty()) return ""
+        return try {
+            val input = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            val out = SimpleDateFormat("hh:mm a", Locale.getDefault())
+            out.format(input.parse(dateTime) ?: Date())
+        } catch (e: Exception) {
+            ""
+        }
+    }
+
+    private fun formatDate(dateTime: String?): String {
+        if (dateTime.isNullOrEmpty()) return ""
+        return try {
+            val input = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            val out = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+            out.format(input.parse(dateTime) ?: Date())
+        } catch (e: Exception) {
+            ""
+        }
     }
 }
+

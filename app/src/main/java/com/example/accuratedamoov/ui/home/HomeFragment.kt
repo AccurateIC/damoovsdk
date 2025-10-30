@@ -21,9 +21,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.example.accuratedamoov.R
 import com.example.accuratedamoov.data.model.TripData
 import com.example.accuratedamoov.databinding.FragmentHomeBinding
+import com.example.accuratedamoov.ui.feed.FeedFragment
 import com.example.accuratedamoov.ui.feed.FeedViewModel
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.Dispatchers
@@ -174,6 +176,13 @@ class HomeFragment : Fragment() {
 
             }
         }
+
+
+        binding.tvAllTrips.setOnClickListener {
+            findNavController().navigate(R.id.navigation_feed)
+        }
+
+
     }
 
     private fun checkLocationPermission(): Boolean {
