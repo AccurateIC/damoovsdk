@@ -5,68 +5,62 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Map View -->
-    <org.osmdroid.views.MapView
-        android:id="@+id/mapView"
+    <!-- MAP CONTAINER - exactly 50% height -->
+    <FrameLayout
+        android:id="@+id/mapContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="15dp"
-        android:hardwareAccelerated="false" />
+        android:layout_height="0dp"
+        android:layout_gravity="top"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="60dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    <!-- Progress Loader -->
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:indeterminateTint="@color/colorPrimary"
-        android:visibility="visible" />
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            app:cardCornerRadius="15dp"
+            app:cardPreventCornerOverlap="true"
+            app:cardUseCompatPadding="true">
 
-    <!-- Back Arrow Floating Button -->
+            <org.osmdroid.views.MapView
+                android:id="@+id/mapView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:hardwareAccelerated="false" />
+        </androidx.cardview.widget.CardView>
+    </FrameLayout>
+
+    <!-- BACK BUTTON -->
     <ImageView
         android:id="@+id/btnBack"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|start"
-        android:layout_margin="24dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="10dp"
         android:padding="10dp"
-        android:contentDescription="Back"
-        app:srcCompat="@drawable/ic_back_btn"
-        app:elevation="6dp" />
+        android:src="@drawable/ic_back_btn" />
 
-    <!-- Trip Info Floating Button -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/btnShowTripInfo"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="24dp"
-        android:contentDescription="Show Trip Info"
-        android:visibility="gone"
-        app:srcCompat="@drawable/ic_info"
-        app:tint="@color/colorPrimary"
-        app:backgroundTint="@color/white"
-        app:elevation="6dp" />
-
-    <!-- ✅ Half Screen Bottom Sheet -->
+    <!-- BOTTOM SHEET -->
     <LinearLayout
         android:id="@+id/bottomSheet"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         android:background="@drawable/bottom_sheet_bg"
+        android:orientation="vertical"
         android:padding="16dp"
+        app:behavior_peekHeight="0dp"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
-        <!-- Handle / Drag Indicator -->
         <View
             android:layout_width="40dp"
             android:layout_height="5dp"
             android:layout_gravity="center"
-            android:background="@drawable/bottom_sheet_handle"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bottom_sheet_handle" />
 
-        <!-- Scrollable content -->
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -78,97 +72,112 @@
                 android:orientation="vertical"
                 android:padding="8dp">
 
-                <!-- Trip ID and Date Row -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:orientation="vertical"
+                    android:padding="8dp">
 
-                    android:weightSum="2">
+                    <!-- Trip info (same as before) -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:weightSum="2">
+
+                        <TextView
+                            android:id="@+id/tvTripId"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Trip ID: #1234"
+                            android:textColor="#898989"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvTripDate"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:text="28 Oct 2025"
+                            android:textColor="#898989"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
                     <TextView
-                        android:id="@+id/tvTripId"
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Trip ID: #1234"
-                        android:textStyle="bold"
-                        android:textSize="16sp"
-                        android:gravity="start"
-                        android:textColor="#898989" />
+                        android:layout_marginTop="8dp"
+                        android:text="From"
+                        android:textColor="#898989"
+                        android:textSize="14sp" />
 
                     <TextView
-                        android:id="@+id/tvTripDate"
-                        android:layout_width="0dp"
+                        android:id="@+id/tvFromTime"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="28 Oct 2025"
-                        android:textStyle="bold"
-                        android:textSize="16sp"
-                        android:gravity="end"
-                        android:textColor="#898989" />
+                        android:layout_marginTop="4dp"
+                        android:text="10:30 AM"
+                        android:textColor="#121212"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvFromLocation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:text="Mumbai, Maharashtra"
+                        android:textColor="@android:color/darker_gray"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="To"
+                        android:textColor="#898989"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/tvToTime"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="11:10 AM"
+                        android:textColor="#121212"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvToLocation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:text="Pune, Maharashtra"
+                        android:textColor="@android:color/darker_gray"
+                        android:textSize="14sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical">
+
+                        <!-- Other views here -->
+
+                        <include
+                            android:id="@+id/includeDrivingScore"
+                            layout="@layout/layout_driving_score" />
+
+                        <!-- Other views below -->
+                    </LinearLayout>
+
 
                 </LinearLayout>
 
-
-
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="From"
-                    android:textSize="14sp"
-                    android:textColor="#898989" />
-
-                <TextView
-                    android:id="@+id/tvFromTime"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="10:30 AM"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:textColor="#121212"
-                    android:layout_marginTop="4dp" />
-
-                <TextView
-                    android:id="@+id/tvFromLocation"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Mumbai, Maharashtra"
-                    android:textSize="14sp"
-                    android:textColor="@android:color/darker_gray"
-                    android:layout_marginBottom="12dp" />
-
-                <!-- TO Section -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="To"
-                    android:textStyle="bold"
-                    android:textSize="15sp"
-                    android:textColor="@android:color/black" />
-
-                <TextView
-                    android:id="@+id/tvToTime"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="11:10 AM"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:textColor="#121212"
-                    android:layout_marginTop="4dp" />
-
-                <TextView
-                    android:id="@+id/tvToLocation"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Pune, Maharashtra"
-                    android:textSize="14sp"
-                    android:textColor="@android:color/darker_gray"
-                    android:layout_marginBottom="12dp" />
-
             </LinearLayout>
-
         </ScrollView>
     </LinearLayout>
 

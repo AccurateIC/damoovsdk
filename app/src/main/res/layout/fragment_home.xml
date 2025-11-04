@@ -254,6 +254,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="All trips"
+                        android:padding="10dp"
                         android:textSize="14sp"
                         android:textColor="#898989"
                         android:layout_toStartOf="@id/ivNext"

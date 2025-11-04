@@ -3,6 +3,7 @@ package com.example.accuratedamoov.ui.home
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Geocoder
@@ -27,6 +28,7 @@ import com.example.accuratedamoov.data.model.TripData
 import com.example.accuratedamoov.databinding.FragmentHomeBinding
 import com.example.accuratedamoov.ui.feed.FeedFragment
 import com.example.accuratedamoov.ui.feed.FeedViewModel
+import com.example.accuratedamoov.ui.tripDetails.TripDetailsActivity
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -39,6 +41,7 @@ import java.util.*
 
 class HomeFragment : Fragment() {
 
+    private lateinit var recentTrip: TripData
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private val homeViewModel: HomeViewModel by viewModels()
@@ -170,6 +173,7 @@ class HomeFragment : Fragment() {
                 feedViewModel.lastTrip.observe(viewLifecycleOwner) { trip ->
                     trip?.let {
                         updateTripUI(it)
+                        recentTrip = it
                     }
                 }
 
@@ -177,6 +181,24 @@ class HomeFragment : Fragment() {
             }
         }
 
+        binding.tripCardInclude.root.setOnClickListener {
+
+                val intent = Intent(activity, TripDetailsActivity::class.java).apply {
+                    putExtra("ID", recentTrip.unique_id.toString())
+                    putExtra("START_TIME", recentTrip.start_date_ist)
+                    putExtra("END_TIME", recentTrip.end_date_ist)
+                    putExtra(
+                        "START_LOC",
+                        "${binding.tripCardInclude.sourceLocationMain.text}, ${binding.tripCardInclude.sourceLocationMain.text}"
+                    )
+                    putExtra(
+                        "END_LOC",
+                        "${binding.tripCardInclude.destLocationMain.text}, ${binding.tripCardInclude.destLocationSub.text}"
+                    )
+                }
+            activity?.startActivity(intent)
+
+        }
 
         binding.tvAllTrips.setOnClickListener {
             findNavController().navigate(R.id.navigation_feed)

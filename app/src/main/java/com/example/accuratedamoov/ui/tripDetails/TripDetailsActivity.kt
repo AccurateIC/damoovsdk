@@ -55,7 +55,6 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 
-
 class TripDetailsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityTripDetailsBinding
@@ -71,6 +70,8 @@ class TripDetailsActivity : AppCompatActivity() {
             PreferenceManager.getDefaultSharedPreferences(applicationContext)
         )
 
+
+
         binding = ActivityTripDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -81,11 +82,9 @@ class TripDetailsActivity : AppCompatActivity() {
         val uniqueId = intent.getStringExtra("ID")
 
         if (uniqueId != null) {
-            showLoader(true)
             tripDetailsViewModel.fetchGeoPoints(uniqueId)
 
             tripDetailsViewModel.geoPoints.observe(this) { geoPoints ->
-                showLoader(false)
                 if (geoPoints.isNotEmpty()) {
                     plotRouteOnMap(geoPoints)
                 } else {
@@ -108,39 +107,47 @@ class TripDetailsActivity : AppCompatActivity() {
 
         // BOTTOM SHEET setup using binding (bottomSheet must be direct child of CoordinatorLayout)
         // Use dynamic sizes so it works across screen densities
+        //val overlay = binding.overlayView
+
         val bottomSheet = binding.bottomSheet
         val behavior = BottomSheetBehavior.from(bottomSheet)
 
-        // Important: allow half-expanded state
+        val screenHeight = resources.displayMetrics.heightPixels
+        val mapContainer = binding.mapContainer
+        val mapHeight = (screenHeight * 0.5).toInt() // 50% of screen
+        mapContainer.layoutParams.height = mapHeight
+        mapContainer.requestLayout()
+        val maxHeight = (screenHeight * 0.8).toInt()  // max drag = 80% of screen height
+        val peekHeight = (screenHeight * 0.4).toInt() // initial collapsed height = 40%
+
+// let it size naturally (we’ll limit in behavior)
+        bottomSheet.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+        bottomSheet.requestLayout()
+
         behavior.isFitToContents = false
         behavior.halfExpandedRatio = 0.5f
-
-        // Set a reasonable peek height (show small handle)
-        val displayMetrics = resources.displayMetrics
-        val peekDp = 80
-        val peekPx = (peekDp * displayMetrics.density).toInt()
-        behavior.peekHeight = peekPx
-
-        // Start collapsed (user must drag)
-        behavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        behavior.peekHeight = peekHeight
         behavior.skipCollapsed = false
-        // Prevent it from snapping to full expanded — force half-expanded if expanded
+        behavior.state = BottomSheetBehavior.STATE_COLLAPSED
+
+// prevent dragging beyond 80%
         behavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
-            override fun onStateChanged(bottomSheetView: View, newState: Int) {
-                if (newState == BottomSheetBehavior.STATE_EXPANDED) {
-                    behavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
-
-
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                // Prevent hiding or collapsing below 50%
+                if (newState == BottomSheetBehavior.STATE_HIDDEN) {
+                    behavior.state = BottomSheetBehavior.STATE_COLLAPSED
                 }
             }
 
-            override fun onSlide(bottomSheetView: View, slideOffset: Float) {
-                showTripDetailsBottomSheet()
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                // Cap expansion at 80% of screen
+                val sheetTop = bottomSheet.top
+                val minTop = screenHeight - maxHeight
+                if (sheetTop < minTop) {
+                    bottomSheet.translationY = (minTop - sheetTop).toFloat()
+                }
             }
         })
-
-
-
     }
 
     private fun setupFloatingButton() {
@@ -151,47 +158,11 @@ class TripDetailsActivity : AppCompatActivity() {
         var isDragging = false
         val dragThreshold = 10
 
-        binding.btnShowTripInfo.setOnTouchListener { view, event ->
-            when (event.action) {
-                android.view.MotionEvent.ACTION_DOWN -> {
-                    dX = view.x - event.rawX
-                    dY = view.y - event.rawY
-                    startX = event.rawX
-                    startY = event.rawY
-                    isDragging = false
-                    true
-                }
 
-                android.view.MotionEvent.ACTION_MOVE -> {
-                    val deltaX = kotlin.math.abs(event.rawX - startX)
-                    val deltaY = kotlin.math.abs(event.rawY - startY)
-                    if (deltaX > dragThreshold || deltaY > dragThreshold) {
-                        isDragging = true
-                        view.animate()
-                            .x(event.rawX + dX)
-                            .y(event.rawY + dY)
-                            .setDuration(0)
-                            .start()
-                    }
-                    true
-                }
-
-                android.view.MotionEvent.ACTION_UP -> {
-                    if (!isDragging) {
-                        view.performClick()
-                    }
-                    true
-                }
-
-                else -> false
-            }
-        }
     }
 
     private fun setupFloatingButtonClick() {
-        binding.btnShowTripInfo.setOnClickListener {
-            showTripDetailsBottomSheet()
-        }
+        showTripDetailsBottomSheet()
     }
 
     // Fill bottom sheet fields from intent extras (safe fallback if ViewModel not providing trip object)
@@ -211,14 +182,11 @@ class TripDetailsActivity : AppCompatActivity() {
         binding.tvToTime.text = formatTime(endTime)
         binding.tvToLocation.text = endLoc
 
-        // Expand to half-expanded state when user taps the info FAB (optional)
-        val behavior = BottomSheetBehavior.from(binding.bottomSheet)
-        behavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+        /*  // Expand to half-expanded state when user taps the info FAB (optional)
+          val behavior = BottomSheetBehavior.from(binding.bottomSheet)
+          behavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED*/
     }
 
-    private fun showLoader(show: Boolean) {
-        binding.progressBar.visibility = if (show) View.VISIBLE else View.GONE
-    }
 
     private fun plotRouteOnMap(geoPoints: List<GeoPointModel>) {
         mapView.overlays.clear()
@@ -241,7 +209,8 @@ class TripDetailsActivity : AppCompatActivity() {
                 outlinePaint.strokeWidth = 6f
                 outlinePaint.isAntiAlias = true
                 outlinePaint.style = android.graphics.Paint.Style.STROKE
-                outlinePaint.color = ContextCompat.getColor(this@TripDetailsActivity, R.color.primary_light)
+                outlinePaint.color =
+                    ContextCompat.getColor(this@TripDetailsActivity, R.color.primary_light)
             }
 
             val vehicleMarker = Marker(mapView).apply {
@@ -309,24 +278,6 @@ class TripDetailsActivity : AppCompatActivity() {
             }
         }
 
-        withContext(Dispatchers.Main) {
-            // reveal FAB smoothly after route anim
-            binding.btnShowTripInfo.apply {
-                visibility = View.INVISIBLE
-                isClickable = false
-                post {
-                    alpha = 0f
-                    visibility = View.VISIBLE
-                    animate()
-                        .alpha(1f)
-                        .setDuration(400)
-                        .withEndAction {
-                            isClickable = true
-                        }
-                        .start()
-                }
-            }
-        }
     }
 
     private fun addCustomMarker(position: GeoPoint, drawableResId: Int, title: String) {

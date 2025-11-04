@@ -178,6 +178,8 @@ class FeedFragment : Fragment() {
                 filterTrips()
             }.apply {
                 setMaxDate(Calendar.getInstance().timeInMillis)
+                setMinDate(Calendar.getInstance().apply { add(Calendar.YEAR, -10) }.timeInMillis)
+
             }.show()
         }
     }
@@ -351,7 +353,7 @@ class FeedFragment : Fragment() {
                 background = ContextCompat.getDrawable(
                     requireContext(),
                     if (page == currentPage)
-                        R.drawable.bg_filter_selected // highlight current
+                        R.drawable.rect_active_bg // highlight current
                     else
                         R.drawable.filter_bg // normal style
                 )
