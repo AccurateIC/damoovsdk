@@ -8,7 +8,7 @@
     android:padding="16dp"
     android:layout_marginBottom="12dp"
     android:background="@drawable/trip_bg"
-    android:gravity="center_horizontal">
+    android:gravity="center">
 
     <TextView
         android:id="@+id/dateHeader"

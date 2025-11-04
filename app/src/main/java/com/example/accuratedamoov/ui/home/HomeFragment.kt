@@ -205,6 +205,11 @@ class HomeFragment : Fragment() {
         }
 
 
+        binding.tvAllstats.setOnClickListener {
+            findNavController().navigate(R.id.navigation_dashboard)
+        }
+
+
     }
 
     private fun checkLocationPermission(): Boolean {
