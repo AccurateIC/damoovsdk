@@ -137,4 +137,7 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
 
     implementation("com.github.bumptech.glide:glide:5.0.5")
+    implementation ("com.tomergoldst.android:tooltips:1.1.1")
+    implementation("com.github.skydoves:balloon:1.6.7")
 }
+

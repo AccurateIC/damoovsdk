@@ -1,155 +1,299 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    >
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    android:orientation="vertical">
 
+    <!-- Header + Toggle Container -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@drawable/bg_bottom_rounded"
-        android:padding="24dp"
         android:layout_marginTop="20dp"
-        android:elevation="4dp">
-    <!-- Header Section -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp">
+        android:background="@drawable/bg_bottom_rounded"
+        android:elevation="4dp"
+        android:orientation="vertical"
+        android:padding="24dp">
 
-        <TextView
-            android:id="@+id/titleText"
-            android:layout_width="0dp"
+        <!-- Header -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/poppinsmedium"
-            android:text="@string/you_are_doing_great_cowboy"
-            android:textColor="#F1F1F1"
-            android:textSize="28sp"
-            android:ellipsize="end"
-            android:maxLines="2"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0" />
+            android:layout_marginBottom="12dp">
 
-        <TextView
-            android:id="@+id/subtitleText"
-            android:layout_width="0dp"
+            <TextView
+                android:id="@+id/titleText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="@font/poppinsmedium"
+                android:maxLines="2"
+                android:text="@string/you_are_doing_great_cowboy"
+                android:textColor="#F1F1F1"
+                android:textSize="28sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/subtitleText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/stat_subtext"
+                android:textColor="#F1F1F1"
+                android:textSize="14sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/titleText" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Toggle Buttons -->
+        <LinearLayout
+            android:id="@+id/toggleContainer"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/stat_subtext"
-            android:textColor="#F1F1F1"
-            android:textSize="14sp"
-            android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/titleText"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- Toggle Buttons -->
-    <LinearLayout
-        android:id="@+id/toggleContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="16dp">
-
-        <TextView
-            android:id="@+id/leftBottomText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_marginBottom="16dp"
             android:gravity="center"
-            android:paddingVertical="10dp"
-            android:text="@string/safty_parameters"
-            android:textColor="@android:color/white"
-            android:textSize="12sp"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/toggle_unselected" />
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/rightBottomText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:paddingVertical="10dp"
-            android:text="@string/general_parameters"
-            android:textColor="@android:color/white"
-            android:textSize="12sp"
-            android:background="@drawable/toggle_unselected" />
+            <TextView
+                android:id="@+id/leftBottomText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/toggle_unselected"
+                android:fontFamily="@font/poppinsmedium"
+                android:gravity="center"
+                android:paddingVertical="10dp"
+                android:text="@string/safty_parameters"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/rightBottomText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/toggle_unselected"
+                android:fontFamily="@font/poppinsmedium"
+                android:gravity="center"
+                android:paddingVertical="10dp"
+                android:text="@string/general_parameters"
+                android:textSize="12sp" />
+        </LinearLayout>
     </LinearLayout>
-    </LinearLayout>
-    <!-- Horizontal Scroll Section -->
+
+    <!-- Horizontal Scroll Chips -->
     <HorizontalScrollView
         android:id="@+id/horizontalScrollContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:scrollbars="none"
-        android:overScrollMode="never"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="12dp">
+        android:layout_marginBottom="12dp"
+        android:overScrollMode="never"
+        android:scrollbars="none">
 
         <LinearLayout
             android:id="@+id/horizontalItemsLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="20dp"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:padding="20dp">
 
             <TextView
                 android:id="@+id/tvOverall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Overall"
-                android:textColor="#000000"
-                android:textSize="14sp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_chip_unselected"
+                android:fontFamily="@font/poppinsmedium"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="8dp"
-                android:background="@drawable/bg_chip_unselected"
-                android:layout_marginEnd="8dp"/>
+                android:text="Overall"
+                android:textColor="#000000"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/tvPast10"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Past 10 Trips"
-                android:textColor="#000000"
-                android:textSize="14sp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_chip_unselected"
+                android:fontFamily="@font/poppinsmedium"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="8dp"
-                android:background="@drawable/bg_chip_unselected"
-                android:layout_marginEnd="8dp"/>
+                android:text="Past 10 Trips"
+                android:textColor="#000000"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/tvPast20"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Past 20 Trips"
-                android:textColor="#000000"
-                android:textSize="14sp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_chip_unselected"
+                android:fontFamily="@font/poppinsmedium"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="8dp"
-                android:background="@drawable/bg_chip_unselected"
-                android:layout_marginEnd="8dp"/>
+                android:text="Past 20 Trips"
+                android:textColor="#000000"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/tvPast30"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Past 30 Trips"
-                android:textColor="#000000"
-                android:textSize="14sp"
+                android:background="@drawable/bg_chip_unselected"
+                android:fontFamily="@font/poppinsmedium"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="8dp"
-                android:background="@drawable/bg_chip_unselected"/>
-
+                android:text="Past 30 Trips"
+                android:textColor="#000000"
+                android:textSize="14sp" />
         </LinearLayout>
     </HorizontalScrollView>
 
-</LinearLayout>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+    <!-- Safety Parameters Layout -->
+    <GridLayout
+        android:id="@+id/safetyParamsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alignmentMode="alignMargins"
+        android:columnCount="2"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:useDefaultMargins="true">
+
+        <include
+            android:id="@+id/itemSafetyScore"
+            layout="@layout/item_param_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill" />
+
+        <include
+            android:id="@+id/itemTrustLevel"
+            layout="@layout/item_param_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill" />
+
+        <include
+            android:id="@+id/itemAvgSpeed"
+            layout="@layout/item_param_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill" />
+
+        <include
+            android:id="@+id/itemMaxSpeed"
+            layout="@layout/item_param_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill" />
+
+        <include
+            android:id="@+id/itemPhoneUsage"
+            layout="@layout/item_param_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill" />
+
+        <include
+            android:id="@+id/itemUsageSpeed"
+            layout="@layout/item_param_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill" />
+
+        <include
+            android:id="@+id/itemBraking"
+            layout="@layout/item_param_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill" />
+
+        <include
+            android:id="@+id/itemSpeeding"
+            layout="@layout/item_param_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill" />
+    </GridLayout>
+
+
+    <!-- General Parameters Layout -->
+    <!-- General Parameters Layout -->
+    <GridLayout
+        android:id="@+id/generalParamsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alignmentMode="alignMargins"
+        android:columnCount="2"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:useDefaultMargins="true"
+        android:visibility="gone">
+
+        <!-- Trips -->
+        <include
+            android:id="@+id/itemTrips"
+            layout="@layout/item_param_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill" />
+
+        <!-- Time Driven -->
+        <include
+            android:id="@+id/itemTimeDriven"
+            layout="@layout/item_param_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill" />
+
+        <!-- Mileage -->
+        <include
+            android:id="@+id/itemMileage"
+            layout="@layout/item_param_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill" />
+
+        <!-- Unique Tags -->
+        <include
+            android:id="@+id/itemUniqueTags"
+            layout="@layout/item_param_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill" />
+    </GridLayout>
+    </LinearLayout>
+    </ScrollView>
+    </LinearLayout>
+
