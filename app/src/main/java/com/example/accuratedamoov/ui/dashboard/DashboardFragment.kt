@@ -105,6 +105,12 @@ class DashboardFragment : Fragment() {
             view.findViewById(R.id.tvPast30)
         )
 
+
+        val defaultChip = chips[0]
+        defaultChip.setBackgroundResource(R.drawable.bg_chip_selected)
+        defaultChip.setTextColor(Color.parseColor("#6200EE"))
+
+
         chips.forEach { chip ->
             chip.setOnClickListener {
                 chips.forEach {

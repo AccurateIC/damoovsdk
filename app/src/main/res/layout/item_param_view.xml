@@ -6,8 +6,8 @@
     android:layout_gravity="fill"
     android:layout_margin="8dp"
     android:padding="16dp"
-    android:background="@drawable/bg_card"
-    android:elevation="4dp">
+    android:background="@drawable/bg_card_no_stroke"
+    >
 
     <ImageView
         android:id="@+id/infoIcon"

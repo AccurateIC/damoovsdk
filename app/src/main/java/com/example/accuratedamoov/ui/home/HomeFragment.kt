@@ -28,6 +28,7 @@ import com.example.accuratedamoov.data.model.TripData
 import com.example.accuratedamoov.databinding.FragmentHomeBinding
 import com.example.accuratedamoov.ui.feed.FeedFragment
 import com.example.accuratedamoov.ui.feed.FeedViewModel
+import com.example.accuratedamoov.ui.notification.NotificationsActivity
 import com.example.accuratedamoov.ui.tripDetails.TripDetailsActivity
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.Dispatchers
@@ -207,6 +208,12 @@ class HomeFragment : Fragment() {
 
         binding.tvAllstats.setOnClickListener {
             findNavController().navigate(R.id.navigation_dashboard)
+        }
+
+        binding.bellIcon.setOnClickListener {
+                val intent = Intent(activity, NotificationsActivity::class.java)
+                startActivity(intent)
+
         }
 
 

@@ -19,7 +19,7 @@
         android:title="@string/title_stats" />
 
     <item
-        android:id="@+id/navigation_statistics"
+        android:id="@+id/navigation_profile"
         android:icon="@drawable/ic_profile_placeholder"
         android:title="@string/title_profile" />
 

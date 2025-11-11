@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@drawable/dialog_bg"
+    android:layout_gravity="center"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:text="@string/do_you_want_to_logout"
+        android:textStyle="bold"
+        android:fontFamily="@font/poppinsmedium"
+        android:textSize="18sp"
+        android:textColor="#121212"
+        android:paddingBottom="8dp"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/tvMessage"
+        android:text="@string/by_doing_so_you_lose_your_data_and_history"
+        android:textSize="14sp"
+        android:paddingBottom="16dp"
+        android:fontFamily="@font/poppinsmedium"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:weightSum="1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/btnCancel"
+            android:text="Cancel"
+            android:background="@drawable/bg_card"
+            android:gravity="center"
+            android:padding="15dp"
+            android:textSize="14sp"
+            android:layout_width="0dp"
+            android:layout_weight=".5"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/btnLogout"
+            android:text="Logout"
+            android:textSize="14sp"
+            android:padding="15dp"
+            android:background="@drawable/bg_card"
+            android:gravity="center"
+            android:textColor="#8C0101"
+            android:layout_marginStart="12dp"
+            android:layout_width="0dp"
+            android:layout_weight=".5"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+</LinearLayout>

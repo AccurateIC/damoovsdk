@@ -31,5 +31,5 @@
 
 
     <color name="primary_light">#A5A6F6</color>
-
+    <color name="gray">#666666</color>
 </resources>

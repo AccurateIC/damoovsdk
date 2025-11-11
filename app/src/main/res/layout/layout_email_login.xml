@@ -1,0 +1,76 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:fitsSystemWindows="true"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/backToPhone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="← Login with OTP"
+        android:textColor="@color/colorPrimary"
+        android:padding="8dp" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/emailLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:boxCornerRadiusBottomEnd="30dp"
+        app:boxCornerRadiusBottomStart="30dp"
+        app:boxCornerRadiusTopEnd="30dp"
+        app:boxCornerRadiusTopStart="30dp"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="@color/colorPrimary"
+        android:layout_marginTop="16dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/emailEdt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/emailid"
+            android:textColor="#000000"
+            android:background="@drawable/bg_card"
+            android:padding="20dp"
+            android:textColorHint="#898989"
+            android:gravity="center_vertical"
+            android:textSize="16sp"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/passwordLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:boxCornerRadiusBottomEnd="30dp"
+        app:boxCornerRadiusBottomStart="30dp"
+        app:boxCornerRadiusTopEnd="30dp"
+        app:boxCornerRadiusTopStart="30dp"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="@color/colorPrimary"
+        android:layout_marginTop="16dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/passwordEdt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/password"
+            android:textColor="#000000"
+            android:inputType="textPassword"
+            android:background="@drawable/bg_card"
+            android:padding="20dp"
+            android:textColorHint="#898989"
+            android:gravity="center_vertical"
+            android:textSize="16sp" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/emailLoginBtn"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Login"
+        android:layout_marginTop="20dp"
+        android:backgroundTint="@color/colorPrimary"
+        app:cornerRadius="30dp"
+        android:textColor="@color/white" />
+</LinearLayout>

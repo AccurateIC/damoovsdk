@@ -18,13 +18,13 @@
     <string name="fuel">Fuel</string>
     <string name="speed">Speed</string>
     <string name="username">username</string>
-    <string name="password">password</string>
-    <string name="sign_in">sign in</string>
+    <string name="password">Enter your password</string>
+    <string name="sign_in">Sign In</string>
     <string name="register">Register</string>
     <string name="remember_me">Remember me</string>
-    <string name="don_t_have_an_account">Don\'t have an account</string>
-    <string name="name">name</string>
-    <string name="emailid">email</string>
+    <string name="don_t_have_an_account">Don\'t have an account yet</string>
+    <string name="name">Name</string>
+    <string name="emailid">Enter your email</string>
     <string name="title_profile">Profile</string>
     <string name="login">Login</string>
     <string name="enter_score_url">Profile Score URL</string>
@@ -53,4 +53,17 @@
     <string name="stat_subtext">Your score defined you performance and your excellence!</string>
     <string name="safty_parameters">Safty Params</string>
     <string name="general_parameters">General Params</string>
+    <string name="sign_up_instead">Sign up instead</string>
+    <string name="signup">Sign up</string>
+    <string name="enteryourname">Enter your name</string>
+    <string name="repassword">Confirm your password</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="password_update">Password Update</string>
+    <string name="app_settings">App Settings</string>
+    <string name="about_us">About Us</string>
+    <string name="logout">Logout</string>
+    <string name="by_doing_so_you_lose_your_data_and_history">By doing so you lose your data and history.</string>
+    <string name="do_you_want_to_logout">Do you want to logout? 😟</string>
+    <string name="else_login_with_email">else Login with email</string>
+    <string name="enter_phone_number">Enter phone number</string>
 </resources>

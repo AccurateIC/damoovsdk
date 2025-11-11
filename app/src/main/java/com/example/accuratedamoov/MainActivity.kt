@@ -239,6 +239,12 @@ class MainActivity : AppCompatActivity() {
                         navOptions
                     )
 
+                    R.id.navigation_profile -> navController.navigate(
+                        R.id.navigation_profile,
+                        null,
+                        navOptions
+                    )
+
                     R.id.navigation_settings -> navController.navigate(
                         R.id.navigation_settings,
                         null,

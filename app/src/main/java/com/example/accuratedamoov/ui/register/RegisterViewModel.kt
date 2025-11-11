@@ -14,6 +14,7 @@ import androidx.security.crypto.MasterKey
 import com.example.accuratedamoov.data.model.RegisterModel
 import com.example.accuratedamoov.data.model.RegisterResponse
 import com.example.accuratedamoov.data.network.RetrofitClient
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -63,7 +64,14 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
                         apply()
                     }
                 } else {
-                    registerResult.postValue(Result.failure(Throwable(res?.error ?: "Unknown error")))
+                    val errorBody = response.errorBody()?.string()
+                    // Try to parse JSON error
+                    val errorMsg = try {
+                        JSONObject(errorBody ?: "").optString("error", "Unknown error")
+                    } catch (e: Exception) {
+                        "Unknown error"
+                    }
+                    registerResult.postValue(Result.failure(Throwable(errorMsg)))
                 }
             }
 

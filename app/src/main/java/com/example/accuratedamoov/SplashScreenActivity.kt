@@ -70,6 +70,7 @@ class SplashScreenActivity : AppCompatActivity() {
         observeNetwork()
 
         if (!isNetworkAvailable()) {
+
             networkSnackbar = Snackbar.make(
                 findViewById(android.R.id.content),
                 "No internet connection. Waiting to reconnect...",
@@ -103,7 +104,10 @@ class SplashScreenActivity : AppCompatActivity() {
                             Snackbar.LENGTH_INDEFINITE
                         )
                         networkSnackbar?.show()
+
                     }
+
+
                 }
             }
         )
