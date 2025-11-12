@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "21044290169",
-    "project_id": "accuratedamoov-5eb81",
-    "storage_bucket": "accuratedamoov-5eb81.firebasestorage.app"
+    "project_number": "435182041304",
+    "project_id": "accuratedamoov-85d6e",
+    "storage_bucket": "accuratedamoov-85d6e.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:21044290169:android:b04f50d5de225f7278aaa8",
+        "mobilesdk_app_id": "1:435182041304:android:73cb94b51b22ab209c7fad",
         "android_client_info": {
           "package_name": "com.example.accuratedamoov"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBX7c9wPc6ZqHDwrpdFHEJRn1ZZEvnsF7M"
+          "current_key": "AIzaSyAFK2TEVRQX4AXljTr6szvTYvbW87bwUDM"
         }
       ],
       "services": {

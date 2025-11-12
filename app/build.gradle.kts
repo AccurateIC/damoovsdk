@@ -139,5 +139,6 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:5.0.5")
     implementation ("com.tomergoldst.android:tooltips:1.1.1")
     implementation("com.github.skydoves:balloon:1.6.7")
+    implementation("com.google.firebase:firebase-auth:22.1.1")
 }
 

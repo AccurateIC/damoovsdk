@@ -15,6 +15,7 @@ import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
+import android.util.Log
 import android.util.Patterns
 import android.view.View
 import android.view.ViewTreeObserver
@@ -36,12 +37,19 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.ViewModelProvider
+import com.example.accuratedamoov.BuildConfig
 import com.example.accuratedamoov.databinding.ActivityLoginBinding
 import com.example.accuratedamoov.ui.register.RegisterActivity
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import com.google.firebase.FirebaseException
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.PhoneAuthCredential
+import com.google.firebase.auth.PhoneAuthOptions
+import com.google.firebase.auth.PhoneAuthProvider
+import java.util.concurrent.TimeUnit
 
 
 // LoginActivity.kt
@@ -49,7 +57,9 @@ class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
     private lateinit var viewModel: LoginViewModel
-
+    private lateinit var auth: FirebaseAuth
+    private var verificationId: String? = null
+    private var resendToken: PhoneAuthProvider.ForceResendingToken? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -59,6 +69,21 @@ class LoginActivity : AppCompatActivity() {
         viewModel = ViewModelProvider(this)[LoginViewModel::class.java]
 
         loadPhoneLogin()
+
+        viewModel.loginResult.observe(this) { result ->
+            result.onSuccess { response ->
+                // Login success
+                Snackbar.make(binding.root, "Welcome ${response.name}", Snackbar.LENGTH_SHORT)
+                    .show()
+                startActivity(Intent(this, MainActivity::class.java))
+                finish()
+            }
+            result.onFailure { error ->
+                Snackbar.make(binding.root, error.message ?: "Login failed", Snackbar.LENGTH_LONG)
+                    .show()
+            }
+        }
+
     }
 
     // ----------------------------------------------------
@@ -72,6 +97,80 @@ class LoginActivity : AppCompatActivity() {
 
         val loginWithEmail = phoneView.findViewById<TextView>(R.id.loginWithEmail)
         highlightEmail(loginWithEmail)
+        val phoneEdt = phoneView.findViewById<TextInputEditText>(R.id.phoneEdt)
+        val sendOtpBtn = phoneView.findViewById<MaterialButton>(R.id.sendOtpBtn)
+
+        auth = FirebaseAuth.getInstance() // Initialize Firebase Auth
+        if (BuildConfig.DEBUG) {
+            auth.firebaseAuthSettings.setAppVerificationDisabledForTesting(true)
+        }
+        // Send OTP on button click
+        sendOtpBtn.setOnClickListener {
+            val phone = phoneEdt.text.toString().trim()
+            if (phone.isEmpty() || phone.length < 10) {
+                Toast.makeText(this, "Enter valid phone number", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val options = PhoneAuthOptions.newBuilder(auth)
+                .setPhoneNumber("+1$phone") // Change country code if needed
+                .setTimeout(60L, TimeUnit.SECONDS)
+                .setActivity(this)
+                .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                    override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+                        // Auto-verification: OTP detected automatically
+                        signInWithCredential(credential)
+                    }
+
+                    override fun onVerificationFailed(e: FirebaseException) {
+                        Log.d("LoginActivity", "Verification failed: ${e.message}")
+                        Toast.makeText(this@LoginActivity, e.message, Toast.LENGTH_LONG).show()
+                    }
+
+                    override fun onCodeSent(
+                        verifId: String,
+                        token: PhoneAuthProvider.ForceResendingToken
+                    ) {
+                        verificationId = verifId
+                        resendToken = token
+
+                        // Show OTP input dynamically
+                        val otpLayout = layoutInflater.inflate(
+                            R.layout.layout_otp_input,
+                            binding.loginContainer,
+                            false
+                        )
+                        binding.loginContainer.removeAllViews()
+                        binding.loginContainer.addView(otpLayout)
+
+                        val otpEdt = otpLayout.findViewById<TextInputEditText>(R.id.otpEdt)
+                        val verifyOtpBtn = otpLayout.findViewById<MaterialButton>(R.id.verifyOtpBtn)
+                        val backToPhone = otpLayout.findViewById<TextView>(R.id.backToPhone)
+
+                        // Verify OTP
+                        verifyOtpBtn.setOnClickListener {
+                            val otp = otpEdt.text.toString().trim()
+                            if (otp.isEmpty()) {
+                                Toast.makeText(this@LoginActivity, "Enter OTP", Toast.LENGTH_SHORT)
+                                    .show()
+                                return@setOnClickListener
+                            }
+                            verificationId?.let {
+                                val credential = PhoneAuthProvider.getCredential(it, otp)
+                                signInWithCredential(credential)
+                            }
+                        }
+
+                        // Back button to enter phone again
+                        backToPhone.setOnClickListener {
+                            loadPhoneLogin()
+                        }
+                    }
+                })
+                .build()
+
+            PhoneAuthProvider.verifyPhoneNumber(options)
+        }
 
         loginWithEmail.setOnClickListener {
             loadEmailLogin()
@@ -114,7 +213,18 @@ class LoginActivity : AppCompatActivity() {
 
         loginBtn.isEnabled = false
         loginBtn.alpha = 0.5f
+        loginBtn.setOnClickListener {
+            val email = emailEdt.text.toString().trim()
+            val pwd = pwdEdt.text.toString().trim()
 
+            // Only attempt login if valid
+            if (Patterns.EMAIL_ADDRESS.matcher(email).matches() && pwd.length >= 6) {
+                viewModel.loginUser(email, pwd)
+            } else {
+                // Optional: show error if somehow clicked while invalid
+                Toast.makeText(this, "Enter valid email and password", Toast.LENGTH_SHORT).show()
+            }
+        }
         backToPhone.setOnClickListener { loadPhoneLogin() }
 
         fun validateFields(showErrors: Boolean = false) {
@@ -150,6 +260,7 @@ class LoginActivity : AppCompatActivity() {
 
             loginBtn.isEnabled = valid
             loginBtn.alpha = if (valid) 1f else 0.5f
+
         }
 
         // Email text change
@@ -184,31 +295,46 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
-    pwdEdt.setOnFocusChangeListener{ _, hasFocus ->
-        if (!hasFocus) {
-            val pwd = pwdEdt.text.toString().trim()
-            pwdLayout.error = when {
-                pwd.isEmpty() -> "Password required"
-                pwd.length < 6 -> "Min 6 characters"
-                else -> null
-            }
-        } else {
-
-            pwdEdt.viewTreeObserver.addOnGlobalLayoutListener(object :
-                ViewTreeObserver.OnGlobalLayoutListener {
-                override fun onGlobalLayout() {
-                    binding.scrollView.smoothScrollTo(0, pwdLayout.bottom)
-                    pwdEdt.viewTreeObserver.removeOnGlobalLayoutListener(this)
+        pwdEdt.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val pwd = pwdEdt.text.toString().trim()
+                pwdLayout.error = when {
+                    pwd.isEmpty() -> "Password required"
+                    pwd.length < 6 -> "Min 6 characters"
+                    else -> null
                 }
-            })
+            } else {
+
+                pwdEdt.viewTreeObserver.addOnGlobalLayoutListener(object :
+                    ViewTreeObserver.OnGlobalLayoutListener {
+                    override fun onGlobalLayout() {
+                        binding.scrollView.smoothScrollTo(0, pwdLayout.bottom)
+                        pwdEdt.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                    }
+                })
+            }
         }
+
+
     }
 
 
-}
-
-
-
-
+    private fun signInWithCredential(credential: PhoneAuthCredential) {
+        auth.signInWithCredential(credential)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val user = task.result?.user
+                    Snackbar.make(
+                        binding.root,
+                        "Welcome ${user?.phoneNumber}",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                    startActivity(Intent(this, MainActivity::class.java))
+                    finish()
+                } else {
+                    Toast.makeText(this, "Invalid OTP", Toast.LENGTH_SHORT).show()
+                }
+            }
+    }
 }
 
