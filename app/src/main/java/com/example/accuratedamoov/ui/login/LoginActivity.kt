@@ -37,7 +37,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.ViewModelProvider
-import com.example.accuratedamoov.BuildConfig
+import androidx.lifecycle.lifecycleScope
+import com.example.accuratedamoov.data.network.OTPApiClient
+import com.example.accuratedamoov.data.network.OTPApiService
 import com.example.accuratedamoov.databinding.ActivityLoginBinding
 import com.example.accuratedamoov.ui.register.RegisterActivity
 import com.google.android.material.button.MaterialButton
@@ -49,11 +51,16 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.HttpURLConnection
+import java.net.URL
 import java.util.concurrent.TimeUnit
 
 
 // LoginActivity.kt
-class LoginActivity : AppCompatActivity() {
+/*class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
     private lateinit var viewModel: LoginViewModel
@@ -336,5 +343,120 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
     }
-}
+}*/
 
+class LoginActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityLoginBinding
+    private lateinit var viewModel: LoginViewModel
+    private val serverUrl = "http://YOUR_SERVER_IP:3000" // change to your backend
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityLoginBinding.inflate(layoutInflater)
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+        setContentView(binding.root)
+        viewModel = ViewModelProvider(this)[LoginViewModel::class.java]
+        loadPhoneLogin()
+    }
+
+    // ----------------------------------------------------
+    // Load PHONE LOGIN UI (Twilio backend)
+    // ----------------------------------------------------
+    private fun loadPhoneLogin() {
+        val phoneView = layoutInflater.inflate(R.layout.layout_phone_login, binding.loginContainer, false)
+        binding.loginContainer.removeAllViews()
+        binding.loginContainer.addView(phoneView)
+
+        val loginWithEmail = phoneView.findViewById<TextView>(R.id.loginWithEmail)
+        highlightEmail(loginWithEmail)
+        val phoneEdt = phoneView.findViewById<TextInputEditText>(R.id.phoneEdt)
+        val sendOtpBtn = phoneView.findViewById<MaterialButton>(R.id.sendOtpBtn)
+
+        sendOtpBtn.setOnClickListener {
+            val phone = phoneEdt.text.toString().trim()
+            if (phone.isEmpty() || phone.length < 10) {
+                Toast.makeText(this, "Enter valid phone number", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            sendOtp("+91$phone") // or your country code
+        }
+
+        loginWithEmail.setOnClickListener {
+            //loadEmailLogin()
+        }
+    }
+
+    private fun sendOtp(phone: String) {
+        lifecycleScope.launch {
+            try {
+                val response = OTPApiClient.instance.sendOTP(mapOf("phone" to phone))
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val msg = response.body()?.message ?: "OTP sent successfully"
+                    Toast.makeText(this@LoginActivity, msg, Toast.LENGTH_SHORT).show()
+                    showOtpInput(phone)
+                } else {
+                    val errorMsg = response.body()?.error ?: "Failed to send OTP"
+                    Toast.makeText(this@LoginActivity, errorMsg, Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@LoginActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun verifyOtp(phone: String, otp: String) {
+        lifecycleScope.launch {
+            try {
+                val response = OTPApiClient.instance.verifyOTP(mapOf("phone" to phone, "code" to otp))
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val msg = response.body()?.message ?: "Login successful!"
+                    Toast.makeText(this@LoginActivity, msg, Toast.LENGTH_SHORT).show()
+                    startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                    finish()
+                } else {
+                    val errorMsg = response.body()?.error ?: "Invalid OTP"
+                    Toast.makeText(this@LoginActivity, errorMsg, Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@LoginActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+
+    private fun showOtpInput(phone: String) {
+        val otpLayout = layoutInflater.inflate(R.layout.layout_otp_input, binding.loginContainer, false)
+        binding.loginContainer.removeAllViews()
+        binding.loginContainer.addView(otpLayout)
+
+        val otpEdt = otpLayout.findViewById<TextInputEditText>(R.id.otpEdt)
+        val verifyOtpBtn = otpLayout.findViewById<MaterialButton>(R.id.verifyOtpBtn)
+        val backToPhone = otpLayout.findViewById<TextView>(R.id.backToPhone)
+
+        verifyOtpBtn.setOnClickListener {
+            val otp = otpEdt.text.toString().trim()
+            if (otp.isEmpty()) {
+                Toast.makeText(this, "Enter OTP", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            verifyOtp(phone, otp)
+        }
+
+        backToPhone.setOnClickListener { loadPhoneLogin() }
+    }
+
+
+    // Keep highlightEmail() and loadEmailLogin() as in your original code
+    private fun highlightEmail(textView: TextView) {
+        val text = "Else login with Email"
+        val span = SpannableString(text)
+        val start = text.indexOf("Email")
+        val end = start + 5
+        span.setSpan(
+            ForegroundColorSpan(ContextCompat.getColor(this, R.color.colorPrimary)),
+            start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        textView.text = span
+    }
+}
