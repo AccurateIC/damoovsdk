@@ -17,7 +17,9 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.OptIn
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -25,19 +27,22 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.accuratedamoov.R
 import com.example.accuratedamoov.data.model.TripData
+import com.example.accuratedamoov.database.DatabaseHelper
 import com.example.accuratedamoov.databinding.FragmentHomeBinding
 import com.example.accuratedamoov.ui.feed.FeedFragment
 import com.example.accuratedamoov.ui.feed.FeedViewModel
 import com.example.accuratedamoov.ui.notification.NotificationsActivity
 import com.example.accuratedamoov.ui.tripDetails.TripDetailsActivity
 import com.google.android.gms.location.LocationServices
+import com.google.android.material.badge.BadgeDrawable
+import com.google.android.material.badge.BadgeUtils
+import com.google.android.material.badge.ExperimentalBadgeUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
 import org.osmdroid.views.overlay.gridlines.LatLonGridlineOverlay.lineWidth
 import java.text.SimpleDateFormat
 import java.util.*
-
 
 
 class HomeFragment : Fragment() {
@@ -129,10 +134,12 @@ class HomeFragment : Fragment() {
                     dayView.background.setTint(Color.WHITE)
                     dayView.setTextColor(Color.BLACK)
                 }
+
                 dayIndex == currentDay -> { // current day
                     dayView.background.setTint(Color.parseColor("#2196F3")) // blue
                     dayView.setTextColor(Color.WHITE)
                 }
+
                 else -> { // future days
                     dayView.background.setTint(Color.LTGRAY) // grey
                     dayView.setTextColor(Color.DKGRAY)
@@ -157,13 +164,14 @@ class HomeFragment : Fragment() {
             feedViewModel.loadTripsIfNeeded()
 
             // Get trip info from shared preferences
-            val sharedPref = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            val sharedPref =
+                requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
             val tripCount = sharedPref.getInt("trip_count", 0)
             val totalDistance = sharedPref.getInt("total_distance", 0)
 
             // Update UI on main thread
             launch(Dispatchers.Main) {
-               if (tripCount == 0) {
+                if (tripCount == 0) {
                     binding.firstTimell.visibility = View.VISIBLE
                     binding.weekcardll.visibility = View.GONE
                 } else {
@@ -184,19 +192,19 @@ class HomeFragment : Fragment() {
 
         binding.tripCardInclude.root.setOnClickListener {
 
-                val intent = Intent(activity, TripDetailsActivity::class.java).apply {
-                    putExtra("ID", recentTrip.unique_id.toString())
-                    putExtra("START_TIME", recentTrip.start_date_ist)
-                    putExtra("END_TIME", recentTrip.end_date_ist)
-                    putExtra(
-                        "START_LOC",
-                        "${binding.tripCardInclude.sourceLocationMain.text}, ${binding.tripCardInclude.sourceLocationMain.text}"
-                    )
-                    putExtra(
-                        "END_LOC",
-                        "${binding.tripCardInclude.destLocationMain.text}, ${binding.tripCardInclude.destLocationSub.text}"
-                    )
-                }
+            val intent = Intent(activity, TripDetailsActivity::class.java).apply {
+                putExtra("ID", recentTrip.unique_id.toString())
+                putExtra("START_TIME", recentTrip.start_date_ist)
+                putExtra("END_TIME", recentTrip.end_date_ist)
+                putExtra(
+                    "START_LOC",
+                    "${binding.tripCardInclude.sourceLocationMain.text}, ${binding.tripCardInclude.sourceLocationMain.text}"
+                )
+                putExtra(
+                    "END_LOC",
+                    "${binding.tripCardInclude.destLocationMain.text}, ${binding.tripCardInclude.destLocationSub.text}"
+                )
+            }
             activity?.startActivity(intent)
 
         }
@@ -211,8 +219,8 @@ class HomeFragment : Fragment() {
         }
 
         binding.bellIcon.setOnClickListener {
-                val intent = Intent(activity, NotificationsActivity::class.java)
-                startActivity(intent)
+            val intent = Intent(activity, NotificationsActivity::class.java)
+            startActivity(intent)
 
         }
 
@@ -280,7 +288,10 @@ class HomeFragment : Fragment() {
 
         feedViewModel.refreshLastTrip()
 
+        updateNotificationBadge()
+
     }
+
     private fun formatDate(dateTime: String): String {
         val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         val outputFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
@@ -331,7 +342,8 @@ class HomeFragment : Fragment() {
         binding.tripCardInclude.destAmPm.text = endAmPm
 
         val distanceText = "${trip.distance_km} km"
-        binding.tripCardInclude.centerIcons.findViewById<TextView>(R.id.distanceText)?.text = distanceText
+        binding.tripCardInclude.centerIcons.findViewById<TextView>(R.id.distanceText)?.text =
+            distanceText
 
         val (startCity, startSub) = getLocationFromCoords(trip.start_coordinates)
         val (endCity, endSub) = getLocationFromCoords(trip.end_coordinates)
@@ -339,6 +351,15 @@ class HomeFragment : Fragment() {
         binding.tripCardInclude.sourceLocationSub.text = startSub
         binding.tripCardInclude.destLocationMain.text = endCity
         binding.tripCardInclude.destLocationSub.text = endSub
+    }
+
+    fun updateNotificationBadge() {
+        val unread = DatabaseHelper.getInstance(requireContext())
+            .getUnreadNotificationCount()
+
+        // Show or hide dot
+        binding.notificationDot.visibility =
+            if (unread > 0) View.VISIBLE else View.GONE
     }
 
 

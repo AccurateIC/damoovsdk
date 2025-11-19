@@ -140,5 +140,6 @@ dependencies {
     implementation ("com.tomergoldst.android:tooltips:1.1.1")
     implementation("com.github.skydoves:balloon:1.6.7")
     implementation("com.google.firebase:firebase-auth:22.1.1")
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
 }
 

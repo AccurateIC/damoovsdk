@@ -62,4 +62,8 @@
     <string name="do_you_want_to_logout">Do you want to logout? 😟</string>
     <string name="else_login_with_email">else Login with email</string>
     <string name="enter_phone_number">Enter phone number</string>
+    <string name="enter_dashboard_url">Enter Stats url</string>
+    <string name="initial_setup_info">Note: Please configure the API URL in Settings to continue using the app.
+After the API URL is successfully configured, you can navigate to the Login screen.
+</string>
 </resources>

@@ -1,5 +1,7 @@
 package com.example.accuratedamoov.ui.profile
 
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.fragment.app.viewModels
 import android.os.Bundle
@@ -11,11 +13,15 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import com.example.accuratedamoov.R
 import java.io.File
 import androidx.core.net.toUri
+import com.example.accuratedamoov.SplashScreenActivity
+import com.example.accuratedamoov.ui.setting.SetttingsActivity
+import com.telematicssdk.tracking.TrackingApi
 
 class ProfileFragment : Fragment() {
 
@@ -47,6 +53,13 @@ class ProfileFragment : Fragment() {
             showLogoutDialog()
         }
         observeViewModel()
+
+        val rowAppSettings = view.findViewById<LinearLayout>(R.id.rowAppSettings)
+
+        rowAppSettings.setOnClickListener {
+            val intent = Intent(requireContext(), SetttingsActivity::class.java)
+            startActivity(intent)
+        }
 
         return view
     }
@@ -93,7 +106,42 @@ class ProfileFragment : Fragment() {
     }
 
     private fun logoutUser() {
-        // your logout logic
+        clearEverything()
+    }
+
+
+    private fun clearAllSharedPrefs(context: Context) {
+        val prefsDir = File(context.applicationInfo.dataDir, "shared_prefs")
+        if (prefsDir.exists() && prefsDir.isDirectory) {
+            prefsDir.listFiles()?.forEach { it.delete() }
+        }
+    }
+
+    private fun clearAppCache(context: Context) {
+        try {
+            context.cacheDir.deleteRecursively()
+            context.externalCacheDir?.deleteRecursively()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun clearDatabase(context: Context) {
+        context.deleteDatabase("raxel_tracker_db.db")
+    }
+
+
+    private fun clearEverything() {
+        if(TrackingApi.getInstance().isSdkEnabled()){
+            TrackingApi.getInstance().logout()
+        }
+        clearAllSharedPrefs(requireContext())
+        clearAppCache(requireContext())
+        Toast.makeText(requireContext(), "successfully logout", Toast.LENGTH_SHORT).show()
+        val intent = Intent(requireContext(), SplashScreenActivity::class.java)
+        startActivity(intent)
+        requireActivity().finish()
+
     }
 
 }

@@ -80,18 +80,26 @@ class SetttingsActivity : AppCompatActivity() {
     private fun loadSettings() {
         val baseUrl = sharedPreferences.getString("api_url", "http://192.168.10.41:5556/") ?: ""
         binding.apiUrlEditText.setText(baseUrl)
+
+        val scoreUrl = sharedPreferences.getString("score_url", "http://192.168.10.41:5000/") ?: ""
+        binding.statsUrlEditText.setText(scoreUrl)   // <-- set value if available
     }
 
     private fun saveSettings() {
         val selectedPosition = binding.syncIntervalSpinner.selectedItemPosition
         val intervalMinutes = listOf(15, 30, 60, 120, 360)[selectedPosition]
         val apiUrl = binding.apiUrlEditText.text.toString().trim()
+        val scoreUrl = binding.statsUrlEditText.text.toString().trim()
 
         if (apiUrl.isEmpty()) {
-            Snackbar.make(binding.root, "Please enter a valid API URL", Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(binding.root, "Please enter a valid API URL", Snackbar.LENGTH_SHORT)
+                .show()
             return
         }
-
+        if (scoreUrl.isEmpty()) {
+            Snackbar.make(binding.root, "Please enter dashboard URL", Snackbar.LENGTH_SHORT).show()
+            return
+        }
         val apiService = RetrofitClient.getApiService(apiUrl)
 
         lifecycleScope.launch {
@@ -100,11 +108,12 @@ class SetttingsActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     // Clear + Save fresh settings in normal prefs
                     val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
-                    prefs.edit().clear().apply()
-                    prefs.edit()
-                        .putString("api_url", apiUrl)
-                        .putInt("sync_interval", intervalMinutes)
-                        .apply()
+                    prefs.edit { clear() }
+                    prefs.edit {
+                        putString("api_url", apiUrl)
+                            .putInt("sync_interval", intervalMinutes)
+                            .putString("score_url", scoreUrl)
+                    }
 
                     // Clear encrypted prefs
                     val masterKey = MasterKey.Builder(this@SetttingsActivity)
@@ -125,17 +134,37 @@ class SetttingsActivity : AppCompatActivity() {
 
                     // Hide keyboard + redirect
                     hideKeyboard(binding.apiUrlEditText)
-                    val nextIntent = Intent(this@SetttingsActivity, LoginActivity::class.java).apply{
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    var nextIntent: Intent?
+                    if (prefs.getBoolean("is_logged_in", false)) {
+                        nextIntent =
+                            Intent(this@SetttingsActivity, MainActivity::class.java).apply {
+                                flags =
+                                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 
+                            }
+                    } else {
+
+                        nextIntent= Intent(this@SetttingsActivity, LoginActivity::class.java).apply {
+                            flags =
+                                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+                        }
                     }
                     startActivity(nextIntent)
                     finish()
                 } else {
-                    Snackbar.make(binding.root, "Server error: ${response.code()}", Snackbar.LENGTH_SHORT).show()
+                    Snackbar.make(
+                        binding.root,
+                        "Server error: ${response.code()}",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
                 }
             } catch (e: Exception) {
-                Snackbar.make(binding.root, "Unable to reach server: ${e.localizedMessage}", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(
+                    binding.root,
+                    "Unable to reach server: ${e.localizedMessage}",
+                    Snackbar.LENGTH_LONG
+                ).show()
             }
         }
 
@@ -178,5 +207,10 @@ class SetttingsActivity : AppCompatActivity() {
     private fun hideKeyboard(view: View) {
         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(view.windowToken, 0)
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        finish()
     }
 }

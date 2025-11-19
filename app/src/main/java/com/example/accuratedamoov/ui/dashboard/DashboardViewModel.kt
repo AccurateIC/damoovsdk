@@ -3,6 +3,7 @@ package com.example.accuratedamoov.ui.dashboard
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -17,8 +18,8 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     private val appContext = application.applicationContext
 
 
-    private val _summary = MutableLiveData<SafetySummaryResponse>()
-    val summary: LiveData<SafetySummaryResponse> get() = _summary
+    private val _summary = MutableLiveData<SafetySummaryResponse?>()
+    val summary: LiveData<SafetySummaryResponse?> get() = _summary
 
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> get() = _error
@@ -29,6 +30,11 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val _errorProfile = MutableLiveData<String?>()
     val errorProfile: LiveData<String?> = _errorProfile
+
+
+    init {
+        fetchDashboardData(prefs.getInt("user_id", -1))
+    }
 
     fun getUserProfile(userId: Int?) {
         viewModelScope.launch {
@@ -56,24 +62,35 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun fetchDashboardData(user_Id: Int?) {
+        Log.d("DashboardVM", "fetchDashboardData() called with user_Id = $user_Id")
+
         viewModelScope.launch(Dispatchers.IO) {
+
             try {
+                Log.d("DashboardVM", "Creating API service instance...")
                 val api = RetrofitClient.getProfileApiService(appContext)
+
+                Log.d("DashboardVM", "Calling getSafetySummary API...")
                 val response = api.getSafetySummary(user_Id)
-                Log.d("API_Response", "Response: $response")
+
+                Log.d("DashboardVM", "API raw response: $response")
 
                 if (response.isSuccessful) {
-                    //Toast.makeText(appContext, response.body()?.data?.safety_score.toString(),Toast.LENGTH_LONG).show()
-                    _summary.postValue(response.body())
+                    val body = response.body()
+                    Log.d("DashboardVM", "API success. Response body: $body")
+
+                    _summary.postValue(body)
                 } else {
-                    _error.postValue("Error: ${response.errorBody()?.string()}")
-                    //Toast.makeText(appContext, response.errorBody()?.string(),Toast.LENGTH_LONG).show()
+                    val errorText = response.errorBody()?.string()
+                    Log.e("DashboardVM", "API failed. HTTP ${response.code()} | Error: $errorText")
 
+                    _error.postValue("Error: $errorText")
                 }
-            } catch (e: Exception) {
-                _error.postValue("Network error: ${"Oops! We couldn’t connect to the server"}")
-                //Toast.makeText(appContext, e.message,Toast.LENGTH_LONG).show()
 
+            } catch (e: Exception) {
+                Log.e("DashboardVM", "Exception occurred: ${e.message}", e)
+
+                _error.postValue("Network error: Oops! We couldn’t connect to the server")
             }
         }
     }

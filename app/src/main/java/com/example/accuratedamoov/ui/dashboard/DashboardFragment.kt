@@ -15,6 +15,7 @@ import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.method.LinkMovementMethod
 import android.text.style.ImageSpan
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -26,8 +27,10 @@ import android.widget.Toast
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import pl.droidsonroids.gif.GifDrawable
 import com.example.accuratedamoov.R
+import com.example.accuratedamoov.data.model.SafetySummaryResponse
 import com.skydoves.balloon.ArrowOrientation
 import com.skydoves.balloon.ArrowPositionRules
 import com.skydoves.balloon.Balloon
@@ -39,6 +42,8 @@ import com.tomergoldst.tooltips.ToolTipsManager
 ///stats
 class DashboardFragment : Fragment() {
 
+
+    private val dashboardViewModel:DashboardViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -140,8 +145,19 @@ class DashboardFragment : Fragment() {
             safetyParamsLayout.visibility = View.GONE
             generalParamsLayout.visibility = View.VISIBLE
         }
-
         setupTextForGrid(view)
+
+        dashboardViewModel.summary.observe(viewLifecycleOwner) { summary ->
+            if (summary != null) {
+                // API success → override demo values
+                setDataIntoGrid(view, summary)
+            } else {
+                // API failure → KEEP demo values
+                setupTextForGrid(view)
+
+                Log.e("Dashboard", "API not available, using fallback values")
+            }
+        }
 
     }
 
@@ -291,6 +307,64 @@ class DashboardFragment : Fragment() {
     }
 
 
+    private fun setDataIntoGrid(view: View, summary: SafetySummaryResponse) {
+
+        // Fetch views
+        val itemSafetyScore = view.findViewById<View>(R.id.itemSafetyScore)
+        val itemTrustLevel = view.findViewById<View>(R.id.itemTrustLevel)
+        val itemAvgSpeed = view.findViewById<View>(R.id.itemAvgSpeed)
+        val itemMaxSpeed = view.findViewById<View>(R.id.itemMaxSpeed)
+        val itemPhoneUsage = view.findViewById<View>(R.id.itemPhoneUsage)
+        val itemUsageSpeed = view.findViewById<View>(R.id.itemUsageSpeed)
+        val itemBraking = view.findViewById<View>(R.id.itemBraking)
+        val itemSpeeding = view.findViewById<View>(R.id.itemSpeeding)
+
+        // Update values dynamically
+        itemSafetyScore.findViewById<TextView>(R.id.subtitleText).text =
+            summary.safety_score.toInt().toString()
+
+        itemTrustLevel.findViewById<TextView>(R.id.subtitleText).text =
+            calculateTrustLevel(summary.safety_score)
+
+        itemAvgSpeed.findViewById<TextView>(R.id.subtitleText).text =
+            "${summary.average_speed_kmh} km/h"
+
+        itemMaxSpeed.findViewById<TextView>(R.id.subtitleText).text =
+            "${summary.max_speed_kmh} km/h"
+
+        itemPhoneUsage.findViewById<TextView>(R.id.subtitleText).text =
+            "${summary.phone_usage_percentage}%"
+
+        itemUsageSpeed.findViewById<TextView>(R.id.subtitleText).text =
+            summary.average_speed_kmh.toString()  // or any other value
+
+        itemBraking.findViewById<TextView>(R.id.subtitleText).text = "-"
+        itemSpeeding.findViewById<TextView>(R.id.subtitleText).text = "-"
+
+        // General Cards
+        val itemTrips = view.findViewById<View>(R.id.itemTrips)
+        val itemTimeDriven = view.findViewById<View>(R.id.itemTimeDriven)
+        val itemMileage = view.findViewById<View>(R.id.itemMileage)
+        val itemUniqueTags = view.findViewById<View>(R.id.itemUniqueTags)
+
+        fun setCard(item: View, title: String, value: String) {
+            item.findViewById<TextView>(R.id.titleText).text = title
+            item.findViewById<TextView>(R.id.subtitleText).text = value
+        }
+
+        setCard(itemTrips, "Trips", summary.trips.toString())
+        setCard(itemTimeDriven, "Time Driven", "${summary.time_driven_minutes} min")
+        setCard(itemMileage, "Mileage", "${summary.mileage_km} km")
+        setCard(itemUniqueTags, "Unique Tags", "-")
+    }
+
+    private fun calculateTrustLevel(score: Double): String {
+        return when {
+            score >= 90 -> "High"
+            score >= 70 -> "Medium"
+            else -> "Low"
+        }
+    }
 
 
 

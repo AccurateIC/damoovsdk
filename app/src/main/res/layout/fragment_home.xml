@@ -64,14 +64,30 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Right section: bell icon -->
-                <ImageView
-                    android:id="@+id/bellIcon"
+                <FrameLayout
+                    android:id="@+id/bellContainer"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end|center_vertical"
-                    android:fontFamily="@font/poppinssemibold"
-                    android:src="@drawable/ic_bell_notification" />
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/bellIcon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/ic_bell_notification" />
+
+                    <!-- NOTIFICATION DOT -->
+                    <View
+                        android:id="@+id/notificationDot"
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="3dp"
+                        android:background="@drawable/red_dot_bg"
+                        android:translationX="1dp"
+                        android:translationY="1dp"
+                        android:visibility="gone" />
+                </FrameLayout>
+
 
             </LinearLayout>
 
@@ -80,8 +96,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:visibility="visible"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:visibility="visible">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -113,14 +129,15 @@
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
+
                         <pl.droidsonroids.gif.GifImageView
                             android:id="@+id/weekGif"
                             android:layout_width="20dp"
                             android:layout_height="20dp"
-                            app:layout_constraintStart_toEndOf="@id/weektv"
-                            app:layout_constraintTop_toTopOf="@id/weektv"
+                            android:src="@drawable/fire"
                             app:layout_constraintBottom_toBottomOf="@id/weektv"
-                            android:src="@drawable/fire" />
+                            app:layout_constraintStart_toEndOf="@id/weektv"
+                            app:layout_constraintTop_toTopOf="@id/weektv" />
 
                         <TextView
                             android:id="@+id/tvdate"
@@ -208,6 +225,7 @@
                             android:layout_marginEnd="8dp"
                             android:src="@drawable/ic_smalltruck" />
                     </FrameLayout>
+
                     <TextView
                         android:id="@+id/driverranktv"
                         android:layout_width="wrap_content"
@@ -220,6 +238,7 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
                 </LinearLayout>
+
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -232,42 +251,43 @@
                         android:id="@+id/tvRecentTrip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/recent_trip"
-                        android:textSize="14sp"
-                        android:textColor="#121212"
                         android:layout_alignParentStart="true"
-                        android:layout_centerVertical="true" />
+                        android:layout_centerVertical="true"
+                        android:text="@string/recent_trip"
+                        android:textColor="#121212"
+                        android:textSize="14sp" />
 
                     <!-- Right aligned: Next icon -->
                     <ImageView
                         android:id="@+id/ivNext"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:src="@drawable/ic_next"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
-                         />
+                        android:src="@drawable/ic_next" />
 
                     <!-- Right aligned: All trips text (left of icon) -->
                     <TextView
                         android:id="@+id/tvAllTrips"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="All trips"
-                        android:padding="10dp"
-                        android:textSize="14sp"
-                        android:textColor="#898989"
-                        android:layout_toStartOf="@id/ivNext"
                         android:layout_centerVertical="true"
-                        android:layout_marginEnd="4dp" />
+                        android:layout_marginEnd="4dp"
+                        android:layout_toStartOf="@id/ivNext"
+                        android:padding="10dp"
+                        android:text="All trips"
+                        android:textColor="#898989"
+                        android:textSize="14sp" />
 
                 </RelativeLayout>
+
                 <include
-                    layout="@layout/trip_info_card"
                     android:id="@+id/tripCardInclude"
+                    layout="@layout/trip_info_card"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp" />
+
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -280,49 +300,48 @@
                         android:id="@+id/tvMystats"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/my_stats"
-                        android:textSize="14sp"
-                        android:textColor="#121212"
                         android:layout_alignParentStart="true"
-                        android:layout_centerVertical="true" />
+                        android:layout_centerVertical="true"
+                        android:text="@string/my_stats"
+                        android:textColor="#121212"
+                        android:textSize="14sp" />
 
                     <!-- Right aligned: Next icon -->
                     <ImageView
                         android:id="@+id/ivNextStats"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:src="@drawable/ic_next"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
-                        />
+                        android:src="@drawable/ic_next" />
 
                     <!-- Right aligned: All trips text (left of icon) -->
                     <TextView
                         android:id="@+id/tvAllstats"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="All stats"
-                        android:padding="10dp"
-                        android:textSize="14sp"
-                        android:textColor="#898989"
-                        android:layout_toStartOf="@id/ivNextStats"
                         android:layout_centerVertical="true"
-                        android:layout_marginEnd="4dp" />
+                        android:layout_marginEnd="4dp"
+                        android:layout_toStartOf="@id/ivNextStats"
+                        android:padding="10dp"
+                        android:text="All stats"
+                        android:textColor="#898989"
+                        android:textSize="14sp" />
 
                 </RelativeLayout>
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    >
+                    android:orientation="vertical">
 
                     <GridLayout
                         android:id="@+id/gridContainer"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:alignmentMode="alignMargins"
                         android:columnCount="2"
                         android:rowCount="2"
-                        android:alignmentMode="alignMargins"
                         android:rowOrderPreserved="false"
                         android:useDefaultMargins="true">
 
@@ -330,25 +349,25 @@
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_columnWeight="1"
-                            android:minHeight="80dp"
                             android:layout_rowWeight="1"
+                            android:layout_columnWeight="1"
                             android:background="@drawable/trip_bg"
-                            android:padding="5dp"
+                            android:gravity="center_vertical"
+                            android:minHeight="80dp"
 
                             android:orientation="horizontal"
-                            android:gravity="center_vertical">
+                            android:padding="5dp">
 
                             <ImageView
                                 android:id="@+id/itemImage1"
                                 android:layout_width="40dp"
                                 android:layout_height="40dp"
                                 android:layout_marginEnd="8dp"
-                                android:padding="5dp"
-
-                                android:src="@drawable/ic_image_stats"
                                 android:contentDescription="@string/app_name"
-                                android:scaleType="centerCrop" />
+
+                                android:padding="5dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/ic_image_stats" />
 
                             <LinearLayout
                                 android:layout_width="wrap_content"
@@ -378,25 +397,25 @@
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_columnWeight="1"
                             android:layout_rowWeight="1"
-                            android:minHeight="80dp"
+                            android:layout_columnWeight="1"
                             android:background="@drawable/trip_bg"
-                            android:padding="5dp"
+                            android:gravity="center_vertical"
+                            android:minHeight="80dp"
 
                             android:orientation="horizontal"
-                            android:gravity="center_vertical">
+                            android:padding="5dp">
 
                             <ImageView
                                 android:id="@+id/itemImage2"
                                 android:layout_width="40dp"
                                 android:layout_height="40dp"
                                 android:layout_marginEnd="8dp"
-                                android:padding="5dp"
-
-                                android:src="@drawable/ic_image_stats"
                                 android:contentDescription="@string/app_name"
-                                android:scaleType="centerCrop" />
+
+                                android:padding="5dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/ic_image_stats" />
 
                             <LinearLayout
                                 android:layout_width="wrap_content"
@@ -426,25 +445,25 @@
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_columnWeight="1"
-                            android:minHeight="80dp"
                             android:layout_rowWeight="1"
-                            android:padding="5dp"
-
+                            android:layout_columnWeight="1"
                             android:background="@drawable/trip_bg"
+                            android:gravity="center_vertical"
+
+                            android:minHeight="80dp"
                             android:orientation="horizontal"
-                            android:gravity="center_vertical">
+                            android:padding="5dp">
 
                             <ImageView
                                 android:id="@+id/itemImage3"
                                 android:layout_width="40dp"
                                 android:layout_height="40dp"
                                 android:layout_marginEnd="8dp"
-                                android:padding="5dp"
-
-                                android:src="@drawable/ic_image_stats"
                                 android:contentDescription="@string/app_name"
-                                android:scaleType="centerCrop" />
+
+                                android:padding="5dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/ic_image_stats" />
 
                             <LinearLayout
                                 android:layout_width="wrap_content"
@@ -456,9 +475,9 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="76.67"
-                                    android:textStyle="bold"
                                     android:textColor="@android:color/black"
-                                    android:textSize="20sp" />
+                                    android:textSize="20sp"
+                                    android:textStyle="bold" />
 
                                 <TextView
                                     android:id="@+id/subtitleText3"
@@ -474,24 +493,24 @@
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_columnWeight="1"
                             android:layout_rowWeight="1"
-                            android:padding="5dp"
-                            android:minHeight="80dp"
+                            android:layout_columnWeight="1"
                             android:background="@drawable/trip_bg"
+                            android:gravity="center_vertical"
+                            android:minHeight="80dp"
                             android:orientation="horizontal"
-                            android:gravity="center_vertical">
+                            android:padding="5dp">
 
                             <ImageView
                                 android:id="@+id/itemImage4"
                                 android:layout_width="40dp"
                                 android:layout_height="40dp"
                                 android:layout_marginEnd="8dp"
-                                android:padding="5dp"
-
-                                android:src="@drawable/ic_image_stats"
                                 android:contentDescription="@string/app_name"
-                                android:scaleType="centerCrop" />
+
+                                android:padding="5dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/ic_image_stats" />
 
                             <LinearLayout
                                 android:layout_width="wrap_content"
@@ -503,9 +522,9 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="50"
-                                    android:textStyle="bold"
                                     android:textColor="@android:color/black"
-                                    android:textSize="20sp" />
+                                    android:textSize="20sp"
+                                    android:textStyle="bold" />
 
                                 <TextView
                                     android:id="@+id/subtitleText4"
@@ -521,52 +540,51 @@
 
 
             </LinearLayout>
-        <LinearLayout
-            android:id="@+id/firstTimell"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            android:orientation="vertical"
-            >
 
-            <ImageView
-                android:id="@+id/firstTimeImage"
+            <LinearLayout
+                android:id="@+id/firstTimell"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="230dp"
-                android:src="@drawable/firsttime_banner"
-                android:layout_marginTop="16dp" />
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone">
 
-            <ImageView
-                android:id="@+id/notrip"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_gravity="center"
-                android:src="@drawable/notrips"
-                android:layout_marginTop="100dp" />
+                <ImageView
+                    android:id="@+id/firstTimeImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:minHeight="230dp"
+                    android:src="@drawable/firsttime_banner" />
 
-            <TextView
-                android:id="@+id/firstTimeTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/oops_no_trips_found"
-                android:textColor="#121212"
-                android:textStyle="bold"
-                android:layout_gravity="center_horizontal"
-                android:textSize="24sp"
-                android:layout_marginTop="8dp" />
+                <ImageView
+                    android:id="@+id/notrip"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="100dp"
+                    android:src="@drawable/notrips" />
 
-            <TextView
-                android:id="@+id/firstTimeSubtitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/start_riding_to_initiate_the_insights"
-                android:textColor="#898989"
-                android:textSize="14sp"
-                android:layout_gravity="center_horizontal"
-               />
+                <TextView
+                    android:id="@+id/firstTimeTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/oops_no_trips_found"
+                    android:textColor="#121212"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
 
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/firstTimeSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:text="@string/start_riding_to_initiate_the_insights"
+                    android:textColor="#898989"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

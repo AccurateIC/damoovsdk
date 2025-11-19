@@ -5,68 +5,98 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_login_gradient"
     android:padding="24dp"
     tools:context=".ui.setting.SetttingsActivity">
 
-    <!-- Centered Logo with circular white background -->
-    <ImageView
-        android:id="@+id/logo"
-        android:layout_width="140dp"
-        android:layout_height="140dp"
-        android:src="@drawable/ic_logo"
-        android:contentDescription="@string/app_name"
-        android:elevation="6dp"
-        android:padding="10dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/formLayout"
+    <!-- 💬 Info Text (Aligned at the Top, Centered) -->
+    <TextView
+        android:id="@+id/infoText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/initial_setup_info"
+        android:textColor="#A0A0A0"
+        android:textSize="13sp"
+        android:padding="4dp"
+        android:gravity="center"
+        android:layout_marginTop="50dp"
+        android:layout_marginBottom="8dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_chainStyle="packed"
-        android:layout_marginBottom="40dp"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Bottom Form (EditTexts + Button) -->
+
+    <!-- 📌 Form Layout (Well Aligned Under infoText) -->
     <LinearLayout
         android:id="@+id/formLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center_horizontal"
+        app:layout_constraintTop_toBottomOf="@id/infoText"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- API URL Input Field -->
+        <!-- 🌐 API URL Input -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/apiUrlTextInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
             android:hint="@string/enter_api_url"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxCornerRadiusTopStart="12dp"
-            app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp"
-            app:boxCornerRadiusBottomEnd="12dp"
-            app:boxStrokeColor="@color/white"
-            android:layout_marginBottom="20dp">
+            app:boxBackgroundMode="outline"
+            app:boxCornerRadiusTopStart="30dp"
+            app:boxCornerRadiusTopEnd="30dp"
+            app:boxCornerRadiusBottomStart="30dp"
+            app:boxCornerRadiusBottomEnd="30dp"
+            app:endIconTint="#898989"
+            app:boxStrokeColor="@color/colorPrimary">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/apiUrlEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textUri"
-                android:textColor="@color/white"
+                android:background="@drawable/bg_card"
+                android:textColorHint="#898989"
+                android:gravity="center_vertical"
                 android:textSize="16sp"/>
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Interval Selector -->
+        <!-- 📊 Dashboard URL Input -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/statsUrlTextInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:hint="@string/enter_dashboard_url"
+            app:boxBackgroundMode="outline"
+            app:boxCornerRadiusTopStart="30dp"
+            app:boxCornerRadiusTopEnd="30dp"
+            app:boxCornerRadiusBottomStart="30dp"
+            app:boxCornerRadiusBottomEnd="30dp"
+            app:endIconTint="#898989"
+            app:boxStrokeColor="@color/colorPrimary">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/statsUrlEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textUri"
+                android:background="@drawable/bg_card"
+                android:textColorHint="#898989"
+                android:gravity="center_vertical"
+                android:textSize="16sp"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 🔄 Sync Interval Selector -->
         <LinearLayout
             android:id="@+id/intervalSelectorLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:visibility="gone"
             android:gravity="center_vertical"
+            android:visibility="gone"
             android:layout_marginBottom="20dp">
 
             <TextView
@@ -90,17 +120,16 @@
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
 
-        <!-- Save Button -->
         <Button
             android:id="@+id/saveButton"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginBottom="60dp"
             android:background="@drawable/btn_login_bg"
-            android:contentDescription="@string/save_apply"
             android:text="@string/save_apply"
             android:textSize="16sp"
-            android:gravity="center"/>
+            android:gravity="center" />
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

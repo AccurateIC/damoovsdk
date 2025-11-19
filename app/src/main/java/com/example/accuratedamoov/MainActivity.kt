@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity() {
         networkCallback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
                 runOnUiThread {
-                   dismissNetworkSnackbar()
+                    dismissNetworkSnackbar()
                 }
             }
 
@@ -275,13 +275,7 @@ class MainActivity : AppCompatActivity() {
                 ).show()
             }
         } else {
-            Toast.makeText(
-                applicationContext,
-                "No trips with reasons found in the database",
-                Toast.LENGTH_LONG
-            ).show()
-
-            Log.d(TAG, "")
+            Log.d(TAG, "No trips in the database")
         }
     }
 
@@ -330,7 +324,7 @@ class MainActivity : AppCompatActivity() {
         return !apiUrl.isNullOrEmpty()
     }
 
-     fun isNetworkAvailable(): Boolean {
+    fun isNetworkAvailable(): Boolean {
         val network = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
