@@ -118,6 +118,7 @@
 
             <TextView
                 android:id="@+id/tvPast10"
+                android:clickable="false"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
@@ -131,6 +132,7 @@
 
             <TextView
                 android:id="@+id/tvPast20"
+                android:clickable="false"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
@@ -144,6 +146,7 @@
 
             <TextView
                 android:id="@+id/tvPast30"
+                android:clickable="false"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_chip_unselected"
@@ -284,14 +287,7 @@
             android:layout_columnWeight="1"
             android:layout_gravity="fill" />
 
-        <!-- Unique Tags -->
-        <include
-            android:id="@+id/itemUniqueTags"
-            layout="@layout/item_param_view"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:layout_gravity="fill" />
+
     </GridLayout>
     </LinearLayout>
     </ScrollView>

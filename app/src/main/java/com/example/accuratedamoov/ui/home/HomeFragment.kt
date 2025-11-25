@@ -9,6 +9,7 @@ import android.graphics.Color
 import android.location.Geocoder
 import android.os.Bundle
 import android.preference.PreferenceManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +18,7 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -25,6 +27,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.example.accuratedamoov.MainActivity
 import com.example.accuratedamoov.R
 import com.example.accuratedamoov.data.model.TripData
 import com.example.accuratedamoov.database.DatabaseHelper
@@ -38,16 +41,21 @@ import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.badge.BadgeUtils
 import com.google.android.material.badge.ExperimentalBadgeUtils
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
 import org.osmdroid.views.overlay.gridlines.LatLonGridlineOverlay.lineWidth
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.core.view.isGone
 
 
 class HomeFragment : Fragment() {
 
     private lateinit var recentTrip: TripData
+    private var shimmerStartTime = 0L
+    private val MIN_SHIMMER_TIME = 1000L
+
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private val homeViewModel: HomeViewModel by viewModels()
@@ -71,6 +79,24 @@ class HomeFragment : Fragment() {
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setUpuserDetails()
+        showShimmer()
+
+        feedViewModel.lastTrip.observe(viewLifecycleOwner) { trip ->
+            if (trip != null) {
+                hideShimmer()
+
+                updateTripUI(trip)
+                recentTrip = trip
+                binding.firstTimell.visibility = View.GONE
+                if (binding.shimmerLayout.isGone) {
+                    binding.weekcardll.visibility = View.VISIBLE
+                }
+            } else {
+                showShimmer()
+            }
+        }
+
 
         val weekContainer = binding.weekContainer
         val weekLine = binding.underline
@@ -161,7 +187,12 @@ class HomeFragment : Fragment() {
 
         lifecycleScope.launch(Dispatchers.IO) {
             // Trigger loading trips once (this updates shared prefs)
-            feedViewModel.loadTripsIfNeeded()
+            (activity as? MainActivity)?.let { main ->
+                if (main.isNetworkAvailable()) {
+                    feedViewModel.loadTripsIfNeeded()
+                }
+            }
+
 
             // Get trip info from shared preferences
             val sharedPref =
@@ -172,17 +203,14 @@ class HomeFragment : Fragment() {
             // Update UI on main thread
             launch(Dispatchers.Main) {
                 if (tripCount == 0) {
+                    hideShimmer()
                     binding.firstTimell.visibility = View.VISIBLE
                     binding.weekcardll.visibility = View.GONE
                 } else {
+                    hideShimmer()
                     binding.firstTimell.visibility = View.GONE
-                    binding.weekcardll.visibility = View.VISIBLE
-                }
-
-                feedViewModel.lastTrip.observe(viewLifecycleOwner) { trip ->
-                    trip?.let {
-                        updateTripUI(it)
-                        recentTrip = it
+                    if (binding.shimmerLayout.isGone) {
+                        binding.weekcardll.visibility = View.VISIBLE
                     }
                 }
 
@@ -191,6 +219,12 @@ class HomeFragment : Fragment() {
         }
 
         binding.tripCardInclude.root.setOnClickListener {
+
+            if (!::recentTrip.isInitialized) {
+                Log.e("TripCard", "recentTrip not initialized yet")
+                Toast.makeText(requireContext(), "Trip data not loaded", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
             val intent = Intent(activity, TripDetailsActivity::class.java).apply {
                 putExtra("ID", recentTrip.unique_id.toString())
@@ -224,6 +258,25 @@ class HomeFragment : Fragment() {
 
         }
 
+
+    }
+
+    private fun setUpuserDetails() {
+        val prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+
+        val name = prefs.getString("name", null)
+        val email = prefs.getString("email", null)
+        val phone = prefs.getString("phone", null)
+
+// Decide what to show
+        val displayName = when {
+            !name.isNullOrEmpty() -> name
+            !email.isNullOrEmpty() -> email
+            !phone.isNullOrEmpty() -> phone
+            else -> "Buddy"
+        }
+
+        binding.nameTv.text = displayName
 
     }
 
@@ -362,6 +415,33 @@ class HomeFragment : Fragment() {
             if (unread > 0) View.VISIBLE else View.GONE
     }
 
+    private fun showShimmer() {
+        shimmerStartTime = System.currentTimeMillis()
+        binding.weekcardll.visibility = View.GONE
+        binding.firstTimell.visibility = View.GONE
+        binding.tripCardInclude.root.visibility = View.GONE
 
+        binding.shimmerLayout.visibility = View.VISIBLE
+        binding.shimmerLayout.startShimmer()
+
+    }
+
+    private fun hideShimmer() {
+        val elapsed = System.currentTimeMillis() - shimmerStartTime
+        val delay = if (elapsed < MIN_SHIMMER_TIME) MIN_SHIMMER_TIME - elapsed else 0L
+        viewLifecycleOwner.lifecycleScope.launch {
+            delay(delay)
+            val b = binding
+
+            b.shimmerLayout.stopShimmer()
+            b.shimmerLayout.visibility = View.GONE
+
+            if (binding.shimmerLayout.isGone) {
+                binding.weekcardll.visibility = View.VISIBLE
+                b.tripCardInclude.root.visibility = View.VISIBLE
+            }
+
+        }
+    }
 
 }

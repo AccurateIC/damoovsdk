@@ -1,5 +1,6 @@
 package com.example.accuratedamoov.ui.dashboard
 
+import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
@@ -42,8 +43,8 @@ import com.tomergoldst.tooltips.ToolTipsManager
 ///stats
 class DashboardFragment : Fragment() {
 
-
-    private val dashboardViewModel:DashboardViewModel by viewModels()
+    private val dashboardViewModel: DashboardViewModel by viewModels()
+    private var demoValuesSet = false // prevent multiple demo resets
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,18 +56,35 @@ class DashboardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupAnimatedTitle(view)
+        setupToggles(view)
+        setupChips(view)
+
+        dashboardViewModel.summary.observe(viewLifecycleOwner) { summary ->
+            if (summary != null) {
+                setDataIntoGrid(view, summary)
+            } else if (!demoValuesSet) {
+                setupTextForGrid(view)
+                demoValuesSet = true
+                Log.e("Dashboard", "API not available, using fallback demo values")
+            }
+        }
+    }
+
+    // -----------------------------
+    // Animated title with GIF
+    // -----------------------------
+    private fun setupAnimatedTitle(view: View) {
         val textView = view.findViewById<TextView>(R.id.titleText)
         val text = textView.text.toString()
         val gifDrawable = GifDrawable(resources, R.drawable.ic_cowboy_animated)
-        gifDrawable.setBounds(0, 0, 80, 80) // size in px
+        gifDrawable.setBounds(0, 0, 80, 80)
 
         val span = SpannableString("$text ")
         val imageSpan = ImageSpan(gifDrawable, ImageSpan.ALIGN_BASELINE)
         span.setSpan(imageSpan, text.length, text.length + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-
         textView.text = span
         textView.movementMethod = LinkMovementMethod.getInstance()
-
 
         gifDrawable.callback = object : Drawable.Callback {
             override fun invalidateDrawable(who: Drawable) {
@@ -81,10 +99,16 @@ class DashboardFragment : Fragment() {
                 textView.removeCallbacks(what)
             }
         }
+    }
 
-        // Toggle buttons setup
+    // -----------------------------
+    // Toggle buttons (Safety / General)
+    // -----------------------------
+    private fun setupToggles(view: View) {
         val leftText = view.findViewById<TextView>(R.id.leftBottomText)
         val rightText = view.findViewById<TextView>(R.id.rightBottomText)
+        val safetyLayout = view.findViewById<View>(R.id.safetyParamsLayout)
+        val generalLayout = view.findViewById<View>(R.id.generalParamsLayout)
 
         fun select(leftSelected: Boolean) {
             if (leftSelected) {
@@ -92,287 +116,129 @@ class DashboardFragment : Fragment() {
                 leftText.setTextColor(Color.BLACK)
                 rightText.setBackgroundResource(R.drawable.toggle_unselected)
                 rightText.setTextColor(Color.WHITE)
+                safetyLayout.visibility = View.VISIBLE
+                generalLayout.visibility = View.GONE
             } else {
                 rightText.setBackgroundResource(R.drawable.toggle_selected)
                 rightText.setTextColor(Color.BLACK)
                 leftText.setBackgroundResource(R.drawable.toggle_unselected)
                 leftText.setTextColor(Color.WHITE)
+                safetyLayout.visibility = View.GONE
+                generalLayout.visibility = View.VISIBLE
             }
         }
 
         select(true)
-
+        leftText.setOnClickListener { select(true) }
         rightText.setOnClickListener { select(false) }
-        val chips = listOf<TextView>(
-            view.findViewById(R.id.tvOverall),
-            view.findViewById(R.id.tvPast10),
-            view.findViewById(R.id.tvPast20),
-            view.findViewById(R.id.tvPast30)
+    }
+
+    // -----------------------------
+    // Chips (Overall / Past X trips)
+    // -----------------------------
+    private fun setupChips(view: View) {
+        val chips = listOf(
+            view.findViewById<TextView>(R.id.tvOverall),
+            view.findViewById<TextView>(R.id.tvPast10),
+            view.findViewById<TextView>(R.id.tvPast20),
+            view.findViewById<TextView>(R.id.tvPast30)
         )
 
+        chips.forEachIndexed { index, chip ->
+            chip.isEnabled = index == 0
+            chip.isClickable = index == 0
+            chip.alpha = if (index == 0) 1f else 0.4f
+        }
 
         val defaultChip = chips[0]
         defaultChip.setBackgroundResource(R.drawable.bg_chip_selected)
         defaultChip.setTextColor(Color.parseColor("#6200EE"))
 
-
         chips.forEach { chip ->
             chip.setOnClickListener {
                 chips.forEach {
                     it.setBackgroundResource(R.drawable.bg_chip_unselected)
-                    it.setTextColor(Color.parseColor("#000000"))
+                    it.setTextColor(Color.BLACK)
                 }
-
                 chip.setBackgroundResource(R.drawable.bg_chip_selected)
                 chip.setTextColor(Color.parseColor("#6200EE"))
             }
         }
-
-
-        val leftBottomText = view.findViewById<TextView>(R.id.leftBottomText)
-        val rightBottomText = view.findViewById<TextView>(R.id.rightBottomText)
-        val safetyParamsLayout = view.findViewById<View>(R.id.safetyParamsLayout)
-        val generalParamsLayout = view.findViewById<View>(R.id.generalParamsLayout)
-
-        leftBottomText.setOnClickListener {
-            select(true)
-            safetyParamsLayout.visibility = View.VISIBLE
-            generalParamsLayout.visibility = View.GONE
-        }
-
-        rightBottomText.setOnClickListener {
-            select(false)
-            safetyParamsLayout.visibility = View.GONE
-            generalParamsLayout.visibility = View.VISIBLE
-        }
-        setupTextForGrid(view)
-
-        dashboardViewModel.summary.observe(viewLifecycleOwner) { summary ->
-            if (summary != null) {
-                // API success → override demo values
-                setDataIntoGrid(view, summary)
-            } else {
-                // API failure → KEEP demo values
-                setupTextForGrid(view)
-
-                Log.e("Dashboard", "API not available, using fallback values")
-            }
-        }
-
     }
 
+    // -----------------------------
+    // Demo / fallback values
+    // -----------------------------
     private fun setupTextForGrid(view: View) {
-// Example inside an Activity or Fragment
-        val itemSafetyScore = view.findViewById<View>(R.id.itemSafetyScore)
-        val itemTrustLevel = view.findViewById<View>(R.id.itemTrustLevel)
-        val itemAvgSpeed = view.findViewById<View>(R.id.itemAvgSpeed)
-        val itemMaxSpeed = view.findViewById<View>(R.id.itemMaxSpeed)
-        val itemPhoneUsage = view.findViewById<View>(R.id.itemPhoneUsage)
-        val itemUsageSpeed = view.findViewById<View>(R.id.itemUsageSpeed)
-        val itemBraking = view.findViewById<View>(R.id.itemBraking)
-        val itemSpeeding = view.findViewById<View>(R.id.itemSpeeding)
-
-// Now get titleText from each item
-        val safetyScoreTitle = itemSafetyScore.findViewById<TextView>(R.id.titleText)
-        val trustLevelTitle = itemTrustLevel.findViewById<TextView>(R.id.titleText)
-        val avgSpeedTitle = itemAvgSpeed.findViewById<TextView>(R.id.titleText)
-        val maxSpeedTitle = itemMaxSpeed.findViewById<TextView>(R.id.titleText)
-        val phoneUsageTitle = itemPhoneUsage.findViewById<TextView>(R.id.titleText)
-        val usageSpeedTitle = itemUsageSpeed.findViewById<TextView>(R.id.titleText)
-        val brakingTitle = itemBraking.findViewById<TextView>(R.id.titleText)
-        val speedingTitle = itemSpeeding.findViewById<TextView>(R.id.titleText)
-
-// Set texts
-        safetyScoreTitle.text = "Safety Score"
-        trustLevelTitle.text = "Trust Level"
-        avgSpeedTitle.text = "Average Speed"
-        maxSpeedTitle.text = "Max Speed"
-        phoneUsageTitle.text = "Phone Usage"
-        usageSpeedTitle.text = "Usage Speed"
-        brakingTitle.text = "Braking"
-        speedingTitle.text = "Speeding"
-
-
-        val safetyScoreValue = itemSafetyScore.findViewById<TextView>(R.id.subtitleText)
-        val trustLevelValue = itemTrustLevel.findViewById<TextView>(R.id.subtitleText)
-        val avgSpeedValue = itemAvgSpeed.findViewById<TextView>(R.id.subtitleText)
-        val maxSpeedValue = itemMaxSpeed.findViewById<TextView>(R.id.subtitleText)
-        val phoneUsageValue = itemPhoneUsage.findViewById<TextView>(R.id.subtitleText)
-        val usageSpeedValue = itemUsageSpeed.findViewById<TextView>(R.id.subtitleText)
-        val brakingValue = itemBraking.findViewById<TextView>(R.id.subtitleText)
-        val speedingValue = itemSpeeding.findViewById<TextView>(R.id.subtitleText)
-
-        // Set demo values
-        safetyScoreValue.text = "92"
-        trustLevelValue.text = "90"
-        avgSpeedValue.text = "46 km/h"
-        maxSpeedValue.text = "102 km/h"
-        phoneUsageValue.text = "50%"
-        usageSpeedValue.text = "40"
-        brakingValue.text = "50"
-        speedingValue.text = "70"
-
-        // Get views
-        val itemTrips = view.findViewById<View>(R.id.itemTrips)
-        val itemTimeDriven = view.findViewById<View>(R.id.itemTimeDriven)
-        val itemMileage = view.findViewById<View>(R.id.itemMileage)
-        val itemUniqueTags = view.findViewById<View>(R.id.itemUniqueTags)
-
-        // Helper function
-        fun setCardData(item: View, title: String, value: String) {
-            item.findViewById<TextView>(R.id.titleText).text = title
-            item.findViewById<TextView>(R.id.subtitleText).text = value
-        }
-
-// Set titles and demo values
-        setCardData(itemTrips, "Trips", "24")
-        setCardData(itemTimeDriven, "Time Driven", "12h 35m")
-        setCardData(itemMileage, "Mileage", "257 km")
-        setCardData(itemUniqueTags, "Unique Tags", "8")
-
-
-        // --- Tooltips setup ---
-        val tooltips = mapOf(
-            R.id.itemSafetyScore to "Overall safety rating based on driving behavior.",
-            R.id.itemTrustLevel to "Reliability score from driving consistency.",
-            R.id.itemAvgSpeed to "Average speed recorded during trips.",
-            R.id.itemMaxSpeed to "Highest speed achieved during trips.",
-            R.id.itemPhoneUsage to "Frequency of mobile phone usage while driving.",
-            R.id.itemUsageSpeed to "Average speed during phone usage events.",
-            R.id.itemBraking to "Count of harsh braking events.",
-            R.id.itemSpeeding to "Instances of overspeeding.",
-            R.id.itemTrips to "Total number of trips completed.",
-            R.id.itemTimeDriven to "Cumulative driving time.",
-            R.id.itemMileage to "Total distance covered in all trips.",
-            R.id.itemUniqueTags to "Unique identifiers or trip tags."
+        // Safety params
+        val safetyValues = mapOf(
+            R.id.itemSafetyScore to Pair("Safety Score", "92"),
+            R.id.itemTrustLevel to Pair("Trust Level", "90"),
+            R.id.itemAvgSpeed to Pair("Average Speed", "46 km/h"),
+            R.id.itemMaxSpeed to Pair("Max Speed", "102 km/h"),
+            R.id.itemPhoneUsage to Pair("Phone Usage", "50%"),
+            R.id.itemUsageSpeed to Pair("Usage Speed", "40"),
+            R.id.itemBraking to Pair("Braking", "50"),
+            R.id.itemSpeeding to Pair("Speeding", "70")
         )
 
-        for ((id, text) in tooltips) {
+        safetyValues.forEach { (id, pair) ->
             val item = view.findViewById<View>(id)
-            val infoIcon = item.findViewById<ImageView>(R.id.infoIcon)
-
-            infoIcon.setOnClickListener { iconView ->
-                showCustomTooltip(iconView, text)
-            }
+            item.findViewById<TextView>(R.id.titleText).text = pair.first
+            item.findViewById<TextView>(R.id.subtitleText).text = pair.second
         }
 
+        // General params
+        val sharedPrefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val tripCount = sharedPrefs.getInt("trip_count", 0)
+        val totalDistance = sharedPrefs.getInt("total_distance", 0)
+        val totalTimeMs = sharedPrefs.getLong("total_time_driven_ms", 0L)
+        val hours = totalTimeMs / (1000 * 60 * 60)
+        val minutes = (totalTimeMs / (1000 * 60)) % 60
+        val timeFormatted = "${hours}h ${minutes}m"
 
+        setCard(view.findViewById(R.id.itemTrips), "Trips", tripCount.toString())
+        setCard(view.findViewById(R.id.itemTimeDriven), "Time Driven", timeFormatted)
+        setCard(view.findViewById(R.id.itemMileage), "Mileage", "${totalDistance} km")
     }
 
-
-
-    private fun showCustomTooltip(anchor: View, message: String) {
-        val context = anchor.context
-
-        // Create the custom layout
-        val customView = LayoutInflater.from(context)
-            .inflate(R.layout.layout_custom_tooltip, null)
-        val tooltipText = customView.findViewById<TextView>(R.id.tooltipText)
-        tooltipText.text = message
-
-        // Measure available space
-        val location = IntArray(2)
-        anchor.getLocationOnScreen(location)
-        val screenHeight = context.resources.displayMetrics.heightPixels
-        val spaceAbove = location[1]
-        val spaceBelow = screenHeight - (location[1] + anchor.height)
-        val showAbove = spaceAbove > spaceBelow
-
-        // Build Balloon tooltip
-        val balloon = Balloon.Builder(context)
-            .setLayout(R.layout.layout_custom_tooltip)
-            .setArrowSize(10)
-            .setArrowPosition(0.5f)
-            .setArrowOrientation(
-                if (showAbove) ArrowOrientation.BOTTOM else ArrowOrientation.TOP
-            )
-            .setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
-            .setCornerRadius(8f)
-            .setBackgroundColorResource(R.color.colorPrimaryVariant)
-            .setBalloonAnimation(BalloonAnimation.FADE)
-            .setIsVisibleOverlay(false)
-            .setAutoDismissDuration(2000L)
-            .build()
-
-        // Set text dynamically after building
-        val balloonText = balloon.getContentView().findViewById<TextView>(R.id.tooltipText)
-        balloonText.text = message
-
-        // Show aligned based on available space
-        if (showAbove) {
-            balloon.showAlignTop(anchor)
-        } else {
-            balloon.showAlignBottom(anchor)
-        }
+    private fun setCard(item: View, title: String, value: String) {
+        item.findViewById<TextView>(R.id.titleText).text = title
+        item.findViewById<TextView>(R.id.subtitleText).text = value
     }
 
-
+    // -----------------------------
+    // API Values
+    // -----------------------------
     private fun setDataIntoGrid(view: View, summary: SafetySummaryResponse) {
+        val safetyValues = mapOf(
+            R.id.itemSafetyScore to Pair("Safety Score", summary.safety_score.toInt().toString()),
+            R.id.itemTrustLevel to Pair("Trust Level", calculateTrustLevel(summary.safety_score)),
+            R.id.itemAvgSpeed to Pair("Average Speed", "${summary.average_speed_kmh} km/h"),
+            R.id.itemMaxSpeed to Pair("Max Speed", "${summary.max_speed_kmh} km/h"),
+            R.id.itemPhoneUsage to Pair("Phone Usage", "${summary.phone_usage_percentage}%"),
+            R.id.itemUsageSpeed to Pair("Usage Speed", summary.average_speed_kmh.toString()),
+            R.id.itemBraking to Pair("Braking", "-"),
+            R.id.itemSpeeding to Pair("Speeding", "-")
+        )
 
-        // Fetch views
-        val itemSafetyScore = view.findViewById<View>(R.id.itemSafetyScore)
-        val itemTrustLevel = view.findViewById<View>(R.id.itemTrustLevel)
-        val itemAvgSpeed = view.findViewById<View>(R.id.itemAvgSpeed)
-        val itemMaxSpeed = view.findViewById<View>(R.id.itemMaxSpeed)
-        val itemPhoneUsage = view.findViewById<View>(R.id.itemPhoneUsage)
-        val itemUsageSpeed = view.findViewById<View>(R.id.itemUsageSpeed)
-        val itemBraking = view.findViewById<View>(R.id.itemBraking)
-        val itemSpeeding = view.findViewById<View>(R.id.itemSpeeding)
-
-        // Update values dynamically
-        itemSafetyScore.findViewById<TextView>(R.id.subtitleText).text =
-            summary.safety_score.toInt().toString()
-
-        itemTrustLevel.findViewById<TextView>(R.id.subtitleText).text =
-            calculateTrustLevel(summary.safety_score)
-
-        itemAvgSpeed.findViewById<TextView>(R.id.subtitleText).text =
-            "${summary.average_speed_kmh} km/h"
-
-        itemMaxSpeed.findViewById<TextView>(R.id.subtitleText).text =
-            "${summary.max_speed_kmh} km/h"
-
-        itemPhoneUsage.findViewById<TextView>(R.id.subtitleText).text =
-            "${summary.phone_usage_percentage}%"
-
-        itemUsageSpeed.findViewById<TextView>(R.id.subtitleText).text =
-            summary.average_speed_kmh.toString()  // or any other value
-
-        itemBraking.findViewById<TextView>(R.id.subtitleText).text = "-"
-        itemSpeeding.findViewById<TextView>(R.id.subtitleText).text = "-"
-
-        // General Cards
-        val itemTrips = view.findViewById<View>(R.id.itemTrips)
-        val itemTimeDriven = view.findViewById<View>(R.id.itemTimeDriven)
-        val itemMileage = view.findViewById<View>(R.id.itemMileage)
-        val itemUniqueTags = view.findViewById<View>(R.id.itemUniqueTags)
-
-        fun setCard(item: View, title: String, value: String) {
-            item.findViewById<TextView>(R.id.titleText).text = title
-            item.findViewById<TextView>(R.id.subtitleText).text = value
+        safetyValues.forEach { (id, pair) ->
+            val item = view.findViewById<View>(id)
+            item.findViewById<TextView>(R.id.titleText).text = pair.first
+            item.findViewById<TextView>(R.id.subtitleText).text = pair.second
         }
 
-        setCard(itemTrips, "Trips", summary.trips.toString())
-        setCard(itemTimeDriven, "Time Driven", "${summary.time_driven_minutes} min")
-        setCard(itemMileage, "Mileage", "${summary.mileage_km} km")
-        setCard(itemUniqueTags, "Unique Tags", "-")
+        setCard(view.findViewById(R.id.itemTrips), "Trips", summary.trips.toString())
+        setCard(view.findViewById(R.id.itemTimeDriven), "Time Driven", "${summary.time_driven_minutes} min")
+        setCard(view.findViewById(R.id.itemMileage), "Mileage", "${summary.mileage_km} km")
     }
 
-    private fun calculateTrustLevel(score: Double): String {
-        return when {
-            score >= 90 -> "High"
-            score >= 70 -> "Medium"
-            else -> "Low"
-        }
-    }
-
-
-
-
-
-
-    override fun onDestroyView() {
-        super.onDestroyView()
+    private fun calculateTrustLevel(score: Double) = when {
+        score >= 90 -> "High"
+        score >= 70 -> "Medium"
+        else -> "Low"
     }
 }
+
+
 

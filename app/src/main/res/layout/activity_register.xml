@@ -35,7 +35,7 @@
                 android:contentDescription="@string/app_name"
                 android:elevation="6dp"
                 android:padding="10dp"
-                android:src="@drawable/ic_new_logo" />
+                android:src="@drawable/ic_neurofleet_logo" />
 
             <!-- Title -->
             <TextView

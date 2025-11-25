@@ -3,7 +3,6 @@ package com.example.accuratedamoov.ui.dashboard
 import android.app.Application
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -40,9 +39,9 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             try {
                 val api = RetrofitClient.getApiService(appContext)
-                val response = api.getUserProfile(userId)
-                if (response.isSuccessful) {
-                    val body = response.body()
+                val response = userId?.let { api.getUserProfile(it) }
+                if (response?.isSuccessful ?: false) {
+                    val body = response?.body()
                     if (body != null && body.success && body.data != null) {
                         prefs.edit()
                             .putString("user_name", response.body()?.data?.name)

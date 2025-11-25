@@ -7,16 +7,45 @@
     android:orientation="vertical"
     tools:context=".ui.home.HomeFragment">
 
+
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="20dp">
+
+
+            <LinearLayout
+                android:id="@+id/appHeaderLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="start"
+                android:orientation="horizontal"
+                android:paddingTop="24dp"
+                android:paddingBottom="16dp">
+
+                <ImageView
+                    android:id="@+id/appLogo"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginEnd="5dp"
+                    android:contentDescription="App Logo"
+                    android:src="@drawable/ic_neurofleet_logo" />
+
+                <ImageView
+                    android:id="@+id/appNameTv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:layout_gravity="center_horizontal"
+                    android:src="@drawable/ic_app_name" />
+            </LinearLayout>
+
 
             <LinearLayout
                 android:id="@+id/welcomecardll"
@@ -28,7 +57,7 @@
                 <!-- Left section -->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -48,8 +77,10 @@
                         android:orientation="horizontal">
 
                         <TextView
+                            android:id="@+id/nameTv"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:maxLines="1"
                             android:text="Omkar"
                             android:textColor="@color/black"
                             android:textSize="32sp"
@@ -72,7 +103,7 @@
                     <ImageView
                         android:id="@+id/bellIcon"
                         android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
+                        android:layout_height="wrap_content"
                         android:src="@drawable/ic_bell_notification" />
 
                     <!-- NOTIFICATION DOT -->
@@ -91,13 +122,23 @@
 
             </LinearLayout>
 
+
+            <com.facebook.shimmer.ShimmerFrameLayout
+                android:id="@+id/shimmerLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                app:shimmer_auto_start="true">
+
+                <include layout="@layout/home_skeleton"/>
+            </com.facebook.shimmer.ShimmerFrameLayout>
             <LinearLayout
                 android:id="@+id/weekcardll"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:orientation="vertical"
-                android:visibility="visible">
+                android:visibility="gone">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -304,7 +345,8 @@
                         android:layout_centerVertical="true"
                         android:text="@string/my_stats"
                         android:textColor="#121212"
-                        android:textSize="14sp" />
+                        android:textSize="14sp"
+                        android:visibility="gone" />
 
                     <!-- Right aligned: Next icon -->
                     <ImageView
@@ -324,16 +366,18 @@
                         android:layout_marginEnd="4dp"
                         android:layout_toStartOf="@id/ivNextStats"
                         android:padding="10dp"
-                        android:text="All stats"
+                        android:text="Go to stats"
                         android:textColor="#898989"
                         android:textSize="14sp" />
 
                 </RelativeLayout>
 
                 <LinearLayout
+                    android:id="@+id/statsll"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:visibility="gone">
 
                     <GridLayout
                         android:id="@+id/gridContainer"
@@ -354,7 +398,6 @@
                             android:background="@drawable/trip_bg"
                             android:gravity="center_vertical"
                             android:minHeight="80dp"
-
                             android:orientation="horizontal"
                             android:padding="5dp">
 
@@ -363,7 +406,6 @@
                                 android:layout_width="40dp"
                                 android:layout_height="40dp"
                                 android:layout_marginEnd="8dp"
-                                android:contentDescription="@string/app_name"
 
                                 android:padding="5dp"
                                 android:scaleType="centerCrop"
@@ -412,7 +454,6 @@
                                 android:layout_height="40dp"
                                 android:layout_marginEnd="8dp"
                                 android:contentDescription="@string/app_name"
-
                                 android:padding="5dp"
                                 android:scaleType="centerCrop"
                                 android:src="@drawable/ic_image_stats" />

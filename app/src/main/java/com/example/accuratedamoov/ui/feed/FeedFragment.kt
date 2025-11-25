@@ -47,6 +47,7 @@ import java.util.Calendar
 import kotlin.let
 import kotlin.math.ceil
 import androidx.core.view.isVisible
+import androidx.fragment.app.activityViewModels
 
 
 class FeedFragment : Fragment() {
@@ -54,7 +55,7 @@ class FeedFragment : Fragment() {
     private var _binding: FragmentFeedBinding? = null
     private val binding get() = _binding!!
 
-    private val feedViewModel: FeedViewModel by viewModels()
+    private val feedViewModel: FeedViewModel by activityViewModels()
     private lateinit var trackAdapter: TrackAdapter
     private lateinit var shimmerAdapter: ShimmerAdapter
 
@@ -248,14 +249,19 @@ class FeedFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             feedViewModel.uiState.collect { state ->
                 when (state) {
-                    is FeedUiState.Loading -> {}
+                    is FeedUiState.Loading -> {
+
+                        binding.recycleView.adapter = shimmerAdapter
+                    }
                     is FeedUiState.Success -> {
+                        binding.recycleView.adapter = trackAdapter
                         allTrips = state.trips
                         filterTrips()
                         restoreFilterTexts()
                     }
 
                     is FeedUiState.Error -> {
+                        binding.recycleView.adapter = trackAdapter
                         showOnly(binding.tvZeroTrips)
                         Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
                     }

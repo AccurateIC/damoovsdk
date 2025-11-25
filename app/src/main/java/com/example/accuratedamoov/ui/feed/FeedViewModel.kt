@@ -102,16 +102,62 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun saveTripSummary(trips: List<TripData>) {
         val sharedPrefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+
         val tripCount = trips.size
-        val totalDistance = trips.sumOf { it.distance_km }.toInt()
+        val totalDistanceKm = trips.sumOf { it.distance_km }
+
+        // -----------------------------
+        // ✅ SUM TOTAL TIME FROM HHmm STRING
+        // -----------------------------
+        val totalMinutes = trips.sumOf { trip ->
+            val durationRaw = trip.duration_hh_mm ?: "00:00"
+            Log.d("TripDuration", "Processing trip duration=${trip.duration_hh_mm}")
+
+            val (hours, minutes) = if (durationRaw.contains(":")) {
+                val parts = durationRaw.split(":")
+                val h = parts.getOrNull(0)?.toIntOrNull() ?: 0
+                val m = parts.getOrNull(1)?.toIntOrNull() ?: 0
+                h to m
+            } else {
+                // fallback for HHmm format without colon
+                val normalized = durationRaw.padStart(4, '0')
+                val h = normalized.substring(0, 2).toIntOrNull() ?: 0
+                val m = normalized.substring(2, 4).toIntOrNull() ?: 0
+                h to m
+            }
+
+            val tripMinutes = hours * 60 + minutes
+
+            // Print each trip duration
+            Log.d("TripDuration", "Trip duration=$durationRaw, hours=$hours, minutes=$minutes, totalMinutes=$tripMinutes")
+
+            tripMinutes
+        }
+
+
+
+        val totalHours = totalMinutes / 60
+        val remainingMinutes = totalMinutes % 60
+
+        // For UI use
+        val formattedTime = "${totalHours}h ${remainingMinutes}m"
+
+        // For storage in ms
+        val totalTimeMillis = totalMinutes * 60 * 1000L
 
         sharedPrefs.edit {
             putInt("trip_count", tripCount)
-            putInt("total_distance", totalDistance)
+            putInt("total_distance", totalDistanceKm.toInt())
+            putLong("total_time_driven_ms", totalTimeMillis)
+            putString("total_time_formatted", formattedTime)
         }
 
-        Log.d("FeedViewModel", "Trip summary saved: count=$tripCount, distance=$totalDistance km")
+        Log.d(
+            "FeedViewModel",
+            "Trip summary saved: count=$tripCount, distance=$totalDistanceKm, time=$formattedTime"
+        )
     }
+
 
     private fun getUserId(): Int {
         val sharedPrefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
@@ -134,6 +180,8 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             } ?: Log.w("FeedViewModel", "No last trip available")
         }
     }
+
+
 }
 
 

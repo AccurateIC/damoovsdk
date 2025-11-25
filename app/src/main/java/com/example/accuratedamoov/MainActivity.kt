@@ -20,6 +20,7 @@ import android.os.PowerManager
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -32,6 +33,8 @@ import com.example.accuratedamoov.database.DatabaseHelper
 import com.example.accuratedamoov.databinding.ActivityMainBinding
 import com.example.accuratedamoov.service.NetworkMonitorService
 import com.example.accuratedamoov.service.PermissionMonitorService
+import com.example.accuratedamoov.ui.home.HomeViewModel
+import com.example.accuratedamoov.ui.home.HomeViewModelFactory
 import com.example.accuratedamoov.worker.SystemEventScheduler
 
 import com.google.android.material.snackbar.Snackbar
@@ -51,6 +54,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
     private lateinit var systemChangeReceiver: SystemChangeReceiver
     private var networkSnackbar: Snackbar? = null
+    private val homeViewModel: HomeViewModel by viewModels {
+        HomeViewModelFactory(applicationContext)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,6 +84,8 @@ class MainActivity : AppCompatActivity() {
         /*FirebaseCrashlytics.getInstance().log("Forcing a test crash")
         throw RuntimeException("Test Crash")*/
         systemChangeReceiver = SystemChangeReceiver()
+        homeViewModel.fetchUserProfile()
+
 
     }
 

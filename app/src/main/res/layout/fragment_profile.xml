@@ -30,7 +30,7 @@
                     android:layout_width="140dp"
                     android:layout_height="140dp"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/ic_launcher_foreground"
+                    android:src="@drawable/ic_neurofleet_logo"
                     app:shapeAppearanceOverlay="@style/CircularImage" />
 
                 <ImageView
@@ -97,7 +97,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="4"
+                        android:text="1"
                         android:textColor="#121212"
                         android:textSize="20sp" />
                 </LinearLayout>
@@ -149,7 +149,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="3"
+                        android:text="0"
                         android:textColor="#121212"
                         android:textSize="20sp" />
                 </LinearLayout>
@@ -223,6 +223,7 @@
 
                 <Switch
                     android:id="@+id/switchTheme"
+                    android:enabled="false"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
             </LinearLayout>
@@ -235,6 +236,7 @@
             <!-- PASSWORD -->
             <LinearLayout
                 android:id="@+id/rowPassword"
+                android:clickable="false"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:gravity="center_vertical"
@@ -295,6 +297,7 @@
             <!-- ABOUT -->
             <LinearLayout
                 android:id="@+id/rowAbout"
+                android:clickable="false"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:gravity="center_vertical"

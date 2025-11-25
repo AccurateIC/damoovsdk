@@ -30,4 +30,5 @@
     <color name="textAccent">#FF80AB</color>
 
     <color name="gray">#898989</color>
+    <color name="shimmer_placeholder">#E0E0E0</color>
 </resources>

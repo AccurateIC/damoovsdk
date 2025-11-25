@@ -19,12 +19,16 @@ import androidx.appcompat.app.AlertDialog
 import com.example.accuratedamoov.R
 import java.io.File
 import androidx.core.net.toUri
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.example.accuratedamoov.SplashScreenActivity
 import com.example.accuratedamoov.ui.setting.SetttingsActivity
 import com.telematicssdk.tracking.TrackingApi
+import androidx.core.content.edit
 
 class ProfileFragment : Fragment() {
 
+    private lateinit var tvTrips: TextView
     private val viewModel: ProfileViewModel by viewModels()
     private lateinit var profileImage: ImageView
 
@@ -60,9 +64,42 @@ class ProfileFragment : Fragment() {
             val intent = Intent(requireContext(), SetttingsActivity::class.java)
             startActivity(intent)
         }
+        val tvName = view.findViewById<TextView>(R.id.tvName)
+        val tvEmail = view.findViewById<TextView>(R.id.tvEmail)
+        tvTrips = view.findViewById<TextView>(R.id.tvTrips)
+        setUserInfo(tvName, tvEmail)
 
         return view
     }
+
+    private fun setUserInfo(tvName: TextView, tvEmail: TextView) {
+
+        val prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+
+        val tripCount = prefs.getInt("trip_count", 0)
+        val name = prefs.getString("name", null)
+        val email = prefs.getString("email", null)
+        val phone = prefs.getString("phone", null)
+
+        // Name Priority: name → phone → "User"
+        val finalName = when {
+            !name.isNullOrEmpty() -> name
+            !phone.isNullOrEmpty() -> phone
+            else -> "User"
+        }
+
+        // Email Priority: email → phone → "Not available"
+        val finalEmail = when {
+            !email.isNullOrEmpty() -> email
+            !phone.isNullOrEmpty() -> phone
+            else -> "Not available"
+        }
+
+        tvName.text = finalName
+        tvEmail.text = finalEmail
+        tvTrips.text = tripCount.toString()
+    }
+
 
     private fun observeViewModel() {
         viewModel.profileImagePath.observe(viewLifecycleOwner) { path ->
@@ -118,13 +155,11 @@ class ProfileFragment : Fragment() {
     }
 
     private fun clearAppCache(context: Context) {
-        try {
-            context.cacheDir.deleteRecursively()
-            context.externalCacheDir?.deleteRecursively()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        context.cacheDir?.deleteRecursively()
+        context.codeCacheDir?.deleteRecursively()
+        context.externalCacheDirs?.forEach { it?.deleteRecursively() }
     }
+
 
     private fun clearDatabase(context: Context) {
         context.deleteDatabase("raxel_tracker_db.db")
@@ -132,17 +167,43 @@ class ProfileFragment : Fragment() {
 
 
     private fun clearEverything() {
-        if(TrackingApi.getInstance().isSdkEnabled()){
+        if (TrackingApi.getInstance().isSdkEnabled()) {
             TrackingApi.getInstance().logout()
         }
-        clearAllSharedPrefs(requireContext())
-        clearAppCache(requireContext())
-        Toast.makeText(requireContext(), "successfully logout", Toast.LENGTH_SHORT).show()
-        val intent = Intent(requireContext(), SplashScreenActivity::class.java)
-        startActivity(intent)
-        requireActivity().finish()
 
+        // Clear both SharedPreferences cleanly
+        clearAllPrefs()
+
+        clearAppCache(requireContext())
+
+        Toast.makeText(requireContext(), "Successfully logged out", Toast.LENGTH_SHORT).show()
+
+        val intent = Intent(requireContext(), SplashScreenActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
     }
+    private fun clearAllPrefs() {
+        // Normal SharedPrefs
+        val prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        prefs.edit().clear().apply()
+
+        // Encrypted SharedPrefs
+        val masterKey = MasterKey.Builder(requireContext())
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+
+        val enPrefs = EncryptedSharedPreferences.create(
+            requireContext(),
+            "user_creds",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+        enPrefs.edit { clear() }
+    }
+
+
 
 }
 

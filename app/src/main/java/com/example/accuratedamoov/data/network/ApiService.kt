@@ -75,15 +75,15 @@ interface ApiService {
     suspend fun checkHealth(): Response<Void>
 
     @POST("/api/registerWithDevice")
-    fun registerUserWithDevice(@Body body: RegisterModel): Call<RegisterResponse>
+    suspend fun registerUserWithDevice(@Body body: RegisterModel): RegisterResponse
 
     @POST("/api/login")
     suspend fun loginUser(@Body request: LoginRequest): Response<LoginResponse>
 
-    @GET("/userprofile")
-    suspend fun getUserProfile(
-        @Query("user_id") userId: Int?
-    ): Response<UserProfileResponse>
+    @GET("userinfo")
+    suspend fun getUserProfile(@Query("user_id") userId: Int): Response<UserProfileResponse>
+
+
 
 
     @GET("/tripsummaryfordevice")
