@@ -280,14 +280,15 @@ class HomeFragment : Fragment() {
 
         binding.nameTv.text = displayName
         val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        val greeting = when (hour) {
-            in 5..11 -> "Good Morning,"
-            in 12..16 -> "Good Afternoon,"
-            in 17..20 -> "Good Evening,"
-            else -> "Good Night,"
+        val greetingRes = when (hour) {
+            in 5..11 -> R.string.good_morning
+            in 12..16 -> R.string.good_afternoon
+            in 17..20 -> R.string.good_evening
+            else -> R.string.good_night
         }
 
-        binding.welecomeTv.text = greeting
+
+        binding.welecomeTv.text = getString(greetingRes)
 
     }
 

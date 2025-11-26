@@ -71,4 +71,8 @@
 After the API URL is successfully configured, you can navigate to the Login screen.
 </string>
     <string name="app_logo">App Logo</string>
+    <string name="good_morning">Good Morning,</string>
+    <string name="good_afternoon">Good Afternoon,</string>
+    <string name="good_evening">Good Evening,</string>
+    <string name="good_night">Good Night,</string>
 </resources>
