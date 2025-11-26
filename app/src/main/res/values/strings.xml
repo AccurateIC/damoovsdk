@@ -70,4 +70,5 @@
     <string name="initial_setup_info">Note: Please configure the API URL in Settings to continue using the app.
 After the API URL is successfully configured, you can navigate to the Login screen.
 </string>
+    <string name="app_logo">App Logo</string>
 </resources>

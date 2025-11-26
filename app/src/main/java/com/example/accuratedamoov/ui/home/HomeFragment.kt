@@ -261,6 +261,8 @@ class HomeFragment : Fragment() {
 
     }
 
+
+
     private fun setUpuserDetails() {
         val prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
@@ -277,6 +279,15 @@ class HomeFragment : Fragment() {
         }
 
         binding.nameTv.text = displayName
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val greeting = when (hour) {
+            in 5..11 -> "Good Morning,"
+            in 12..16 -> "Good Afternoon,"
+            in 17..20 -> "Good Evening,"
+            else -> "Good Night,"
+        }
+
+        binding.welecomeTv.text = greeting
 
     }
 

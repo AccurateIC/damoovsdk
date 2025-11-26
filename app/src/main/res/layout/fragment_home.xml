@@ -35,7 +35,7 @@
                     android:layout_height="35dp"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginEnd="5dp"
-                    android:contentDescription="App Logo"
+                    android:contentDescription="@string/app_logo"
                     android:src="@drawable/ic_neurofleet_logo" />
 
                 <ImageView
@@ -51,7 +51,6 @@
                 android:id="@+id/welcomecardll"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <!-- Left section -->
@@ -62,6 +61,7 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/welecomeTv"
                         android:layout_width="wrap_content"
                         android:layout_height="0dp"
                         android:layout_weight="0.3"
@@ -444,7 +444,6 @@
                             android:background="@drawable/trip_bg"
                             android:gravity="center_vertical"
                             android:minHeight="80dp"
-
                             android:orientation="horizontal"
                             android:padding="5dp">
 
@@ -490,7 +489,6 @@
                             android:layout_columnWeight="1"
                             android:background="@drawable/trip_bg"
                             android:gravity="center_vertical"
-
                             android:minHeight="80dp"
                             android:orientation="horizontal"
                             android:padding="5dp">
@@ -501,7 +499,6 @@
                                 android:layout_height="40dp"
                                 android:layout_marginEnd="8dp"
                                 android:contentDescription="@string/app_name"
-
                                 android:padding="5dp"
                                 android:scaleType="centerCrop"
                                 android:src="@drawable/ic_image_stats" />
@@ -585,23 +582,25 @@
             <LinearLayout
                 android:id="@+id/firstTimell"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
+                android:layout_marginHorizontal="15dp"
                 android:visibility="gone">
 
                 <ImageView
                     android:id="@+id/firstTimeImage"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:minHeight="230dp"
+                    android:layout_height="230dp"
+                    android:adjustViewBounds="true"
+                    android:scaleType="centerCrop"
+                    android:padding="16dp"
                     android:src="@drawable/firsttime_banner" />
 
                 <ImageView
                     android:id="@+id/notrip"
                     android:layout_width="100dp"
                     android:layout_height="100dp"
-                    android:layout_gravity="center"
+                    android:layout_gravity="center_horizontal"
                     android:layout_marginTop="100dp"
                     android:src="@drawable/notrips" />
 
