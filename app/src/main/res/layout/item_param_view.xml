@@ -25,7 +25,7 @@
         android:layout_alignParentStart="true"
         android:layout_toStartOf="@id/infoIcon"
         android:layout_marginTop="8dp"
-        android:text="Parameter Name"
+        android:text="..."
         android:fontFamily="@font/poppinsmedium"
         android:textSize="14sp"
         android:textColor="#898989" />
@@ -39,7 +39,7 @@
         android:layout_toStartOf="@id/infoIcon"
         android:layout_marginTop="4dp"
         android:fontFamily="@font/poppinssemibold"
-        android:text="Value"
+        android:text="..."
         android:textSize="32sp"
         android:textColor="#121212" />
 </RelativeLayout>

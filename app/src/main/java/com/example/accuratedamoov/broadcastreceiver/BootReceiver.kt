@@ -11,6 +11,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.accuratedamoov.BuildConfig
 import com.example.accuratedamoov.MainApplication.Companion.TRACK_TABLE_WORKER_TAG
 import com.example.accuratedamoov.worker.SystemEventScheduler
 import com.example.accuratedamoov.worker.TrackTableCheckWorker
@@ -43,7 +44,7 @@ class BootReceiver : BroadcastReceiver() {
 
                     trackingApi.setDeviceID(deviceId)
                     trackingApi.setEnableSdk(true)
-                    trackingApi.setAutoStartEnabled(true,true)
+                    trackingApi.setAutoStartEnabled(BuildConfig.IS_ROAD_VEHICLE,true)
                     if(!trackingApi.isTracking()) {
                         trackingApi.startTracking()
                     }

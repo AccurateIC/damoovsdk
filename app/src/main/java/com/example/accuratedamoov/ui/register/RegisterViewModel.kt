@@ -33,7 +33,7 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
         mContext.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     }
 
-    fun registerUser(email: String, password: String, name: String?) {
+    fun registerUser(email: String, password: String, name: String?,phone: String?) {
         // Generate unique device ID
         val androidId = Settings.Secure.getString(mContext.contentResolver, Settings.Secure.ANDROID_ID)
         val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
@@ -45,7 +45,8 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
             password = password,
             name = name,
             device_id = deviceId,
-            device_name = deviceName
+            device_name = deviceName,
+            phone = phone
         )
 
         // Initialize EncryptedSharedPreferences

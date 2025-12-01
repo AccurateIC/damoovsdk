@@ -177,7 +177,7 @@ class MainActivity : AppCompatActivity() {
 
             trackingApi.setDeviceID(deviceId)
             trackingApi.setEnableSdk(true)
-            trackingApi.setAutoStartEnabled(true, true)
+            trackingApi.setAutoStartEnabled(BuildConfig.IS_ROAD_VEHICLE, true)
             if (!trackingApi.isTracking()) {
                 trackingApi.startTracking()
             }
@@ -216,7 +216,10 @@ class MainActivity : AppCompatActivity() {
 
             navController.navigate(R.id.navigation_home)
             binding.navView.setupWithNavController(navController)
-
+            // 👉 Hide dashboard item completely for boat mode
+            if (!BuildConfig.IS_ROAD_VEHICLE) {
+                binding.navView.menu.findItem(R.id.navigation_dashboard)?.isVisible = false
+            }
             binding.navView.setOnItemSelectedListener { item ->
                 val currentDestination = navController.currentDestination?.id
                 if (currentDestination == item.itemId) return@setOnItemSelectedListener true
@@ -229,11 +232,12 @@ class MainActivity : AppCompatActivity() {
                     .build()
 
                 when (item.itemId) {
-                    R.id.navigation_dashboard -> navController.navigate(
-                        R.id.navigation_dashboard,
-                        null,
-                        navOptions
-                    )
+                    R.id.navigation_dashboard -> {
+                        // 👉 Only navigate for road vehicle
+                        if (BuildConfig.IS_ROAD_VEHICLE) {
+                            navController.navigate(R.id.navigation_dashboard, null, navOptions)
+                        }
+                    }
 
                     R.id.navigation_home -> navController.navigate(
                         R.id.navigation_home,
@@ -269,6 +273,11 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         setupTrackingIfReady()
         checkTracks()
+
+        if (!trackingApi.isTracking() && !BuildConfig.IS_ROAD_VEHICLE)  {
+            Toast.makeText(this, "Starts tracking", Toast.LENGTH_SHORT).show()
+            trackingApi.startTracking()
+        }
     }
 
     private fun checkTracks() {
@@ -290,6 +299,12 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         connectivityManager.unregisterNetworkCallback(networkCallback)
+        if (trackingApi.isTracking() && !BuildConfig.IS_ROAD_VEHICLE) {
+            Toast.makeText(this, "Stopping tracking before exit", Toast.LENGTH_SHORT).show()
+            trackingApi.stopTracking()
+        }
+
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -323,6 +338,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         super.onBackPressed()
+        if (trackingApi.isTracking() && !BuildConfig.IS_ROAD_VEHICLE) {
+            Toast.makeText(this, "Stopping tracking before exit", Toast.LENGTH_SHORT).show()
+            trackingApi.stopTracking()
+        }
         finishAffinity()
     }
 

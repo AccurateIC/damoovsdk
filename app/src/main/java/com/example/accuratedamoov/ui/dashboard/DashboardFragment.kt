@@ -1,5 +1,7 @@
 package com.example.accuratedamoov.ui.dashboard
 
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
@@ -12,39 +14,61 @@ import android.os.Looper
 import android.os.SystemClock
 import android.text.Spannable
 import android.text.SpannableString
-import android.text.SpannableStringBuilder
-import android.text.Spanned
+
 import android.text.method.LinkMovementMethod
 import android.text.style.ImageSpan
-import android.util.Log
-import android.view.Gravity
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.PopupWindow
+
 import android.widget.TextView
-import android.widget.Toast
-import androidx.appcompat.widget.TooltipCompat
-import androidx.core.content.ContextCompat
+
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import pl.droidsonroids.gif.GifDrawable
 import com.example.accuratedamoov.R
 import com.example.accuratedamoov.data.model.SafetySummaryResponse
-import com.skydoves.balloon.ArrowOrientation
-import com.skydoves.balloon.ArrowPositionRules
-import com.skydoves.balloon.Balloon
-import com.skydoves.balloon.BalloonAnimation
-import com.tomergoldst.tooltips.ToolTip
-import com.tomergoldst.tooltips.ToolTipsManager
+
 
 
 ///stats
 class DashboardFragment : Fragment() {
 
     private val dashboardViewModel: DashboardViewModel by viewModels()
-    private var demoValuesSet = false // prevent multiple demo resets
+    private var demoValuesSet = false
+
+
+
+    // -----------------------------
+    // PULSE ANIMATION
+    // -----------------------------
+    private fun startPulseAnimation(view: View) {
+        val anim = ObjectAnimator.ofFloat(view, "alpha", 0.4f, 1f)
+        anim.duration = 700
+        anim.repeatMode = ValueAnimator.REVERSE
+        anim.repeatCount = ValueAnimator.INFINITE
+        anim.start()
+        view.tag = anim
+    }
+
+    private fun stopPulseAnimation(view: View) {
+        (view.tag as? ObjectAnimator)?.cancel()
+        view.alpha = 1f
+    }
+
+    private fun startGridLoadingAnimation(container: ViewGroup) {
+        for (i in 0 until container.childCount) {
+            startPulseAnimation(container.getChildAt(i))
+        }
+    }
+
+    private fun stopGridLoadingAnimation(container: ViewGroup) {
+        for (i in 0 until container.childCount) {
+            stopPulseAnimation(container.getChildAt(i))
+        }
+    }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -60,13 +84,23 @@ class DashboardFragment : Fragment() {
         setupToggles(view)
         setupChips(view)
 
+        // ⭐ START animation immediately
+        val safetyLayout = view.findViewById<ViewGroup>(R.id.safetyParamsLayout)
+        val generalLayout = view.findViewById<ViewGroup>(R.id.generalParamsLayout)
+
+        safetyLayout?.let { startGridLoadingAnimation(it) }
+        generalLayout?.let { startGridLoadingAnimation(it) }
+
         dashboardViewModel.summary.observe(viewLifecycleOwner) { summary ->
+            // ⭐ STOP animation
+            safetyLayout?.let { stopGridLoadingAnimation(it) }
+            generalLayout?.let { stopGridLoadingAnimation(it) }
+
             if (summary != null) {
                 setDataIntoGrid(view, summary)
             } else if (!demoValuesSet) {
                 setupTextForGrid(view)
                 demoValuesSet = true
-                Log.e("Dashboard", "API not available, using fallback demo values")
             }
         }
     }
@@ -107,11 +141,15 @@ class DashboardFragment : Fragment() {
     private fun setupToggles(view: View) {
         val leftText = view.findViewById<TextView>(R.id.leftBottomText)
         val rightText = view.findViewById<TextView>(R.id.rightBottomText)
-        val safetyLayout = view.findViewById<View>(R.id.safetyParamsLayout)
-        val generalLayout = view.findViewById<View>(R.id.generalParamsLayout)
+        val safetyLayout = view.findViewById<ViewGroup>(R.id.safetyParamsLayout)
+        val generalLayout = view.findViewById<ViewGroup>(R.id.generalParamsLayout)
 
         fun select(leftSelected: Boolean) {
+            val summaryLoaded = dashboardViewModel.summary.value != null
+
             if (leftSelected) {
+                if (summaryLoaded) stopGridLoadingAnimation(generalLayout)
+
                 leftText.setBackgroundResource(R.drawable.toggle_selected)
                 leftText.setTextColor(Color.BLACK)
                 rightText.setBackgroundResource(R.drawable.toggle_unselected)
@@ -119,12 +157,22 @@ class DashboardFragment : Fragment() {
                 safetyLayout.visibility = View.VISIBLE
                 generalLayout.visibility = View.GONE
             } else {
+
+                // ⭐ restart animation when switching
+                startGridLoadingAnimation(generalLayout)
                 rightText.setBackgroundResource(R.drawable.toggle_selected)
                 rightText.setTextColor(Color.BLACK)
                 leftText.setBackgroundResource(R.drawable.toggle_unselected)
                 leftText.setTextColor(Color.WHITE)
                 safetyLayout.visibility = View.GONE
                 generalLayout.visibility = View.VISIBLE
+                if (!summaryLoaded) {
+                    // only animate if data still not loaded
+                    startGridLoadingAnimation(generalLayout)
+                } else {
+                    // summary already loaded → stop animation immediately
+                    stopGridLoadingAnimation(generalLayout)
+                }
             }
         }
 

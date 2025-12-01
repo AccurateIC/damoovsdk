@@ -20,6 +20,7 @@ import com.example.accuratedamoov.databinding.ActivityRegisterBinding
 import com.google.android.material.snackbar.Snackbar
 import androidx.core.content.edit
 import androidx.core.view.WindowCompat
+import androidx.core.widget.addTextChangedListener
 import com.example.accuratedamoov.ui.login.LoginActivity
 
 
@@ -54,6 +55,8 @@ class RegisterActivity : AppCompatActivity() {
 
         // Focus listeners to show/hide labels
         setupFocusListeners()
+        setupErrorClearing()
+        attachTypingErrorClear()
 
         // Register button click
         binding.regBtn.setOnClickListener {
@@ -161,8 +164,17 @@ class RegisterActivity : AppCompatActivity() {
         val password = binding.pwdEdt.text.toString().trim()
         val confirmPassword = binding.repwdEdt.text.toString().trim()
         val name = binding.nameEdt.text.toString().trim()
+        val phone = binding.phoneEdt.text.toString().trim()
 
         var isValid = true
+        if (phone.isEmpty()) {
+            binding.phoneEdtLayout.error = "Phone number required"
+            isValid = false
+        } else if (!phone.matches(Regex("^[6-9][0-9]{9}$"))) {
+            binding.phoneEdtLayout.error = "Enter valid 10-digit phone number"
+            isValid = false
+        }
+
 
         if (email.isEmpty()) {
             binding.emailEdtLayout.error = "Email required"
@@ -192,7 +204,8 @@ class RegisterActivity : AppCompatActivity() {
 
         if (!isValid) return
 
-        viewModel.registerUser(email, password, name)
+        viewModel.registerUser(email, password, name, phone)
+
     }
 
     override fun onBackPressed() {
@@ -200,6 +213,38 @@ class RegisterActivity : AppCompatActivity() {
         startActivity(Intent(this, LoginActivity::class.java))
         finish()
     }
+
+    private fun setupErrorClearing() {
+        binding.emailEdt.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) binding.emailEdtLayout.error = null
+        }
+
+        binding.nameEdt.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) binding.nameEdtLayout.error = null
+        }
+
+        binding.pwdEdt.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) binding.pwdEdtLayout.error = null
+        }
+
+        binding.repwdEdt.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) binding.repwdEdtLayout.error = null
+        }
+
+        binding.phoneEdt.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) binding.phoneEdtLayout.error = null
+        }
+    }
+
+    private fun attachTypingErrorClear() {
+        binding.emailEdt.addTextChangedListener { binding.emailEdtLayout.error = null }
+        binding.nameEdt.addTextChangedListener { binding.nameEdtLayout.error = null }
+        binding.pwdEdt.addTextChangedListener { binding.pwdEdtLayout.error = null }
+        binding.repwdEdt.addTextChangedListener { binding.repwdEdtLayout.error = null }
+        binding.phoneEdt.addTextChangedListener { binding.phoneEdtLayout.error = null }
+    }
+
+
 }
 
 

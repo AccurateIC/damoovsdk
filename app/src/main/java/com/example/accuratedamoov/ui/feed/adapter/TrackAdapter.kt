@@ -99,7 +99,7 @@ class TrackAdapter(
         val binding = holder.binding
 
         binding.tripDate.text = formatDisplayDate(item.start_date_ist)
-        binding.distanceText.text = "${item.distance_km?.toInt() ?: 0} km"
+        binding.distanceText.text = "${item.distance_km} km"
 
         val (startTime, startAmPm) = formatTime(item.start_date_ist)
         val (endTime, endAmPm) = formatTime(item.end_date_ist)

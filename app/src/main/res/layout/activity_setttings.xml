@@ -70,6 +70,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="30dp"
             android:hint="@string/enter_dashboard_url"
+            android:visibility="gone"
             app:boxBackgroundMode="outline"
             app:boxCornerRadiusTopStart="30dp"
             app:boxCornerRadiusTopEnd="30dp"

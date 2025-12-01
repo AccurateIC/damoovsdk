@@ -10,6 +10,8 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings.Secure.putString
 import androidx.appcompat.app.AppCompatActivity
 import com.example.accuratedamoov.ui.login.LoginActivity
@@ -20,6 +22,7 @@ import android.util.Base64
 import android.util.Log
 import android.view.View
 import android.widget.ProgressBar
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
@@ -42,7 +45,9 @@ class SplashScreenActivity : AppCompatActivity() {
     private var networkSnackbar: Snackbar? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
+
         setContentView(R.layout.activity_splash_screen)
 
         progressBar = findViewById(R.id.progressBar)
@@ -77,8 +82,9 @@ class SplashScreenActivity : AppCompatActivity() {
             networkSnackbar?.show()
         }
 
-        // Instead of calling API, just check is_logged_in
-        handleNextScreen()
+        Handler(Looper.getMainLooper()).postDelayed({
+            handleNextScreen()
+        }, 1500) // show splash for 1.5 sec
     }
 
     private fun observeNetwork() {

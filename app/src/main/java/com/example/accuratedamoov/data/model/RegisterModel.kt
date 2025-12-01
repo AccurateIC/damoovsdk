@@ -7,7 +7,7 @@ data class RegisterModel(
     val otp: String? = null,          // optional, only required if using OTP
     val name: String? = null,
     val device_id: String? = null,    // optional
-    val device_name: String? = null   // optional
+    val device_name: String? = null
 )
 
 

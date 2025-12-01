@@ -36,6 +36,7 @@ import kotlinx.coroutines.withContext
 class FeedViewModel(application: Application) : AndroidViewModel(application) {
 
     private val trackingApi = TrackingApi.getInstance()
+    @SuppressLint("StaticFieldLeak")
     private val context = application.applicationContext
 
     private val _uiState = MutableStateFlow<FeedUiState>(FeedUiState.Loading)
@@ -74,7 +75,7 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                 val response = RetrofitClient.getApiService(context).getTripsForDevice(userId)
                 if (response.isSuccessful) {
                     val trips = response.body()?.data
-                        ?.filter { it.distance_km >= 1 }
+                        ?.filter { it.distance_km >= .1 }
                         ?.distinctBy { it.unique_id }
                         ?.sortedByDescending { it.start_date_ist }
                         ?: emptyList()

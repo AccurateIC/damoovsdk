@@ -160,19 +160,19 @@
                         android:textColor="@android:color/darker_gray"
                         android:textSize="14sp" />
 
-                    <LinearLayout
+                   <!-- <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:orientation="vertical">
 
-                        <!-- Other views here -->
+                        &lt;!&ndash; Other views here &ndash;&gt;
 
                         <include
                             android:id="@+id/includeDrivingScore"
                             layout="@layout/layout_driving_score" />
 
-                        <!-- Other views below -->
-                    </LinearLayout>
+                        &lt;!&ndash; Other views below &ndash;&gt;
+                    </LinearLayout>-->
 
 
                 </LinearLayout>

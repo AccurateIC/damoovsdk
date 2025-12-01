@@ -19,10 +19,19 @@
             android:id="@+id/appIcon"
             android:layout_width="140dp"
             android:layout_height="140dp"
-            android:layout_marginTop="60dp"
+            android:layout_marginTop="10dp"
             android:layout_marginBottom="20dp"
             android:src="@drawable/ic_neurofleet_logo" />
-
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:fontFamily="@font/poppinsmedium"
+            android:gravity="center"
+            android:text="by ACCURATE"
+            android:textColor="#FF0000"
+            android:textSize="11sp"
+            android:textStyle="bold" />
         <TextView
             android:id="@+id/titleText"
             android:layout_width="wrap_content"
@@ -55,7 +64,7 @@
             android:text="Don't have an account?"
             android:textColor="#898989"
             android:textSize="15sp"
-            android:layout_marginTop="30dp" />
+            android:layout_marginTop="10dp" />
 
         <TextView
             android:id="@+id/reg2tv"

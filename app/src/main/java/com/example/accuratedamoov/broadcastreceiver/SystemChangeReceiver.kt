@@ -18,6 +18,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.accuratedamoov.BuildConfig
 import com.example.accuratedamoov.MainApplication.Companion.TRACK_TABLE_WORKER_TAG
 import com.telematicssdk.tracking.TrackingApi
 import java.io.File
@@ -142,7 +143,7 @@ class SystemChangeReceiver : BroadcastReceiver() {
     private fun startTrackingSdkSafe() {
         if (trackingApi.isInitialized() && !trackingApi.isSdkEnabled()) {
             trackingApi.setEnableSdk(true)
-            trackingApi.setAutoStartEnabled(true, true)
+            trackingApi.setAutoStartEnabled(BuildConfig.IS_ROAD_VEHICLE, true)
             if (!trackingApi.isTracking()) {
                 trackingApi.startTracking()
             }

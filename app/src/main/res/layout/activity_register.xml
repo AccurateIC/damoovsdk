@@ -36,6 +36,16 @@
                 android:elevation="6dp"
                 android:padding="10dp"
                 android:src="@drawable/ic_neurofleet_logo" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/poppinsmedium"
+                android:gravity="center"
+                android:text="by ACCURATE"
+                android:textColor="#FF0000"
+                android:textSize="11sp"
+                android:textStyle="bold" />
 
             <!-- Title -->
             <TextView
@@ -106,6 +116,8 @@
                 android:layout_height="20dp" />
 
             <!-- Password Label -->
+
+
             <TextView
                 android:id="@+id/nameTv"
                 android:layout_width="match_parent"
@@ -146,7 +158,51 @@
                     android:textSize="16sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Email Label -->
+            <!-- Phone Number Label -->
+            <TextView
+                android:id="@+id/phoneTv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Phone Number"
+                android:textSize="11sp"
+                android:visibility="gone"
+                android:layout_marginStart="5dp"
+                android:textColor="#666666"
+                android:fontFamily="@font/poppinsregular"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="4dp" />
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="20dp" />
+            <!-- Phone Number Input -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/phoneEdtLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:boxBackgroundMode="outline"
+                app:hintEnabled="false"
+                app:boxCornerRadiusBottomEnd="30dp"
+                app:boxCornerRadiusBottomStart="30dp"
+                app:boxCornerRadiusTopEnd="30dp"
+                app:boxCornerRadiusTopStart="30dp"
+                app:boxStrokeColor="@color/colorPrimary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/phoneEdt"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Phone Number"
+                    android:inputType="phone"
+                    android:background="@drawable/bg_card"
+                    android:padding="20dp"
+                    android:textColor="#000000"
+                    android:textColorHint="#898989"
+                    android:gravity="center_vertical"
+                    android:maxLength="15"
+                    android:textSize="16sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+
             <Space
                 android:layout_width="match_parent"
                 android:layout_height="20dp" />

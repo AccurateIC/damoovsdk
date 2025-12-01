@@ -48,6 +48,7 @@ import org.osmdroid.views.overlay.gridlines.LatLonGridlineOverlay.lineWidth
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.view.isGone
+import com.example.accuratedamoov.BuildConfig
 
 
 class HomeFragment : Fragment() {
@@ -79,6 +80,15 @@ class HomeFragment : Fragment() {
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        if (BuildConfig.IS_ROAD_VEHICLE) {
+            binding.tvAllstats.visibility = View.VISIBLE
+            binding.tvMystats.visibility = View.VISIBLE
+        } else {
+            binding.tvAllstats.visibility = View.GONE
+            binding.tvMystats.visibility = View.GONE
+        }
+
+
         setUpuserDetails()
         showShimmer()
 
@@ -202,12 +212,12 @@ class HomeFragment : Fragment() {
 
             // Update UI on main thread
             launch(Dispatchers.Main) {
-                if (tripCount == 0) {
-                    hideShimmer()
+                hideShimmer()
+
+                if (tripCount == 0 &&  binding.shimmerLayout.isGone) {
                     binding.firstTimell.visibility = View.VISIBLE
                     binding.weekcardll.visibility = View.GONE
                 } else {
-                    hideShimmer()
                     binding.firstTimell.visibility = View.GONE
                     if (binding.shimmerLayout.isGone) {
                         binding.weekcardll.visibility = View.VISIBLE

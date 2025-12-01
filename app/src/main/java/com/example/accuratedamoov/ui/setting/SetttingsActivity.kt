@@ -41,6 +41,8 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import androidx.core.content.edit
+import androidx.core.view.isVisible
+import com.example.accuratedamoov.BuildConfig
 
 class SetttingsActivity : AppCompatActivity() {
 
@@ -60,6 +62,11 @@ class SetttingsActivity : AppCompatActivity() {
 
         setupSpinner()
         loadSettings()
+        if (!BuildConfig.IS_ROAD_VEHICLE) {
+            binding.statsUrlTextInputLayout.visibility = View.GONE
+        } else {
+            binding.statsUrlTextInputLayout.visibility = View.VISIBLE
+        }
 
         binding.saveButton.setOnClickListener { saveSettings() }
 
@@ -82,21 +89,26 @@ class SetttingsActivity : AppCompatActivity() {
         binding.apiUrlEditText.setText(baseUrl)
 
         val scoreUrl = sharedPreferences.getString("score_url", "http://192.168.10.41:5000/") ?: ""
-        binding.statsUrlEditText.setText(scoreUrl)   // <-- set value if available
+        if(binding.statsUrlTextInputLayout.isVisible) {
+            binding.statsUrlEditText.setText(scoreUrl)
+        }
     }
 
     private fun saveSettings() {
+        var scoreUrl =""
         val selectedPosition = binding.syncIntervalSpinner.selectedItemPosition
         val intervalMinutes = listOf(15, 30, 60, 120, 360)[selectedPosition]
         val apiUrl = binding.apiUrlEditText.text.toString().trim()
-        val scoreUrl = binding.statsUrlEditText.text.toString().trim()
+        if(binding.statsUrlTextInputLayout.isVisible) {
+            scoreUrl = binding.statsUrlEditText.text.toString().trim()
+        }
 
         if (apiUrl.isEmpty()) {
             Snackbar.make(binding.root, "Please enter a valid API URL", Snackbar.LENGTH_SHORT)
                 .show()
             return
         }
-        if (scoreUrl.isEmpty()) {
+        if (binding.statsUrlTextInputLayout.isVisible && scoreUrl.isEmpty()) {
             Snackbar.make(binding.root, "Please enter dashboard URL", Snackbar.LENGTH_SHORT).show()
             return
         }
