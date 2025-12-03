@@ -180,6 +180,7 @@ class MainActivity : AppCompatActivity() {
             trackingApi.setAutoStartEnabled(BuildConfig.IS_ROAD_VEHICLE, true)
             if (!trackingApi.isTracking()) {
                 trackingApi.startTracking()
+                Toast.makeText(this, "Tracking started", Toast.LENGTH_SHORT).show()
             }
 
 
@@ -274,7 +275,7 @@ class MainActivity : AppCompatActivity() {
         setupTrackingIfReady()
         checkTracks()
 
-        if (!trackingApi.isTracking() && !BuildConfig.IS_ROAD_VEHICLE)  {
+        if (trackingApi.isSdkEnabled() && trackingApi.areAllRequiredPermissionsAndSensorsGranted() && !trackingApi.isTracking() && !BuildConfig.IS_ROAD_VEHICLE) {
             Toast.makeText(this, "Starts tracking", Toast.LENGTH_SHORT).show()
             trackingApi.startTracking()
         }
