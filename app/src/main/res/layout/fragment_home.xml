@@ -4,68 +4,628 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".ui.home.HomeFragment">
 
-    <!-- Map in the background -->
-    <org.osmdroid.views.MapView
-        android:id="@+id/mapView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
 
-    <!-- Floating control buttons -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|end"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="10dp"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="16dp">
-
-        <ImageView
-            android:id="@+id/startTripManually"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:src="@drawable/btn_start_trip" />
-
-        <ImageView
-            android:id="@+id/stopTripManually"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/btn_stop_trip" />
-    </LinearLayout>
-
-    <!-- Draggable Bottom Sheet -->
-
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/bottom_sheet"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
-        android:fillViewport="true"
-        app:behavior_peekHeight="24dp"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
 
-            <View
-                android:id="@+id/bottom_sheet_handle"
-                android:layout_width="40dp"
-                android:layout_height="6dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="25dp"
-                android:background="@drawable/rectangle" />
 
-            <include layout="@layout/floating_bottom_sheet" />
+            <LinearLayout
+                android:id="@+id/appHeaderLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="start"
+                android:orientation="horizontal"
+                android:paddingTop="24dp"
+                android:paddingBottom="16dp">
 
+                <ImageView
+                    android:id="@+id/appLogo"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginEnd="5dp"
+                    android:contentDescription="@string/app_logo"
+                    android:src="@drawable/ic_neurofleet_logo" />
+
+                <ImageView
+                    android:id="@+id/appNameTv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:layout_gravity="center_horizontal"
+                    android:src="@drawable/ic_app_name" />
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/welcomecardll"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:orientation="horizontal">
+
+                <!-- Left section -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/welecomeTv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_weight="0.3"
+                        android:text="@string/good_morning"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_weight="0.7"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/nameTv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:maxLines="1"
+                            android:text="Omkar"
+                            android:textColor="@color/black"
+                            android:textSize="32sp"
+                            android:textStyle="bold" />
+
+                        <pl.droidsonroids.gif.GifImageView
+                            android:id="@+id/gifImageView"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="5dp"
+                            android:src="@drawable/hand_wave" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <FrameLayout
+                    android:id="@+id/bellContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/bellIcon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_bell_notification" />
+
+                    <!-- NOTIFICATION DOT -->
+                    <View
+                        android:id="@+id/notificationDot"
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="3dp"
+                        android:background="@drawable/red_dot_bg"
+                        android:translationX="1dp"
+                        android:translationY="1dp"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+
+            </LinearLayout>
+
+
+            <com.facebook.shimmer.ShimmerFrameLayout
+                android:id="@+id/shimmerLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                app:shimmer_auto_start="true">
+
+                <include layout="@layout/home_skeleton"/>
+            </com.facebook.shimmer.ShimmerFrameLayout>
+            <LinearLayout
+                android:id="@+id/weekcardll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="20dp"
+                    android:text="@string/mystreak"
+                    android:textColor="#121212"
+                    android:textSize="14sp" />
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/week_bgcar"
+                    android:orientation="vertical">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:id="@+id/weektv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingStart="15dp"
+                            android:text="@string/week"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <pl.droidsonroids.gif.GifImageView
+                            android:id="@+id/weekGif"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/fire"
+                            app:layout_constraintBottom_toBottomOf="@id/weektv"
+                            app:layout_constraintStart_toEndOf="@id/weektv"
+                            app:layout_constraintTop_toTopOf="@id/weektv" />
+
+                        <TextView
+                            android:id="@+id/tvdate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:paddingEnd="15dp"
+                            android:text="@string/todaysdate"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <FrameLayout
+                        android:id="@+id/weekContainerWrapper"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp">
+
+                        <LinearLayout
+                            android:id="@+id/weekContainer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:padding="10dp">
+
+                            <TextView
+                                android:id="@+id/day1"
+                                style="@style/WeekDayCircle"
+                                android:text="@string/mo" />
+
+                            <TextView
+                                android:id="@+id/day2"
+                                style="@style/WeekDayCircle"
+                                android:text="@string/tu" />
+
+                            <TextView
+                                android:id="@+id/day3"
+                                style="@style/WeekDayCircle"
+                                android:text="@string/we" />
+
+                            <TextView
+                                android:id="@+id/day4"
+                                style="@style/WeekDayCircle"
+                                android:text="@string/th" />
+
+                            <TextView
+                                android:id="@+id/day5"
+                                style="@style/WeekDayCircle"
+                                android:text="@string/fr" />
+
+                            <TextView
+                                android:id="@+id/day6"
+                                style="@style/WeekDayCircle"
+                                android:text="@string/sa" />
+
+                            <TextView
+                                android:id="@+id/day7"
+                                style="@style/WeekDayCircle"
+                                android:text="@string/su" />
+                        </LinearLayout>
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:id="@+id/underlineWrapper"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:paddingVertical="4dp">
+
+                        <View
+                            android:id="@+id/underline"
+                            android:layout_width="wrap_content"
+                            android:layout_height="4dp"
+                            android:layout_gravity="center_vertical"
+                            android:background="@drawable/ab_line" />
+
+                        <ImageView
+                            android:id="@+id/underlineIcon"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_gravity="end|center_vertical"
+                            android:layout_marginEnd="8dp"
+                            android:src="@drawable/ic_smalltruck" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/driverranktv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingStart="15dp"
+                        android:text="@string/rankfordriver"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </LinearLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical">
+
+                    <!-- Left aligned: Recent trip -->
+                    <TextView
+                        android:id="@+id/tvRecentTrip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:text="@string/recent_trip"
+                        android:textColor="#121212"
+                        android:textSize="14sp" />
+
+                    <!-- Right aligned: Next icon -->
+                    <ImageView
+                        android:id="@+id/ivNext"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/ic_next" />
+
+                    <!-- Right aligned: All trips text (left of icon) -->
+                    <TextView
+                        android:id="@+id/tvAllTrips"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="4dp"
+                        android:layout_toStartOf="@id/ivNext"
+                        android:padding="10dp"
+                        android:text="All trips"
+                        android:textColor="#898989"
+                        android:textSize="14sp" />
+
+                </RelativeLayout>
+
+                <include
+                    android:id="@+id/tripCardInclude"
+                    layout="@layout/trip_info_card"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp" />
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical">
+
+                    <!-- Left aligned: Recent trip -->
+                    <TextView
+                        android:id="@+id/tvMystats"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:text="@string/my_stats"
+                        android:textColor="#121212"
+                        android:textSize="14sp"
+                        android:visibility="gone" />
+
+                    <!-- Right aligned: Next icon -->
+                    <ImageView
+                        android:id="@+id/ivNextStats"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/ic_next" />
+
+                    <!-- Right aligned: All trips text (left of icon) -->
+                    <TextView
+                        android:visibility="gone"
+                        android:id="@+id/tvAllstats"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="4dp"
+                        android:layout_toStartOf="@id/ivNextStats"
+                        android:padding="10dp"
+                        android:text="Go to stats"
+                        android:textColor="#898989"
+                        android:textSize="14sp" />
+
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:id="@+id/statsll"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <GridLayout
+                        android:id="@+id/gridContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:alignmentMode="alignMargins"
+                        android:columnCount="2"
+                        android:rowCount="2"
+                        android:rowOrderPreserved="false"
+                        android:useDefaultMargins="true">
+
+                        <!-- Item 1 -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_rowWeight="1"
+                            android:layout_columnWeight="1"
+                            android:background="@drawable/trip_bg"
+                            android:gravity="center_vertical"
+                            android:minHeight="80dp"
+                            android:orientation="horizontal"
+                            android:padding="5dp">
+
+                            <ImageView
+                                android:id="@+id/itemImage1"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_marginEnd="8dp"
+
+                                android:padding="5dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/ic_image_stats" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/titleText1"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="87.54"
+                                    android:textColor="@android:color/black"
+                                    android:textSize="20sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/subtitleText1"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/safty_score"
+                                    android:textColor="@android:color/darker_gray"
+                                    android:textSize="18sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Item 2 -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_rowWeight="1"
+                            android:layout_columnWeight="1"
+                            android:background="@drawable/trip_bg"
+                            android:gravity="center_vertical"
+                            android:minHeight="80dp"
+                            android:orientation="horizontal"
+                            android:padding="5dp">
+
+                            <ImageView
+                                android:id="@+id/itemImage2"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_marginEnd="8dp"
+                                android:contentDescription="@string/app_name"
+                                android:padding="5dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/ic_image_stats" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/titleText2"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="82.00"
+                                    android:textColor="@android:color/black"
+                                    android:textSize="20sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/subtitleText2"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Braking"
+                                    android:textColor="@android:color/darker_gray"
+                                    android:textSize="18sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Item 3 -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_rowWeight="1"
+                            android:layout_columnWeight="1"
+                            android:background="@drawable/trip_bg"
+                            android:gravity="center_vertical"
+                            android:minHeight="80dp"
+                            android:orientation="horizontal"
+                            android:padding="5dp">
+
+                            <ImageView
+                                android:id="@+id/itemImage3"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_marginEnd="8dp"
+                                android:contentDescription="@string/app_name"
+                                android:padding="5dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/ic_image_stats" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/titleText3"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="76.67"
+                                    android:textColor="@android:color/black"
+                                    android:textSize="20sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/subtitleText3"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/accerlation"
+                                    android:textColor="@android:color/darker_gray"
+                                    android:textSize="18sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Item 4 -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_rowWeight="1"
+                            android:layout_columnWeight="1"
+                            android:background="@drawable/trip_bg"
+                            android:gravity="center_vertical"
+                            android:minHeight="80dp"
+                            android:orientation="horizontal"
+                            android:padding="5dp">
+
+                            <ImageView
+                                android:id="@+id/itemImage4"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_marginEnd="8dp"
+                                android:contentDescription="@string/app_name"
+
+                                android:padding="5dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/ic_image_stats" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/titleText4"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="50"
+                                    android:textColor="@android:color/black"
+                                    android:textSize="20sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/subtitleText4"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/trips"
+                                    android:textColor="@android:color/darker_gray"
+                                    android:textSize="18sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </GridLayout>
+                </LinearLayout>
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/firstTimell"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginHorizontal="15dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/firstTimeImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="230dp"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter"
+                    android:layout_margin="16dp"
+                    android:src="@drawable/firsttime_banner"  />
+
+                <ImageView
+                    android:id="@+id/notrip"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="100dp"
+                    android:src="@drawable/notrips" />
+
+                <TextView
+                    android:id="@+id/firstTimeTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/oops_no_trips_found"
+                    android:textColor="#121212"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/firstTimeSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:text="@string/start_riding_to_initiate_the_insights"
+                    android:textColor="#898989"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
-
-
+    </ScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

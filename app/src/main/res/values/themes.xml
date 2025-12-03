@@ -2,8 +2,8 @@
     <!-- Base application theme. -->
     <style name="Theme.AccurateDamoov" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- font for entire application -->
-        <item name="android:fontFamily">@font/kanit</item>
-        <item name="fontFamily">@font/kanit</item>
+        <item name="android:fontFamily">@font/poppins</item>
+        <item name="fontFamily">@font/poppins</item>
 
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/colorPrimary</item>

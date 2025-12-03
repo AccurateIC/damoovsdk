@@ -20,6 +20,7 @@ import android.os.PowerManager
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -32,6 +33,8 @@ import com.example.accuratedamoov.database.DatabaseHelper
 import com.example.accuratedamoov.databinding.ActivityMainBinding
 import com.example.accuratedamoov.service.NetworkMonitorService
 import com.example.accuratedamoov.service.PermissionMonitorService
+import com.example.accuratedamoov.ui.home.HomeViewModel
+import com.example.accuratedamoov.ui.home.HomeViewModelFactory
 import com.example.accuratedamoov.worker.SystemEventScheduler
 
 import com.google.android.material.snackbar.Snackbar
@@ -51,6 +54,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
     private lateinit var systemChangeReceiver: SystemChangeReceiver
     private var networkSnackbar: Snackbar? = null
+    private val homeViewModel: HomeViewModel by viewModels {
+        HomeViewModelFactory(applicationContext)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,6 +84,8 @@ class MainActivity : AppCompatActivity() {
         /*FirebaseCrashlytics.getInstance().log("Forcing a test crash")
         throw RuntimeException("Test Crash")*/
         systemChangeReceiver = SystemChangeReceiver()
+        homeViewModel.fetchUserProfile()
+
 
     }
 
@@ -89,7 +97,7 @@ class MainActivity : AppCompatActivity() {
         networkCallback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
                 runOnUiThread {
-                   dismissNetworkSnackbar()
+                    dismissNetworkSnackbar()
                 }
             }
 
@@ -169,9 +177,10 @@ class MainActivity : AppCompatActivity() {
 
             trackingApi.setDeviceID(deviceId)
             trackingApi.setEnableSdk(true)
-            trackingApi.setAutoStartEnabled(true, true)
+            trackingApi.setAutoStartEnabled(BuildConfig.IS_ROAD_VEHICLE, true)
             if (!trackingApi.isTracking()) {
                 trackingApi.startTracking()
+                Toast.makeText(this, "Tracking started", Toast.LENGTH_SHORT).show()
             }
 
 
@@ -208,7 +217,10 @@ class MainActivity : AppCompatActivity() {
 
             navController.navigate(R.id.navigation_home)
             binding.navView.setupWithNavController(navController)
-
+            // 👉 Hide dashboard item completely for boat mode
+            if (!BuildConfig.IS_ROAD_VEHICLE) {
+                binding.navView.menu.findItem(R.id.navigation_dashboard)?.isVisible = false
+            }
             binding.navView.setOnItemSelectedListener { item ->
                 val currentDestination = navController.currentDestination?.id
                 if (currentDestination == item.itemId) return@setOnItemSelectedListener true
@@ -221,11 +233,12 @@ class MainActivity : AppCompatActivity() {
                     .build()
 
                 when (item.itemId) {
-                    R.id.navigation_dashboard -> navController.navigate(
-                        R.id.navigation_dashboard,
-                        null,
-                        navOptions
-                    )
+                    R.id.navigation_dashboard -> {
+                        // 👉 Only navigate for road vehicle
+                        if (BuildConfig.IS_ROAD_VEHICLE) {
+                            navController.navigate(R.id.navigation_dashboard, null, navOptions)
+                        }
+                    }
 
                     R.id.navigation_home -> navController.navigate(
                         R.id.navigation_home,
@@ -235,6 +248,12 @@ class MainActivity : AppCompatActivity() {
 
                     R.id.navigation_feed -> navController.navigate(
                         R.id.navigation_feed,
+                        null,
+                        navOptions
+                    )
+
+                    R.id.navigation_profile -> navController.navigate(
+                        R.id.navigation_profile,
                         null,
                         navOptions
                     )
@@ -255,6 +274,11 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         setupTrackingIfReady()
         checkTracks()
+
+        if (trackingApi.isSdkEnabled() && trackingApi.areAllRequiredPermissionsAndSensorsGranted() && !trackingApi.isTracking() && !BuildConfig.IS_ROAD_VEHICLE) {
+            Toast.makeText(this, "Starts tracking", Toast.LENGTH_SHORT).show()
+            trackingApi.startTracking()
+        }
     }
 
     private fun checkTracks() {
@@ -269,19 +293,19 @@ class MainActivity : AppCompatActivity() {
                 ).show()
             }
         } else {
-            Toast.makeText(
-                applicationContext,
-                "No trips with reasons found in the database",
-                Toast.LENGTH_LONG
-            ).show()
-
-            Log.d(TAG, "")
+            Log.d(TAG, "No trips in the database")
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         connectivityManager.unregisterNetworkCallback(networkCallback)
+        if (trackingApi.isTracking() && !BuildConfig.IS_ROAD_VEHICLE) {
+            Toast.makeText(this, "Stopping tracking before exit", Toast.LENGTH_SHORT).show()
+            trackingApi.stopTracking()
+        }
+
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -315,6 +339,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         super.onBackPressed()
+        if (trackingApi.isTracking() && !BuildConfig.IS_ROAD_VEHICLE) {
+            Toast.makeText(this, "Stopping tracking before exit", Toast.LENGTH_SHORT).show()
+            trackingApi.stopTracking()
+        }
         finishAffinity()
     }
 
@@ -324,7 +352,7 @@ class MainActivity : AppCompatActivity() {
         return !apiUrl.isNullOrEmpty()
     }
 
-     fun isNetworkAvailable(): Boolean {
+    fun isNetworkAvailable(): Boolean {
         val network = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)

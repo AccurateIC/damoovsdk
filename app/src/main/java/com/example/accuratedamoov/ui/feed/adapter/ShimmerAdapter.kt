@@ -10,7 +10,7 @@ class ShimmerAdapter(private val itemCount: Int) :
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ShimmerViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_shimmer_trip, parent, false)
+            .inflate(R.layout.shimmer_trip_card, parent, false)
         return ShimmerViewHolder(view)
     }
 

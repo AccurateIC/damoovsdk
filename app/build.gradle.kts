@@ -56,6 +56,28 @@ android {
             )
         }
     }
+
+    flavorDimensions += "mode"
+
+    productFlavors {
+
+        create("vehicle") {
+            dimension = "mode"
+            versionNameSuffix = "-vehicle"
+            // true → road vehicle
+            buildConfigField("boolean", "IS_ROAD_VEHICLE", "true")
+        }
+
+        create("boat") {
+            dimension = "mode"
+            versionNameSuffix = "-boat"
+            // false → non-road (boat)
+            buildConfigField("boolean", "IS_ROAD_VEHICLE", "false")
+        }
+
+    }
+
+
 }
 
 dependencies {
@@ -133,5 +155,14 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("androidx.security:security-crypto:1.1.0-alpha04")
+    implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
+    implementation("com.google.android.material:material:1.11.0")
 
+    implementation("com.github.bumptech.glide:glide:5.0.5")
+    implementation("com.tomergoldst.android:tooltips:1.1.1")
+    implementation("com.github.skydoves:balloon:1.6.7")
+    implementation("com.google.firebase:firebase-auth:22.1.1")
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
 }
+

@@ -1,6 +1,7 @@
 package com.example.accuratedamoov.worker
 
 import android.content.Context
+import android.database.sqlite.SQLiteDatabase
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -194,6 +195,13 @@ class TrackTableCheckWorker(
 
         db.beginTransaction()
         try {
+
+            // ⚠️ Before deleting SampleTable → extract trip notifications
+            if (tableName == "SampleTable") {
+                Log.d("TripNotify", "Extracting trip start/end events before deletion…")
+                saveTripNotificationEvents(dbHelper)
+            }
+
             db.execSQL("DELETE FROM $tableName")
             Log.d("WorkManager", "🗑️ Deleted all records from $tableName after sync")
 
@@ -204,5 +212,76 @@ class TrackTableCheckWorker(
             db.endTransaction()
         }
     }
+
+
+    private fun saveTripNotificationEvents(dbHelper: DatabaseHelper) {
+        val db = dbHelper.openDatabase() ?: return
+
+        dbHelper.createTripNotificationsTableIfNotExists(db)
+
+        val tripsCursor = db.rawQuery(
+            "SELECT DISTINCT unique_id FROM SampleTable WHERE unique_id IS NOT NULL",
+            null
+        )
+
+        while (tripsCursor.moveToNext()) {
+            val uniqueId = tripsCursor.getString(0)
+
+            // Get START row (first row)
+            val startCursor = db.rawQuery(
+                "SELECT timestamp, latitude, longitude FROM SampleTable WHERE unique_id=? ORDER BY timestamp ASC LIMIT 1",
+                arrayOf(uniqueId)
+            )
+
+            // Get END row (last row)
+            val endCursor = db.rawQuery(
+                "SELECT timestamp, latitude, longitude FROM SampleTable WHERE unique_id=? ORDER BY timestamp DESC LIMIT 1",
+                arrayOf(uniqueId)
+            )
+
+            var startTime: Long? = null
+            var startLat: Double? = null
+            var startLong: Double? = null
+
+            var endTime: Long? = null
+            var endLat: Double? = null
+            var endLong: Double? = null
+
+            if (startCursor.moveToFirst()) {
+                startTime = startCursor.getLong(0)
+                startLat = startCursor.getDouble(1)
+                startLong = startCursor.getDouble(2)
+            }
+
+            if (endCursor.moveToFirst()) {
+                endTime = endCursor.getLong(0)
+                endLat = endCursor.getDouble(1)
+                endLong = endCursor.getDouble(2)
+            }
+
+            startCursor.close()
+            endCursor.close()
+
+            // Insert “trip started”
+            if (startTime != null && startLat != null && startLong != null) {
+                db.execSQL(
+                    "INSERT INTO TripNotificationsTable (unique_id, message, timestamp, lat, lng, is_read) VALUES (?, ?, ?, ?, ?, 0)",
+                    arrayOf(uniqueId, "Trip Started", startTime, startLat, startLong)
+                )
+            }
+
+            // Insert “trip ended”
+            if (endTime != null && endLat != null && endLong != null) {
+                db.execSQL(
+                    "INSERT INTO TripNotificationsTable (unique_id, message, timestamp, lat, lng, is_read) VALUES (?, ?, ?, ?, ?, 0)",
+                    arrayOf(uniqueId, "Trip Ended", endTime, endLat, endLong)
+                )
+            }
+        }
+
+        tripsCursor.close()
+    }
+
+
 
 }

@@ -70,7 +70,7 @@ class MainApplication : Application() {
             val settings = Settings(
                 Settings.stopTrackingTimeHigh,
                 Settings.accuracyHigh,
-                true,
+                BuildConfig.IS_ROAD_VEHICLE,
                 true,
                 false
             ).apply {
@@ -97,7 +97,7 @@ class MainApplication : Application() {
 
         trackingApi.setDeviceID(deviceId)
         trackingApi.setEnableSdk(true)
-        trackingApi.setAutoStartEnabled(true,true)
+        trackingApi.setAutoStartEnabled(BuildConfig.IS_ROAD_VEHICLE,true)
         if(!trackingApi.isTracking()) {
             trackingApi.startTracking()
         }

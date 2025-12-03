@@ -1,205 +1,292 @@
 package com.example.accuratedamoov.ui.dashboard
 
-import android.app.AlertDialog
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Context
-import androidx.fragment.app.viewModels
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
+import android.os.Build
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
+import android.text.Spannable
+import android.text.SpannableString
+
+import android.text.method.LinkMovementMethod
+import android.text.style.ImageSpan
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ProgressBar
-import android.widget.ScrollView
+
 import android.widget.TextView
-import android.widget.Toast
-import androidx.cardview.widget.CardView
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.transition.Visibility
-import com.example.accuratedamoov.MainActivity
 
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import pl.droidsonroids.gif.GifDrawable
 import com.example.accuratedamoov.R
-import com.example.accuratedamoov.data.local.systemevents.SystemEventDatabase
 import com.example.accuratedamoov.data.model.SafetySummaryResponse
-import com.example.accuratedamoov.ui.systemevents.adapter.SystemEventsAdapter
-import com.facebook.shimmer.ShimmerFrameLayout
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import kotlinx.coroutines.launch
 
+
+
+///stats
 class DashboardFragment : Fragment() {
 
-    private lateinit var debugFab: FloatingActionButton
-    private val viewModel: DashboardViewModel by viewModels()
+    private val dashboardViewModel: DashboardViewModel by viewModels()
+    private var demoValuesSet = false
 
-    private lateinit var profileCard: CardView
-    private lateinit var shimmerLayout: ShimmerFrameLayout
-    private lateinit var driverName: TextView
-    private lateinit var safetyScoreBar: ProgressBar
-    private lateinit var rankText: TextView
-    private lateinit var statValueViews: List<TextView>
-    private lateinit var statNameViews: List<TextView>
-    private lateinit var summaryScrollView: ScrollView
+
+
+    // -----------------------------
+    // PULSE ANIMATION
+    // -----------------------------
+    private fun startPulseAnimation(view: View) {
+        val anim = ObjectAnimator.ofFloat(view, "alpha", 0.4f, 1f)
+        anim.duration = 700
+        anim.repeatMode = ValueAnimator.REVERSE
+        anim.repeatCount = ValueAnimator.INFINITE
+        anim.start()
+        view.tag = anim
+    }
+
+    private fun stopPulseAnimation(view: View) {
+        (view.tag as? ObjectAnimator)?.cancel()
+        view.alpha = 1f
+    }
+
+    private fun startGridLoadingAnimation(container: ViewGroup) {
+        for (i in 0 until container.childCount) {
+            startPulseAnimation(container.getChildAt(i))
+        }
+    }
+
+    private fun stopGridLoadingAnimation(container: ViewGroup) {
+        for (i in 0 until container.childCount) {
+            stopPulseAnimation(container.getChildAt(i))
+        }
+    }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val view = inflater.inflate(R.layout.fragment_dashboard, container, false)
-
-        profileCard = view.findViewById(R.id.profileCard)
-        shimmerLayout = view.findViewById(R.id.shimmerLayout)
-        summaryScrollView = view.findViewById(R.id.summaryScrollView)
-
-        driverName = view.findViewById(R.id.driverName)
-        safetyScoreBar = view.findViewById(R.id.safetyScoreBar)
-        rankText = view.findViewById(R.id.rankText)
-        debugFab = view.findViewById(R.id.debugFab)
-        // ✅ Safety Score first
-        statValueViews = listOf(
-            view.findViewById<View>(R.id.safetyScoreItem).findViewById(R.id.statValue),
-            view.findViewById<View>(R.id.tripsItem).findViewById(R.id.statValue),
-            view.findViewById<View>(R.id.mileageItem).findViewById(R.id.statValue),
-            view.findViewById<View>(R.id.timeDrivenItem).findViewById(R.id.statValue),
-            view.findViewById<View>(R.id.avgSpeedItem).findViewById(R.id.statValue),
-            view.findViewById<View>(R.id.maxSpeedItem).findViewById(R.id.statValue),
-            view.findViewById<View>(R.id.phoneUsageItem).findViewById(R.id.statValue)
-        )
-
-        statNameViews = listOf(
-            view.findViewById<View>(R.id.safetyScoreItem).findViewById(R.id.statName),
-            view.findViewById<View>(R.id.tripsItem).findViewById(R.id.statName),
-            view.findViewById<View>(R.id.mileageItem).findViewById(R.id.statName),
-            view.findViewById<View>(R.id.timeDrivenItem).findViewById(R.id.statName),
-            view.findViewById<View>(R.id.avgSpeedItem).findViewById(R.id.statName),
-            view.findViewById<View>(R.id.maxSpeedItem).findViewById(R.id.statName),
-            view.findViewById<View>(R.id.phoneUsageItem).findViewById(R.id.statName)
-        )
-
-        return view
+        return inflater.inflate(R.layout.fragment_dashboard, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        showLoading()
+        setupAnimatedTitle(view)
+        setupToggles(view)
+        setupChips(view)
 
-        viewModel.summary.observe(viewLifecycleOwner) { summary ->
+        // ⭐ START animation immediately
+        val safetyLayout = view.findViewById<ViewGroup>(R.id.safetyParamsLayout)
+        val generalLayout = view.findViewById<ViewGroup>(R.id.generalParamsLayout)
+
+        safetyLayout?.let { startGridLoadingAnimation(it) }
+        generalLayout?.let { startGridLoadingAnimation(it) }
+
+        dashboardViewModel.summary.observe(viewLifecycleOwner) { summary ->
+            // ⭐ STOP animation
+            safetyLayout?.let { stopGridLoadingAnimation(it) }
+            generalLayout?.let { stopGridLoadingAnimation(it) }
+
             if (summary != null) {
-                showDashboardData(summary)
+                setDataIntoGrid(view, summary)
+            } else if (!demoValuesSet) {
+                setupTextForGrid(view)
+                demoValuesSet = true
+            }
+        }
+    }
+
+    // -----------------------------
+    // Animated title with GIF
+    // -----------------------------
+    private fun setupAnimatedTitle(view: View) {
+        val textView = view.findViewById<TextView>(R.id.titleText)
+        val text = textView.text.toString()
+        val gifDrawable = GifDrawable(resources, R.drawable.ic_cowboy_animated)
+        gifDrawable.setBounds(0, 0, 80, 80)
+
+        val span = SpannableString("$text ")
+        val imageSpan = ImageSpan(gifDrawable, ImageSpan.ALIGN_BASELINE)
+        span.setSpan(imageSpan, text.length, text.length + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        textView.text = span
+        textView.movementMethod = LinkMovementMethod.getInstance()
+
+        gifDrawable.callback = object : Drawable.Callback {
+            override fun invalidateDrawable(who: Drawable) {
+                textView.invalidate()
+            }
+
+            override fun scheduleDrawable(who: Drawable, what: Runnable, `when`: Long) {
+                textView.postDelayed(what, `when` - SystemClock.uptimeMillis())
+            }
+
+            override fun unscheduleDrawable(who: Drawable, what: Runnable) {
+                textView.removeCallbacks(what)
+            }
+        }
+    }
+
+    // -----------------------------
+    // Toggle buttons (Safety / General)
+    // -----------------------------
+    private fun setupToggles(view: View) {
+        val leftText = view.findViewById<TextView>(R.id.leftBottomText)
+        val rightText = view.findViewById<TextView>(R.id.rightBottomText)
+        val safetyLayout = view.findViewById<ViewGroup>(R.id.safetyParamsLayout)
+        val generalLayout = view.findViewById<ViewGroup>(R.id.generalParamsLayout)
+
+        fun select(leftSelected: Boolean) {
+            val summaryLoaded = dashboardViewModel.summary.value != null
+
+            if (leftSelected) {
+                if (summaryLoaded) stopGridLoadingAnimation(generalLayout)
+
+                leftText.setBackgroundResource(R.drawable.toggle_selected)
+                leftText.setTextColor(Color.BLACK)
+                rightText.setBackgroundResource(R.drawable.toggle_unselected)
+                rightText.setTextColor(Color.WHITE)
+                safetyLayout.visibility = View.VISIBLE
+                generalLayout.visibility = View.GONE
             } else {
-                showLoading()
+
+                // ⭐ restart animation when switching
+                startGridLoadingAnimation(generalLayout)
+                rightText.setBackgroundResource(R.drawable.toggle_selected)
+                rightText.setTextColor(Color.BLACK)
+                leftText.setBackgroundResource(R.drawable.toggle_unselected)
+                leftText.setTextColor(Color.WHITE)
+                safetyLayout.visibility = View.GONE
+                generalLayout.visibility = View.VISIBLE
+                if (!summaryLoaded) {
+                    // only animate if data still not loaded
+                    startGridLoadingAnimation(generalLayout)
+                } else {
+                    // summary already loaded → stop animation immediately
+                    stopGridLoadingAnimation(generalLayout)
+                }
             }
         }
 
-        viewModel.userProfile.observe(viewLifecycleOwner) { profile ->
-            profile?.let {
-                driverName.text = it.name
-                driverName.visibility = View.VISIBLE
-            }
-        }
-
-        viewModel.error.observe(viewLifecycleOwner) { error ->
-            error?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                shimmerLayout.stopShimmer()
-                shimmerLayout.visibility = View.GONE
-            }
-        }
-
-        viewModel.errorProfile.observe(viewLifecycleOwner) { errorMsg ->
-            errorMsg?.let { Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show() }
-        }
-
-        val sharedPrefs = context?.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val userId = sharedPrefs?.getInt("user_id", 0)
-        val userName = sharedPrefs?.getString("user_name", "Unknown User") ?: "Unknown User"
-        val mainActivity = activity as? MainActivity
-        if (mainActivity != null && mainActivity.isNetworkAvailable()) {
-            viewModel.fetchDashboardData(userId)
-        }
-
-        if (userName == "Unknown User" && mainActivity != null && mainActivity.isNetworkAvailable()) {
-            viewModel.getUserProfile(userId)
-        } else {
-            driverName.text = userName
-            driverName.visibility = View.VISIBLE
-        }
-
-        debugFab.setOnClickListener {
-            val dialogView = LayoutInflater.from(requireContext())
-                .inflate(R.layout.dialog_system_events, null)
-
-            val recyclerView = dialogView.findViewById<RecyclerView>(R.id.debugEventsRecycler)
-            recyclerView.layoutManager = LinearLayoutManager(requireContext())
-            val adapter = SystemEventsAdapter()
-            recyclerView.adapter = adapter
-
-            // Load events from DB (suspend → lifecycleScope)
-            lifecycleScope.launch {
-                val dao = SystemEventDatabase.getInstance(requireContext()).systemEventDao()
-                val events =
-                    dao.getAllEvents()  // make sure DAO has getAllEvents(): List<SystemEventEntity>
-                adapter.submitList(events)
-            }
-
-            AlertDialog.Builder(requireContext())
-                .setTitle("System Events Log(only for debug)")
-                .setView(dialogView)
-                .setPositiveButton("Close") { d, _ -> d.dismiss() }
-                .show()
-        }
-
+        select(true)
+        leftText.setOnClickListener { select(true) }
+        rightText.setOnClickListener { select(false) }
     }
 
-    private fun showLoading() {
-        shimmerLayout.visibility = View.VISIBLE
-        shimmerLayout.startShimmer()
-        summaryScrollView.visibility = View.GONE
-    }
-
-    private fun showDashboardData(summary: SafetySummaryResponse) {
-        shimmerLayout.stopShimmer()
-        shimmerLayout.visibility = View.GONE
-        summaryScrollView.visibility = View.VISIBLE
-
-        driverName.visibility = View.VISIBLE
-        safetyScoreBar.visibility = View.VISIBLE
-        rankText.visibility = View.VISIBLE
-
-        statValueViews.forEach { it.visibility = View.VISIBLE }
-        statNameViews.forEach { it.visibility = View.VISIBLE }
-
-        // ✅ Safety Score at top
-        safetyScoreBar.progress = summary.safety_score.toInt()
-        rankText.text = "1"
-
-        statValueViews[0].text = "${summary.safety_score}"
-        statValueViews[1].text = "${summary.trips}"
-        statValueViews[2].text = "${summary.mileage_km} km"
-        statValueViews[3].text = "${summary.time_driven_minutes} min"
-        statValueViews[4].text = "${summary.average_speed_kmh} km/h"
-        statValueViews[5].text = "${summary.max_speed_kmh} km/h"
-        statValueViews[6].text = "${summary.phone_usage_percentage}%"
-
-        updateStatNames(
-            listOf(
-                "Safety Score",
-                "Trips",
-                "Mileage",
-                "Time Driven",
-                "Average Speed",
-                "Max Speed",
-                "Phone Usage"
-            )
+    // -----------------------------
+    // Chips (Overall / Past X trips)
+    // -----------------------------
+    private fun setupChips(view: View) {
+        val chips = listOf(
+            view.findViewById<TextView>(R.id.tvOverall),
+            view.findViewById<TextView>(R.id.tvPast10),
+            view.findViewById<TextView>(R.id.tvPast20),
+            view.findViewById<TextView>(R.id.tvPast30)
         )
+
+        chips.forEachIndexed { index, chip ->
+            chip.isEnabled = index == 0
+            chip.isClickable = index == 0
+            chip.alpha = if (index == 0) 1f else 0.4f
+        }
+
+        val defaultChip = chips[0]
+        defaultChip.setBackgroundResource(R.drawable.bg_chip_selected)
+        defaultChip.setTextColor(Color.parseColor("#6200EE"))
+
+        chips.forEach { chip ->
+            chip.setOnClickListener {
+                chips.forEach {
+                    it.setBackgroundResource(R.drawable.bg_chip_unselected)
+                    it.setTextColor(Color.BLACK)
+                }
+                chip.setBackgroundResource(R.drawable.bg_chip_selected)
+                chip.setTextColor(Color.parseColor("#6200EE"))
+            }
+        }
     }
 
-    private fun updateStatNames(names: List<String>) {
-        statNameViews.forEachIndexed { index, textView ->
-            textView.text = names.getOrNull(index) ?: ""
+    // -----------------------------
+    // Demo / fallback values
+    // -----------------------------
+    private fun setupTextForGrid(view: View) {
+        // Safety params
+        val safetyValues = mapOf(
+            R.id.itemSafetyScore to Pair("Safety Score", "92"),
+            R.id.itemTrustLevel to Pair("Trust Level", "90"),
+            R.id.itemAvgSpeed to Pair("Average Speed", "46 km/h"),
+            R.id.itemMaxSpeed to Pair("Max Speed", "102 km/h"),
+            R.id.itemPhoneUsage to Pair("Phone Usage", "50%"),
+            R.id.itemUsageSpeed to Pair("Usage Speed", "40"),
+            R.id.itemBraking to Pair("Braking", "50"),
+            R.id.itemSpeeding to Pair("Speeding", "70")
+        )
+
+        safetyValues.forEach { (id, pair) ->
+            val item = view.findViewById<View>(id)
+            item.findViewById<TextView>(R.id.titleText).text = pair.first
+            item.findViewById<TextView>(R.id.subtitleText).text = pair.second
         }
+
+        // General params
+        val sharedPrefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val tripCount = sharedPrefs.getInt("trip_count", 0)
+        val totalDistance = sharedPrefs.getInt("total_distance", 0)
+        val totalTimeMs = sharedPrefs.getLong("total_time_driven_ms", 0L)
+        val hours = totalTimeMs / (1000 * 60 * 60)
+        val minutes = (totalTimeMs / (1000 * 60)) % 60
+        val timeFormatted = "${hours}h ${minutes}m"
+
+        setCard(view.findViewById(R.id.itemTrips), "Trips", tripCount.toString())
+        setCard(view.findViewById(R.id.itemTimeDriven), "Time Driven", timeFormatted)
+        setCard(view.findViewById(R.id.itemMileage), "Mileage", "${totalDistance} km")
+    }
+
+    private fun setCard(item: View, title: String, value: String) {
+        item.findViewById<TextView>(R.id.titleText).text = title
+        item.findViewById<TextView>(R.id.subtitleText).text = value
+    }
+
+    // -----------------------------
+    // API Values
+    // -----------------------------
+    private fun setDataIntoGrid(view: View, summary: SafetySummaryResponse) {
+        val safetyValues = mapOf(
+            R.id.itemSafetyScore to Pair("Safety Score", summary.safety_score.toInt().toString()),
+            R.id.itemTrustLevel to Pair("Trust Level", calculateTrustLevel(summary.safety_score)),
+            R.id.itemAvgSpeed to Pair("Average Speed", "${summary.average_speed_kmh} km/h"),
+            R.id.itemMaxSpeed to Pair("Max Speed", "${summary.max_speed_kmh} km/h"),
+            R.id.itemPhoneUsage to Pair("Phone Usage", "${summary.phone_usage_percentage}%"),
+            R.id.itemUsageSpeed to Pair("Usage Speed", summary.average_speed_kmh.toString()),
+            R.id.itemBraking to Pair("Braking", "-"),
+            R.id.itemSpeeding to Pair("Speeding", "-")
+        )
+
+        safetyValues.forEach { (id, pair) ->
+            val item = view.findViewById<View>(id)
+            item.findViewById<TextView>(R.id.titleText).text = pair.first
+            item.findViewById<TextView>(R.id.subtitleText).text = pair.second
+        }
+
+        setCard(view.findViewById(R.id.itemTrips), "Trips", summary.trips.toString())
+        setCard(view.findViewById(R.id.itemTimeDriven), "Time Driven", "${summary.time_driven_minutes} min")
+        setCard(view.findViewById(R.id.itemMileage), "Mileage", "${summary.mileage_km} km")
+    }
+
+    private fun calculateTrustLevel(score: Double) = when {
+        score >= 90 -> "High"
+        score >= 70 -> "Medium"
+        else -> "Low"
     }
 }
+
 
 

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -5,57 +6,119 @@
     android:layout_height="match_parent"
     tools:context=".ui.feed.FeedFragment">
 
-    <!-- Date Label -->
-    <TextView
-        android:id="@+id/tvDateLabel"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:background="@color/colorPrimary"
-        android:padding="12dp"
-        android:text="Select Date"
-        android:textColor="@android:color/white"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Row for dates -->
+    <!-- Header -->
     <LinearLayout
-        android:id="@+id/dateContainer"
+        android:id="@+id/headerContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimary"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="8dp"
-        app:layout_constraintTop_toBottomOf="@id/tvDateLabel"
+        android:layout_marginTop="25dp"
+        android:padding="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/dateRecyclerView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:clipToPadding="false"
-            android:orientation="horizontal"
-            android:overScrollMode="never"
-            tools:itemCount="30"
-            tools:listitem="@layout/item_date" />
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:id="@+id/tvToday"
+            android:id="@+id/headerText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="8dp"
-            android:layout_marginHorizontal="4dp"
-            android:layout_marginVertical="6dp"
-            android:text="Today"
-            android:background="@drawable/rounded_white"
-            android:textColor="@color/black"
+            android:text="Find your trips"
+            android:textColor="#121212"
+            android:textSize="24sp"
             android:textStyle="bold" />
+
+        <pl.droidsonroids.gif.GifImageView
+            android:id="@+id/headerIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/ic_rocket" />
+    </LinearLayout>
+
+    <!-- Subheader -->
+    <TextView
+        android:id="@+id/subHeaderText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="@string/subtext_for_your_trips"
+        android:textColor="#666666"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/headerContainer" />
+
+    <!-- Filter Section -->
+    <LinearLayout
+        android:id="@+id/filterContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:minHeight="45dp"
+        android:orientation="horizontal"
+        android:weightSum="1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/subHeaderText">
+
+        <!-- Date Picker Filter -->
+        <TextView
+            android:id="@+id/filterDate"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="16dp"
+            android:layout_weight=".33"
+            android:background="@drawable/filter_bg"
+            android:drawableStart="@drawable/ic_calender"
+            android:drawablePadding="16dp"
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            android:padding="12dp"
+            android:text="Select Date"
+            android:textColor="#000000"
+            android:textSize="10sp" />
+
+        <!-- Distance Filter -->
+        <TextView
+            android:id="@+id/filterDistance"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="8dp"
+            android:layout_weight=".33"
+            android:background="@drawable/filter_bg"
+            android:drawableEnd="@drawable/ic_down_arrow"
+            android:drawablePadding="16dp"
+            android:gravity="center"
+            android:maxLines="1"
+            android:padding="12dp"
+            android:text="Distance"
+            android:textColor="#000000"
+            android:textSize="10sp" />
+
+        <!-- Time Travelled Filter -->
+        <TextView
+            android:id="@+id/filterTime"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_weight=".33"
+            android:background="@drawable/filter_bg"
+            android:drawableEnd="@drawable/ic_down_arrow"
+            android:drawablePadding="16dp"
+            android:gravity="center"
+            android:maxLines="1"
+            android:padding="12dp"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="12dp"
+            android:text="Time Travelled"
+            android:textColor="#000000"
+            android:textSize="10sp" />
     </LinearLayout>
 
     <!-- Zero trips text -->
@@ -67,47 +130,80 @@
         android:text="@string/zero_trips_found"
         android:textSize="18sp"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/dateContainer"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/filterContainer" />
 
-    <!-- Swipe refresh + real RecyclerView -->
+    <!-- RecyclerView -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/dateContainer"
+        android:layout_margin="16dp"
+        app:layout_constraintTop_toBottomOf="@id/filterContainer"
+        app:layout_constraintBottom_toTopOf="@id/pageControls"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycleView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            tools:listitem="@layout/list_item_trip" />
+            android:layout_height="wrap_content"
+            tools:listitem="@layout/trip_info_card" />
+
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <!-- Shimmer effect overlay -->
-    <com.facebook.shimmer.ShimmerFrameLayout
-        android:id="@+id/shimmerLayout"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:elevation="8dp"
-        app:layout_constraintTop_toBottomOf="@id/dateContainer"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/pageControls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="8dp"
+        android:layout_marginHorizontal="20dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:shimmer_auto_start="true"
-        app:shimmer_duration="1500">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/shimmerRecyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:listitem="@layout/item_shimmer_trip" />
-    </com.facebook.shimmer.ShimmerFrameLayout>
+        <!-- Back arrow (left) -->
+        <ImageView
+            android:id="@+id/prevPageBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_left_arrow"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Page numbers (center) -->
+        <LinearLayout
+            android:id="@+id/pageNumbersContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            app:layout_constraintStart_toEndOf="@id/prevPageBtn"
+            app:layout_constraintEnd_toStartOf="@id/nextPageBtn"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="0.5" />
+
+        <!-- Next arrow (right) -->
+        <ImageView
+            android:id="@+id/nextPageBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_right_arrow"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

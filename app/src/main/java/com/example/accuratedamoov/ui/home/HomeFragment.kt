@@ -2,49 +2,65 @@ package com.example.accuratedamoov.ui.home
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
+import android.graphics.Color
+import android.location.Geocoder
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.preference.PreferenceManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.DecelerateInterpolator
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.OptIn
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import com.example.accuratedamoov.MainActivity
 import com.example.accuratedamoov.R
+import com.example.accuratedamoov.data.model.TripData
+import com.example.accuratedamoov.database.DatabaseHelper
 import com.example.accuratedamoov.databinding.FragmentHomeBinding
+import com.example.accuratedamoov.ui.feed.FeedFragment
+import com.example.accuratedamoov.ui.feed.FeedViewModel
+import com.example.accuratedamoov.ui.notification.NotificationsActivity
+import com.example.accuratedamoov.ui.tripDetails.TripDetailsActivity
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.MapView
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.snackbar.Snackbar
-import com.telematicssdk.tracking.TrackingApi
-import okhttp3.internal.http2.Http2Reader
-import org.mapsforge.core.model.LatLong
-import org.mapsforge.map.android.graphics.AndroidGraphicFactory
-import org.mapsforge.map.android.util.AndroidUtil
-import org.mapsforge.map.layer.renderer.TileRendererLayer
-import org.mapsforge.map.reader.MapFile
-import org.osmdroid.api.IGeoPoint
+import com.google.android.material.badge.BadgeDrawable
+import com.google.android.material.badge.BadgeUtils
+import com.google.android.material.badge.ExperimentalBadgeUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.MapController
-import org.osmdroid.views.overlay.Marker
-import java.io.FileInputStream
+import org.osmdroid.views.overlay.gridlines.LatLonGridlineOverlay.lineWidth
+import java.text.SimpleDateFormat
+import java.util.*
+import androidx.core.view.isGone
+import com.example.accuratedamoov.BuildConfig
+
 
 class HomeFragment : Fragment() {
-    private val TAG: String = this::class.java.simpleName
+
+    private lateinit var recentTrip: TripData
+    private var shimmerStartTime = 0L
+    private val MIN_SHIMMER_TIME = 1000L
+
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
-    private val trackingApi = TrackingApi.getInstance()
     private val homeViewModel: HomeViewModel by viewModels()
+    private val feedViewModel: FeedViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,7 +69,7 @@ class HomeFragment : Fragment() {
     ): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
 
-        // Initialize osmdroid Configuration
+        // Initialize osmdroid configuration
         val ctx = requireContext().applicationContext
         Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx))
         Configuration.getInstance().userAgentValue = ctx.packageName
@@ -64,14 +80,111 @@ class HomeFragment : Fragment() {
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        if (BuildConfig.IS_ROAD_VEHICLE) {
+            binding.tvAllstats.visibility = View.VISIBLE
+            binding.tvMystats.visibility = View.VISIBLE
+        } else {
+            binding.tvAllstats.visibility = View.GONE
+            binding.tvMystats.visibility = View.GONE
+        }
 
-        // Initialize MapView
-        binding.mapView.setTileSource(TileSourceFactory.MAPNIK)
-        binding.mapView.setBuiltInZoomControls(true)
-        binding.mapView.setMultiTouchControls(true)
 
+        setUpuserDetails()
+        showShimmer()
+
+        feedViewModel.lastTrip.observe(viewLifecycleOwner) { trip ->
+            if (trip != null) {
+                hideShimmer()
+
+                updateTripUI(trip)
+                recentTrip = trip
+                binding.firstTimell.visibility = View.GONE
+                if (binding.shimmerLayout.isGone) {
+                    binding.weekcardll.visibility = View.VISIBLE
+                }
+            } else {
+                showShimmer()
+            }
+        }
+
+
+        val weekContainer = binding.weekContainer
+        val weekLine = binding.underline
+
+        // Get today index (0 = Monday, 6 = Sunday)
+        val todayIndex = Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 2
+        val clampedIndex = if (todayIndex < 0) 6 else todayIndex
+
+        weekContainer.post {
+            // Calculate start = left of first day (Monday)
+            val startX = weekContainer.getChildAt(0).left
+
+            // Calculate end = center of today's day
+            val todayView = weekContainer.getChildAt(clampedIndex)
+            val endX = todayView.left + todayView.width / 2
+
+            // Set line width dynamically
+            val lineWidth = endX - startX
+            weekLine.layoutParams.width = lineWidth
+            weekLine.requestLayout()
+        }
+
+        val tvDate = binding.tvdate
+
+        // Get current date
+        val calendar = Calendar.getInstance()
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+        fun getDaySuffix(day: Int): String {
+            return if (day in 11..13) "th"
+            else when (day % 10) {
+                1 -> "st"
+                2 -> "nd"
+                3 -> "rd"
+                else -> "th"
+            }
+        }
+
+        // Format month
+        val monthFormat = SimpleDateFormat("MMM", Locale.getDefault())
+        val month = monthFormat.format(calendar.time)
+
+        // Set text
+        tvDate.text = "$day${getDaySuffix(day)} $month"
+
+        val weekTv = binding.weektv
+
+        // Get current week number
+        val weekNumber = calendar.get(Calendar.WEEK_OF_YEAR)
+        weekTv.text = "Week $weekNumber"
+
+        val currentDay = (calendar.get(Calendar.DAY_OF_WEEK) + 5) % 7 + 1
+        // Makes Monday=1, ..., Sunday=7 (since your layout starts with Monday)
+
+        for (i in 0 until weekContainer.childCount) {
+            val dayView = weekContainer.getChildAt(i) as TextView
+            val dayIndex = i + 1
+
+            when {
+                dayIndex < currentDay -> { // past days
+                    dayView.background.setTint(Color.WHITE)
+                    dayView.setTextColor(Color.BLACK)
+                }
+
+                dayIndex == currentDay -> { // current day
+                    dayView.background.setTint(Color.parseColor("#2196F3")) // blue
+                    dayView.setTextColor(Color.WHITE)
+                }
+
+                else -> { // future days
+                    dayView.background.setTint(Color.LTGRAY) // grey
+                    dayView.setTextColor(Color.DKGRAY)
+                }
+            }
+        }
+
+        // ===== Location =====
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
-
         if (!checkLocationPermission()) {
             requestPermissions(
                 arrayOf(
@@ -80,92 +193,113 @@ class HomeFragment : Fragment() {
                 ),
                 LOCATION_PERMISSION_REQUEST_CODE
             )
-            return
         }
 
-        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            val b = _binding ?: return@addOnSuccessListener // safe check
-
-            if (location != null) {
-                val currentPoint = GeoPoint(location.latitude, location.longitude)
-                val mapController = b.mapView.controller as MapController
-                mapController.setZoom(15.0)
-                mapController.setCenter(currentPoint)
-
-                val marker = Marker(b.mapView).apply {
-                    position = currentPoint
-                    icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_start_location)
-                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                    title = "You are here"
+        lifecycleScope.launch(Dispatchers.IO) {
+            // Trigger loading trips once (this updates shared prefs)
+            (activity as? MainActivity)?.let { main ->
+                if (main.isNetworkAvailable()) {
+                    feedViewModel.loadTripsIfNeeded()
                 }
-                b.mapView.overlays.add(marker)
-                b.mapView.invalidate()
-            } else {
-                Toast.makeText(context, "Unable to get current location", Toast.LENGTH_SHORT).show()
+            }
+
+
+            // Get trip info from shared preferences
+            val sharedPref =
+                requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            val tripCount = sharedPref.getInt("trip_count", 0)
+            val totalDistance = sharedPref.getInt("total_distance", 0)
+
+            // Update UI on main thread
+            launch(Dispatchers.Main) {
+                hideShimmer()
+
+                if (tripCount == 0 &&  binding.shimmerLayout.isGone) {
+                    binding.firstTimell.visibility = View.VISIBLE
+                    binding.weekcardll.visibility = View.GONE
+                } else {
+                    binding.firstTimell.visibility = View.GONE
+                    if (binding.shimmerLayout.isGone) {
+                        binding.weekcardll.visibility = View.VISIBLE
+                    }
+                }
+
+
             }
         }
 
+        binding.tripCardInclude.root.setOnClickListener {
 
-        homeViewModel.errMsg.observe(viewLifecycleOwner, Observer { errMsg ->
-            if (errMsg.isNotEmpty()) {
-                Snackbar.make(binding.root, errMsg, Snackbar.LENGTH_LONG).show()
+            if (!::recentTrip.isInitialized) {
+                Log.e("TripCard", "recentTrip not initialized yet")
+                Toast.makeText(requireContext(), "Trip data not loaded", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
-        })
 
-        updateTrackingUI()
-
-        binding.startTripManually.setOnClickListener {
-            if (!trackingApi.isTracking()) {
-                homeViewModel.startTracking()
-                Snackbar.make(binding.root, "Tracking started", Snackbar.LENGTH_SHORT).show()
-            } else {
-                Snackbar.make(binding.root, "Tracking is already in progress", Snackbar.LENGTH_SHORT).show()
+            val intent = Intent(activity, TripDetailsActivity::class.java).apply {
+                putExtra("ID", recentTrip.unique_id.toString())
+                putExtra("START_TIME", recentTrip.start_date_ist)
+                putExtra("END_TIME", recentTrip.end_date_ist)
+                putExtra(
+                    "START_LOC",
+                    "${binding.tripCardInclude.sourceLocationMain.text}, ${binding.tripCardInclude.sourceLocationMain.text}"
+                )
+                putExtra(
+                    "END_LOC",
+                    "${binding.tripCardInclude.destLocationMain.text}, ${binding.tripCardInclude.destLocationSub.text}"
+                )
             }
-            Handler(Looper.getMainLooper()).postDelayed({
-                updateTrackingUI()
-            }, 1000)
+            activity?.startActivity(intent)
 
         }
 
-        binding.stopTripManually.setOnClickListener {
-            homeViewModel.stopTracking()
-            Snackbar.make(binding.root, "Tracking stopped", Snackbar.LENGTH_SHORT).show()
-            Handler(Looper.getMainLooper()).postDelayed({
-                updateTrackingUI()
-            }, 1000)
+        binding.tvAllTrips.setOnClickListener {
+            findNavController().navigate(R.id.navigation_feed)
         }
 
-        setupBottomSheet(view)
+
+        binding.tvAllstats.setOnClickListener {
+            findNavController().navigate(R.id.navigation_dashboard)
+        }
+
+        binding.bellIcon.setOnClickListener {
+            val intent = Intent(activity, NotificationsActivity::class.java)
+            startActivity(intent)
+
+        }
+
+
     }
 
-    private fun updateTrackingUI() {
-        val isTracking = try {
-            trackingApi.isTracking()
-        } catch (e: UninitializedPropertyAccessException) {
-            false
-        } catch (e: Exception) {
-            false
-        }
-        _binding?.let { binding ->
-            binding.startTripManually.visibility = if (isTracking) View.GONE else View.VISIBLE
-            binding.stopTripManually.visibility = if (isTracking) View.VISIBLE else View.GONE
-        }
-    }
 
-    private fun setupBottomSheet(view: View) {
-        val bottomSheet = view.findViewById<NestedScrollView>(R.id.bottom_sheet)
-        val handle = view.findViewById<View>(R.id.bottom_sheet_handle)
 
-        val behavior = BottomSheetBehavior.from(bottomSheet)
-        behavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
-            override fun onSlide(bottomSheet: View, slideOffset: Float) {}
-            override fun onStateChanged(bottomSheet: View, newState: Int) {}
-        })
+    private fun setUpuserDetails() {
+        val prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
-        handle.setOnClickListener {
-            behavior.state = if (behavior.state == BottomSheetBehavior.STATE_COLLAPSED)
-                BottomSheetBehavior.STATE_EXPANDED else BottomSheetBehavior.STATE_COLLAPSED
+        val name = prefs.getString("name", null)
+        val email = prefs.getString("email", null)
+        val phone = prefs.getString("phone", null)
+
+// Decide what to show
+        val displayName = when {
+            !name.isNullOrEmpty() -> name
+            !email.isNullOrEmpty() -> email
+            !phone.isNullOrEmpty() -> phone
+            else -> "Buddy"
         }
+
+        binding.nameTv.text = displayName
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val greetingRes = when (hour) {
+            in 5..11 -> R.string.good_morning
+            in 12..16 -> R.string.good_afternoon
+            in 17..20 -> R.string.good_evening
+            else -> R.string.good_night
+        }
+
+
+        binding.welecomeTv.text = getString(greetingRes)
+
     }
 
     private fun checkLocationPermission(): Boolean {
@@ -180,16 +314,156 @@ class HomeFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding?.mapView?.onDetach()
         _binding = null
-    }
-
-    override fun onResume() {
-        super.onResume()
-        updateTrackingUI()
     }
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 101
     }
+
+    override fun onResume() {
+        super.onResume()
+
+        val weekContainer = binding.weekContainer
+        val weekLine = binding.underline
+        val weekIcon = binding.underlineIcon
+
+        val todayIndex = Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 2
+        val clampedIndex = if (todayIndex < 0) 6 else todayIndex
+
+        weekContainer.post {
+            val mondayView = weekContainer.getChildAt(0)
+            val startX = mondayView.left
+
+            val todayView = weekContainer.getChildAt(clampedIndex)
+            val endX = todayView.left + todayView.width / 2
+
+            val lineWidth = endX - startX
+            weekLine.layoutParams.width = lineWidth
+            weekLine.requestLayout()
+
+            weekLine.visibility = View.VISIBLE
+            weekLine.pivotX = 0f
+            weekLine.scaleX = 0f
+            weekLine.animate()
+                .scaleX(1f)
+                .setDuration(1500)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+
+            val startIconX = startX - weekIcon.width / 2f
+            val endIconX = endX - weekIcon.width / 2f
+            weekIcon.x = startIconX
+            weekIcon.animate()
+                .x(endIconX)
+                .setDuration(1500)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
+
+        feedViewModel.refreshLastTrip()
+
+        updateNotificationBadge()
+
+    }
+
+    private fun formatDate(dateTime: String): String {
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
+        return try {
+            val date = inputFormat.parse(dateTime)
+            outputFormat.format(date!!)
+        } catch (e: Exception) {
+            ""
+        }
+    }
+
+    private fun formatTime(dateTime: String): Pair<String, String> {
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+        return try {
+            val date = inputFormat.parse(dateTime)
+            val formatted = outputFormat.format(date!!)
+            val parts = formatted.split(" ")
+            Pair(parts[0], parts[1]) // e.g., ("10:30", "AM")
+        } catch (e: Exception) {
+            Pair("", "")
+        }
+    }
+
+    private fun getLocationFromCoords(coords: String): Pair<String, String> {
+        return try {
+            val (lat, lng) = coords.split(",").map { it.trim().toDouble() }
+            val geocoder = Geocoder(requireActivity().applicationContext, Locale.getDefault())
+            val addresses = geocoder.getFromLocation(lat, lng, 1)
+            if (!addresses.isNullOrEmpty()) {
+                val city = addresses[0].locality ?: ""
+                val state = addresses[0].adminArea ?: ""
+                Pair(city, "$state, ${addresses[0].countryName}")
+            } else Pair("", "")
+        } catch (e: Exception) {
+            Pair("", "")
+        }
+    }
+
+    private fun updateTripUI(trip: TripData) {
+        binding.tripCardInclude.tripDate.text = formatDate(trip.start_date_ist)
+        val (startTime, startAmPm) = formatTime(trip.start_date_ist)
+        binding.tripCardInclude.sourceTime.text = startTime
+        binding.tripCardInclude.sourceAmPm.text = startAmPm
+
+        val (endTime, endAmPm) = formatTime(trip.end_date_ist)
+        binding.tripCardInclude.destTime.text = endTime
+        binding.tripCardInclude.destAmPm.text = endAmPm
+
+        val distanceText = "${trip.distance_km} km"
+        binding.tripCardInclude.centerIcons.findViewById<TextView>(R.id.distanceText)?.text =
+            distanceText
+
+        val (startCity, startSub) = getLocationFromCoords(trip.start_coordinates)
+        val (endCity, endSub) = getLocationFromCoords(trip.end_coordinates)
+        binding.tripCardInclude.sourceLocationMain.text = startCity
+        binding.tripCardInclude.sourceLocationSub.text = startSub
+        binding.tripCardInclude.destLocationMain.text = endCity
+        binding.tripCardInclude.destLocationSub.text = endSub
+    }
+
+    fun updateNotificationBadge() {
+        val unread = DatabaseHelper.getInstance(requireContext())
+            .getUnreadNotificationCount()
+
+        // Show or hide dot
+        binding.notificationDot.visibility =
+            if (unread > 0) View.VISIBLE else View.GONE
+    }
+
+    private fun showShimmer() {
+        shimmerStartTime = System.currentTimeMillis()
+        binding.weekcardll.visibility = View.GONE
+        binding.firstTimell.visibility = View.GONE
+        binding.tripCardInclude.root.visibility = View.GONE
+
+        binding.shimmerLayout.visibility = View.VISIBLE
+        binding.shimmerLayout.startShimmer()
+
+    }
+
+    private fun hideShimmer() {
+        val elapsed = System.currentTimeMillis() - shimmerStartTime
+        val delay = if (elapsed < MIN_SHIMMER_TIME) MIN_SHIMMER_TIME - elapsed else 0L
+        viewLifecycleOwner.lifecycleScope.launch {
+            delay(delay)
+            val b = binding
+
+            b.shimmerLayout.stopShimmer()
+            b.shimmerLayout.visibility = View.GONE
+
+            if (binding.shimmerLayout.isGone) {
+                binding.weekcardll.visibility = View.VISIBLE
+                b.tripCardInclude.root.visibility = View.VISIBLE
+            }
+
+        }
+    }
+
 }

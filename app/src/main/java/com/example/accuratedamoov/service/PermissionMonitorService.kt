@@ -24,6 +24,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkQuery
+import com.example.accuratedamoov.BuildConfig
 import com.example.accuratedamoov.R
 import com.example.accuratedamoov.worker.TrackTableCheckWorker
 import com.example.accuratedamoov.worker.TrackingWorker
@@ -116,7 +117,7 @@ class PermissionMonitorService : Service() {
 
                 trackingApi.setDeviceID(deviceId)
                 trackingApi.setEnableSdk(true)
-                trackingApi.setAutoStartEnabled(true,true)
+                trackingApi.setAutoStartEnabled(BuildConfig.IS_ROAD_VEHICLE,true)
 
 
                 Log.d("PermissionMonitorService", "tracking SDK enabled")

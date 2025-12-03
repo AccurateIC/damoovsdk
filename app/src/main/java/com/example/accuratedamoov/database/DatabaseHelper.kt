@@ -10,8 +10,9 @@ import org.json.JSONObject
 import java.io.File
 import java.util.UUID
 import androidx.core.database.sqlite.transaction
+import com.example.accuratedamoov.model.TripNotification
 
-class DatabaseHelper private constructor(context: Context) {
+class DatabaseHelper  private constructor(context: Context) {
 
     private val dbPath = "/data/data/com.example.accuratedamoov/databases/com.telematicssdk.tracking.database"
     private var database: SQLiteDatabase? = null
@@ -34,6 +35,7 @@ class DatabaseHelper private constructor(context: Context) {
     fun openDatabase(): SQLiteDatabase? {
         if (database == null || !database!!.isOpen) {
             database = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READWRITE)
+            createTripNotificationsTableIfNotExists(database!!)
         }
         return database
     }
@@ -226,6 +228,85 @@ class DatabaseHelper private constructor(context: Context) {
             }
         }
         return false
+    }
+
+
+    fun createTripNotificationsTableIfNotExists(db: SQLiteDatabase) {
+        try {
+            db.execSQL(
+                """
+            CREATE TABLE IF NOT EXISTS TripNotificationsTable (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                unique_id TEXT,
+                message TEXT,
+                timestamp INTEGER,
+                lat REAL,
+                lng REAL,
+                is_read INTEGER DEFAULT 0
+            )
+            """.trimIndent()
+            )
+
+            Log.d("DB_TripNotifications", "✅ TripNotificationsTable created / already exists.")
+        } catch (e: Exception) {
+            Log.e("DB_TripNotifications", "❌ Failed to create TripNotificationsTable: ${e.message}")
+        }
+    }
+
+
+    fun getTripNotifications(): List<TripNotification> {
+        val list = mutableListOf<TripNotification>()
+
+        if (!databaseExists()) return list
+
+        val db = openDatabase() ?: return list
+
+        val query = """
+        SELECT id, unique_id, message, timestamp, lat, lng, is_read 
+        FROM TripNotificationsTable 
+        ORDER BY timestamp DESC
+    """.trimIndent()
+
+        db.rawQuery(query, null).use { cursor ->
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    val item = TripNotification(
+                        id = cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                        uniqueId = cursor.getString(cursor.getColumnIndexOrThrow("unique_id")),
+                        message = cursor.getString(cursor.getColumnIndexOrThrow("message")),
+                        timestamp = cursor.getLong(cursor.getColumnIndexOrThrow("timestamp")),
+                        lat = if (!cursor.isNull(cursor.getColumnIndexOrThrow("lat"))) cursor.getDouble(cursor.getColumnIndexOrThrow("lat")) else null,
+                        lng = if (!cursor.isNull(cursor.getColumnIndexOrThrow("lng"))) cursor.getDouble(cursor.getColumnIndexOrThrow("lng")) else null,
+                        isRead = cursor.getInt(cursor.getColumnIndexOrThrow("is_read"))
+                    )
+                    list.add(item)
+                } while (cursor.moveToNext())
+            }
+        }
+
+        return list
+    }
+
+    fun getUnreadNotificationCount(): Int {
+        if (!databaseExists()) return 0
+
+        val db = openDatabase() ?: return 0
+        var count = 0
+
+        db.rawQuery(
+            "SELECT COUNT(*) FROM TripNotificationsTable WHERE is_read = 0",
+            null
+        ).use { cursor ->
+            if (cursor.moveToFirst()) {
+                count = cursor.getInt(0)
+            }
+        }
+
+        return count
+    }
+    fun markAllNotificationsAsRead() {
+        val db = openDatabase() ?: return
+        db.execSQL("UPDATE TripNotificationsTable SET is_read = 1")
     }
 
 }

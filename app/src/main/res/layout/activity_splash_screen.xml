@@ -1,15 +1,35 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
+    android:background="#FFFFFF"
+    android:gravity="center_horizontal"
+    android:layout_marginTop="150dp"
     android:id="@+id/splashscreenll"
-    android:background="@color/colorPrimaryVariant"
     android:orientation="vertical">
+
+    <ImageView
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center"
+        android:layout_margin="50dp"
+        android:src="@drawable/ic_neurofleet_logo" />
 
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_logo" />
+        android:layout_gravity="center_horizontal"
+        android:src="@drawable/ic_app_name" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="by ACCURATE"
+        android:textColor="#FF0000"
+        android:layout_margin="10dp"
+        android:textSize="14sp"
+        android:layout_gravity="center_horizontal"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_marginTop="0dp"
+        android:textStyle="bold"/>
 
     <ProgressBar
         android:id="@+id/progressBar"

@@ -27,4 +27,10 @@
     <color name="textOnPrimary">#FFFFFF</color>      <!-- Text on buttons / primary bg -->
     <color name="textOnSecondary">#000000</color>    <!-- Text on secondary bg -->
     <color name="textAccent">#FF4081</color>
+
+
+
+    <color name="primary_light">#A5A6F6</color>
+    <color name="gray">#666666</color>
+    <color name="shimmer_placeholder">#E0E0E0</color>
 </resources>
