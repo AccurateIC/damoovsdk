@@ -29,7 +29,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     private val mContext:Context = application.applicationContext
     private val apiService = RetrofitClient.getApiService(mContext)
 
-    fun loginUser(email: String, password: String) {
+    fun loginUser(email: String, password: String,device_id: String) {
         viewModelScope.launch {
             try {
                 // ✅ Initialize EncryptedSharedPreferences
@@ -47,7 +47,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 val prefs = mContext.getSharedPreferences("user_prefs", MODE_PRIVATE)
 
 
-                val response = apiService.loginUser(LoginRequest(email, password))
+                val response = apiService.loginUser(LoginRequest(email, password,device_id))
                 if (response.isSuccessful && response.body() != null) {
                     _loginResult.postValue(Result.success(response.body()!!))
                     enprefs.edit().apply {

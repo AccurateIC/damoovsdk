@@ -7,6 +7,6 @@ data class UserProfile(
     val phone: String?,
     val created_on: String?,
     val last_login: String?,
-    val is_email_verified: Int,
-    val is_phone_verified: Int
+    val is_email_verified: Boolean,
+    val is_phone_verified: Boolean
 )

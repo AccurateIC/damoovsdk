@@ -108,10 +108,10 @@ class SetttingsActivity : AppCompatActivity() {
                 .show()
             return
         }
-        if (binding.statsUrlTextInputLayout.isVisible && scoreUrl.isEmpty()) {
+       /* if (binding.statsUrlTextInputLayout.isVisible && scoreUrl.isEmpty()) {
             Snackbar.make(binding.root, "Please enter dashboard URL", Snackbar.LENGTH_SHORT).show()
             return
-        }
+        }*/
         val apiService = RetrofitClient.getApiService(apiUrl)
 
         lifecycleScope.launch {

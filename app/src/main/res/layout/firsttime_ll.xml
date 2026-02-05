@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_height="match_parent">
+
+
+        <ImageView
+            android:id="@+id/firstTimeImage"
+            android:layout_width="match_parent"
+            android:layout_height="230dp"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            android:padding="16dp"
+            android:src="@drawable/firsttime_banner" />
+
+        <ImageView
+            android:id="@+id/notrip"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="100dp"
+            android:src="@drawable/notrips" />
+
+        <TextView
+            android:id="@+id/firstTimeTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:text="@string/oops_no_trips_found"
+            android:textColor="#121212"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/firstTimeSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/start_riding_to_initiate_the_insights"
+            android:textColor="#898989"
+            android:textSize="14sp" />
+
+
+</LinearLayout>

@@ -89,6 +89,31 @@ class FeedFragment : Fragment() {
         setupFilters()
         setupPaginationControls()
         observeData()
+
+        binding.clearFilters.setOnClickListener {
+            selectedStartDate = null
+            selectedEndDate = null
+            selectedDistanceRange = null
+            selectedTimeRange = null
+
+            binding.filterDate.text = "Select Date"
+            binding.filterDistance.text = "Distance"
+            binding.filterTime.text = "Time Travelled"
+
+            binding.filterDate.setBackgroundResource(R.drawable.filter_bg)
+            binding.filterDistance.setBackgroundResource(R.drawable.filter_bg)
+            binding.filterTime.setBackgroundResource(R.drawable.filter_bg)
+
+            filterTrips()
+        }
+
+        binding.clearFilters.post {
+            binding.filterScroll.smoothScrollTo(
+                binding.clearFilters.right,
+                0
+            )
+        }
+
     }
 
     // -----------------------------
@@ -298,6 +323,7 @@ class FeedFragment : Fragment() {
         totalPages = ceil(filteredTrips.size / pageSize.toDouble()).toInt().coerceAtLeast(1)
         currentPage = 1
         showPage(currentPage)
+        updateClearVisibility()
     }
 
     private fun setupPaginationControls() {
@@ -429,6 +455,15 @@ class FeedFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+
+    private fun updateClearVisibility() {
+        binding.clearFilters.visibility =
+            if (selectedStartDate != null ||
+                selectedDistanceRange != null ||
+                selectedTimeRange != null
+            ) View.VISIBLE else View.GONE
+    }
+
 }
 
 

@@ -52,11 +52,13 @@ class HomeViewModel(context: Context) : ViewModel() {
 
                         Log.d("HomeViewModel", "User profile updated from API")
                     } else {
+                        Log.e("HomeViewModel", "API response indicates failure: ${body?.error}")
                         _errMsg.postValue(body?.error ?: "Failed to fetch user profile")
                     }
 
                 } else {
                     Log.d("HomeViewModel", "Failed to fetch user profile")
+                    Log.e("HomeViewModel", "API call failed with code ${response.code()}: ${response.message()}")
                     _errMsg.postValue("HTTP ${response.code()} - ${response.message()}")
                 }
 

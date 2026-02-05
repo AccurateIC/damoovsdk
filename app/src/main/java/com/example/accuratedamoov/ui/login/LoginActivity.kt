@@ -635,7 +635,8 @@ class LoginActivity : AppCompatActivity() {
         firebaseAuth = FirebaseAuth.getInstance()
 
         registerSmsReceiver()
-        loadPhoneLogin()
+       // loadPhoneLogin()
+        loadEmailLogin()
 
         binding.reg2tv.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
@@ -742,15 +743,19 @@ class LoginActivity : AppCompatActivity() {
         loginBtn.setOnClickListener {
             val email = emailEdt.text.toString().trim()
             val pwd = pwdEdt.text.toString().trim()
-
+            val androidId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
+            val deviceId = UUID.nameUUIDFromBytes(androidId.toByteArray()).toString()
             if (Patterns.EMAIL_ADDRESS.matcher(email).matches() && pwd.length >= 6) {
-                viewModel.loginUser(email, pwd)
+                viewModel.loginUser(email, pwd,deviceId)
             } else {
                 Toast.makeText(this, "Enter valid email and password", Toast.LENGTH_SHORT).show()
             }
         }
 
-        backToPhone.setOnClickListener { loadPhoneLogin() }
+        backToPhone.setOnClickListener {
+            Snackbar.make(binding.root, "Phone login is temporary disabled, Try login using email", Snackbar.LENGTH_SHORT).show()
+            //loadPhoneLogin()
+        }
 
         fun validateFields(showErrors: Boolean = false) {
             val email = emailEdt.text.toString().trim()

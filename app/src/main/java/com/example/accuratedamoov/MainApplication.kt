@@ -28,15 +28,17 @@ import com.telematicssdk.tracking.Settings
 import com.telematicssdk.tracking.TrackingApi
 import java.util.UUID
 import com.example.accuratedamoov.BuildConfig
+import com.example.accuratedamoov.broadcastreceiver.TrackEventReceiver
 import com.example.accuratedamoov.worker.SystemEventScheduler
 import com.example.accuratedamoov.worker.SystemEventScheduler.EVENTSYNC_TAG
+import com.telematicssdk.tracking.TrackingEventsReceiver
 import java.util.concurrent.TimeUnit
 
 
 class MainApplication : Application() {
 
     private val trackingApi: TrackingApi by lazy { TrackingApi.getInstance() }
-
+    private val trackingEventsReceiver: TrackEventReceiver = TrackEventReceiver()
     override fun onCreate() {
         super.onCreate()
         FirebaseApp.initializeApp(this)
@@ -51,7 +53,6 @@ class MainApplication : Application() {
         }
 
         enableTrackingIfPossible()
-
         val syncInterval = getSyncInterval()
         SystemEventScheduler.scheduleTrackTableCheck(applicationContext)
         SystemEventScheduler.scheduleSystemEvent(applicationContext)
@@ -77,6 +78,7 @@ class MainApplication : Application() {
                 stopTrackingTimeout(5)
             }
             trackingApi.initialize(applicationContext, settings)
+            TrackingApi.getInstance().registerTrackingEventsReceiver(TrackEventReceiver::class.java)
             Log.d(TAG, "Tracking SDK initialized")
         } catch (e: Exception) {
             Log.e(TAG, "SDK initialization failed: ${e.message}", e)

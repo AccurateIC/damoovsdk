@@ -27,7 +27,7 @@
         android:id="@+id/tripDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="15 Oct"
+        android:text=""
         android:textSize="14sp"
         android:textColor="#898989"
         android:layout_gravity="start" />
@@ -60,7 +60,7 @@
                     android:id="@+id/sourceTime"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="10:30"
+                    android:text=""
                     android:textSize="24sp"
                     android:textColor="#121212"
                     android:textStyle="bold" />
@@ -69,7 +69,7 @@
                     android:id="@+id/sourceAmPm"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="AM"
+                    android:text=""
                     android:textSize="16sp"
                     android:textColor="#121212" />
             </LinearLayout>
@@ -78,7 +78,7 @@
                 android:id="@+id/sourceLocationMain"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Pune"
+                android:text=""
                 android:textSize="16sp"
                 android:textColor="#121212"
                 android:textStyle="bold"
@@ -89,7 +89,7 @@
                 android:id="@+id/sourceLocationSub"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Maharashtra, India"
+                android:text=""
                 android:maxLines="2"
                 android:ellipsize="end"
                 android:textSize="12sp"
@@ -126,7 +126,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="12sp"
-                android:text="30 km"
+                android:text=""
                 android:textColor="#121212" />
         </LinearLayout>
 
@@ -154,7 +154,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:text="11:05"
+                    android:text=""
                     android:textColor="#121212"
                     android:textSize="24sp"
                     android:textStyle="bold" />
@@ -164,7 +164,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:text="AM"
+                    android:text=""
                     android:textColor="#121212"
                     android:textSize="16sp" />
             </LinearLayout>
@@ -173,7 +173,7 @@
                 android:id="@+id/destLocationMain"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Mumbai"
+                android:text=""
                 android:textSize="16sp"
                 android:textColor="#121212"
                 android:textStyle="bold"
@@ -186,7 +186,7 @@
                 android:id="@+id/destLocationSub"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Maharashtra, India"
+                android:text=""
                 android:textSize="12sp"
                 android:maxLines="2"
                 android:ellipsize="end"

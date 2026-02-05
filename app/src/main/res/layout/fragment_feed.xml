@@ -52,6 +52,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/headerContainer" />
 
+    <HorizontalScrollView
+        android:id="@+id/filterScroll"
+        android:layout_width="0dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@id/subHeaderText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
     <!-- Filter Section -->
     <LinearLayout
         android:id="@+id/filterContainer"
@@ -61,7 +71,7 @@
         android:layout_marginBottom="8dp"
         android:minHeight="45dp"
         android:orientation="horizontal"
-        android:weightSum="1"
+        android:weightSum="1.2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/subHeaderText">
@@ -72,7 +82,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginLeft="16dp"
-            android:layout_weight=".33"
+            android:layout_weight=".30"
             android:background="@drawable/filter_bg"
             android:drawableStart="@drawable/ic_calender"
             android:drawablePadding="16dp"
@@ -81,7 +91,7 @@
             android:padding="12dp"
             android:text="Select Date"
             android:textColor="#000000"
-            android:textSize="10sp" />
+           />
 
         <!-- Distance Filter -->
         <TextView
@@ -89,7 +99,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginStart="8dp"
-            android:layout_weight=".33"
+            android:layout_weight=".30"
             android:background="@drawable/filter_bg"
             android:drawableEnd="@drawable/ic_down_arrow"
             android:drawablePadding="16dp"
@@ -107,7 +117,7 @@
             android:layout_height="match_parent"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="16dp"
-            android:layout_weight=".33"
+            android:layout_weight=".30"
             android:background="@drawable/filter_bg"
             android:drawableEnd="@drawable/ic_down_arrow"
             android:drawablePadding="16dp"
@@ -119,8 +129,24 @@
             android:text="Time Travelled"
             android:textColor="#000000"
             android:textSize="10sp" />
-    </LinearLayout>
+        <!-- Clear Filters -->
+        <TextView
+            android:id="@+id/clearFilters"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="16dp"
+            android:layout_weight=".30"
+            android:background="@drawable/filter_bg"
+            android:gravity="center"
+            android:maxLines="1"
+            android:padding="12dp"
+            android:text="Clear"
+            android:textColor="#E53935"
+            android:textSize="10sp"
+            android:visibility="gone"/>
 
+    </LinearLayout>
+    </HorizontalScrollView>
     <!-- Zero trips text -->
     <TextView
         android:id="@+id/tvZeroTrips"
@@ -133,7 +159,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/filterContainer" />
+        app:layout_constraintTop_toBottomOf="@id/filterScroll" />
 
     <!-- RecyclerView -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -141,7 +167,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_margin="16dp"
-        app:layout_constraintTop_toBottomOf="@id/filterContainer"
+        app:layout_constraintTop_toBottomOf="@id/filterScroll"
         app:layout_constraintBottom_toTopOf="@id/pageControls"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">

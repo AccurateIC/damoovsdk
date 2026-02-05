@@ -108,25 +108,42 @@ class HomeFragment : Fragment() {
         }
 
 
-        val weekContainer = binding.weekContainer
-        val weekLine = binding.underline
+
 
         // Get today index (0 = Monday, 6 = Sunday)
         val todayIndex = Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 2
         val clampedIndex = if (todayIndex < 0) 6 else todayIndex
-
+        val weekContainer = binding.weekContainer
+        val weekLine = binding.underline
+        val weekIcon = binding.underlineIcon
         weekContainer.post {
-            // Calculate start = left of first day (Monday)
-            val startX = weekContainer.getChildAt(0).left
+            val mondayView = weekContainer.getChildAt(0)
+            val startX = mondayView.left
 
-            // Calculate end = center of today's day
             val todayView = weekContainer.getChildAt(clampedIndex)
             val endX = todayView.left + todayView.width / 2
 
-            // Set line width dynamically
             val lineWidth = endX - startX
             weekLine.layoutParams.width = lineWidth
             weekLine.requestLayout()
+
+            weekLine.visibility = View.VISIBLE
+            weekLine.pivotX = 0f
+            weekLine.scaleX = 0f
+            weekLine.animate()
+                .scaleX(1f)
+                .setDuration(1500)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+
+            val startIconX = startX - weekIcon.width / 2f
+            val endIconX = endX - weekIcon.width / 2f
+            weekIcon.x = startIconX
+            weekIcon.animate()
+                .x(endIconX)
+                .setDuration(1500)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
         }
 
         val tvDate = binding.tvdate

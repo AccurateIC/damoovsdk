@@ -139,6 +139,7 @@
                 <data android:scheme="package" />
             </intent-filter>
         </receiver>
+        <receiver android:name=".broadcastreceiver.TrackEventReceiver"/>
 
         <service
             android:name=".service.PermissionMonitorService"

@@ -48,10 +48,10 @@
     <string name="subtext_for_your_trips">You can preview your route and data from each trip, just select a trip.</string>
     <string name="my_stats">My Stats</string>
     <string name="accerlation">Accerlation</string>
-    <string name="safty_score">Safty Score</string>
-    <string name="you_are_doing_great_cowboy">You are Doing Great Cowboy!</string>
+    <string name="safty_score">Safety Score</string>
+    <string name="you_are_doing_great_cowboy">You are doing great cowboy!</string>
     <string name="stat_subtext">Your score defined you performance and your excellence!</string>
-    <string name="safty_parameters">Safty Params</string>
+    <string name="safty_parameters">Safety Params</string>
     <string name="general_parameters">General Params</string>
     <string name="sign_up_instead">Sign up instead</string>
     <string name="signup">Sign up</string>
@@ -75,4 +75,5 @@ After the API URL is successfully configured, you can navigate to the Login scre
     <string name="good_afternoon">Good Afternoon,</string>
     <string name="good_evening">Good Evening,</string>
     <string name="good_night">Good Night,</string>
+    <string name="sign_in_to_track_your_trips_and_scores">Sign in to track your trips and scores</string>
 </resources>
