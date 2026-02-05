@@ -14,11 +14,17 @@
         android:layout_margin="50dp"
         android:src="@drawable/ic_neurofleet_logo" />
 
-    <ImageView
+    <TextView
+        android:id="@+id/appNameTv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:src="@drawable/ic_app_name" />
+        android:layout_marginStart="5dp"
+        android:fontFamily="@font/museomodernomedium"
+        android:gravity="center_horizontal"
+        android:src="@drawable/ic_app_name"
+        android:text="Neurofleet"
+        android:textColor="#FF000080"
+        android:textSize="28sp" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

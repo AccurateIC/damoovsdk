@@ -37,6 +37,16 @@
                 android:padding="10dp"
                 android:src="@drawable/ic_neurofleet_logo" />
             <TextView
+                android:id="@+id/appNameTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/museomodernomedium"
+                android:gravity="center_horizontal"
+                android:src="@drawable/ic_app_name"
+                android:text="Neurofleet"
+                android:textColor="#FF000080"
+                android:textSize="20sp" />
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="4dp"
@@ -68,7 +78,7 @@
                 android:alpha="0.8"
                 android:fontFamily="@font/poppinsregular"
                 android:gravity="center"
-                android:text="Sign In to Track Your Trips and Scores"
+                android:text="@string/sign_in_to_track_your_trips_and_scores"
                 android:textColor="#898989"
                 android:textSize="14sp" />
 
